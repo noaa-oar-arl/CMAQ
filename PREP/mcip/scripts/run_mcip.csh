@@ -132,7 +132,7 @@ set InGeoDir   = $DataPath/wrf
 set OutDir     = $DataPath/mcip/$GridName
 set ProgDir    = $CMAQ_HOME/PREP/mcip/src
 set WorkDir    = $OutDir
-
+set Met_Model  = 3                 # 2 = WRF, 3 = FV3
 #-----------------------------------------------------------------------
 # Set name(s) of input meteorology file(s)
 #
@@ -158,6 +158,12 @@ set InMetFiles = ( $InMetDir/subset_wrfout_d01_2016-07-01_00:00:00 \
 
 set IfGeo      = "F"
 set InGeoFile  = $InGeoDir/geo_em_d01.nc
+
+#-----------------------------------------------------------------------
+# Set input meteorological model (2 = WRF or 3 = FV3).
+#
+set InMetModel = 3
+#-----------------------------------------------------------------------
 
 #-----------------------------------------------------------------------
 # Set user control options.

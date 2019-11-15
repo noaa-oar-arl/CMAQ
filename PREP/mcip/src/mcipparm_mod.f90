@@ -200,7 +200,7 @@ MODULE mcipparm
   INTEGER            :: ncg_x         ! coarse grid X
   INTEGER            :: ncg_y         ! coarse grid Y
 
-  INTEGER, PARAMETER :: maxlays = 100 ! max allowed in NLAYS
+  INTEGER, PARAMETER :: maxlays = 150 ! max allowed in NLAYS (increased for FV3-GFS)
 
   INTEGER, PARAMETER :: ttol_sec = 300 ! time tolerance [in seconds] for output
                                        ! from the meteorological model to
@@ -257,6 +257,8 @@ MODULE mcipparm
 !-------------------------------------------------------------------------------
 ! Run Options.
 !-------------------------------------------------------------------------------
+  INTEGER :: inmetmodel      ! user input: 2 = WRF
+                             !             3 = FV3
 
   INTEGER :: lpv             ! user input: 0 = Do not compute or output PV
                              !             1 = Compute and output PV

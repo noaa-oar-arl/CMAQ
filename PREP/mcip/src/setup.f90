@@ -103,19 +103,19 @@ SUBROUTINE setup (ctmlays)
 
 !-------------------------------------------------------------------------------
 ! Try to determine if input meteorology file is in NetCDF format or not.
-! If NetCDF format, it is probably WRF.
+! If NetCDF format, it is probably WRF or FV3.
 !-------------------------------------------------------------------------------
-
+  met_model=inmetmodel
   rcode = nf90_open (file_mm(1), nf90_nowrite, cdfid)
 
-  IF ( rcode == nf90_noerr ) THEN  ! successfully opened NetCDF file; assume WRF
+  IF ( rcode == nf90_noerr ) THEN  ! successfully opened NetCDF file; assume WRF or FV3
 
     !---------------------------------------------------------------------------
     ! If WRF, determine whether or not the Advanced Research WRF, ARW, formerly
     ! known as Eulerian mass, EM) version was used.
     !---------------------------------------------------------------------------
 
-    met_model = 2
+   IF ( met_model == 2 ) THEN
 
     rcode = nf90_get_att (cdfid, nf90_global, 'DYN_OPT', met_iversion)
     IF ( rcode /= nf90_noerr ) THEN
@@ -150,6 +150,31 @@ SUBROUTINE setup (ctmlays)
       WRITE (*,f9500) TRIM(pname), TRIM(nf90_strerror(rcode))
       CALL graceful_stop (pname)
     ENDIF
+
+   ELSE  ! FV3
+
+    rcode = nf90_get_att (cdfid, nf90_global, 'source', fv3_version)
+
+    IF ( rcode /= nf90_noerr ) THEN
+      WRITE (*,f9300) TRIM(pname), TRIM(nf90_strerror(rcode))
+      CALL graceful_stop (pname)
+    ENDIF
+
+    rcode = nf90_get_att (cdfid, nf90_global, 'grid', gridtype)
+    IF ( rcode /= nf90_noerr ) THEN
+      WRITE (*,f9300) TRIM(pname), 'grid', rcode
+      CALL graceful_stop (pname)
+    ENDIF
+
+    IF ( ( fv3_version == "FV3GFS" ) .AND. ( gridtype(1:8) == "gaussian" ) ) THEN
+      CALL setup_fv3 (cdfid, ctmlays)
+    ELSE
+      WRITE (*,f9200) TRIM(pname), fv3_version, gridtype
+      CALL graceful_stop (pname)
+    ENDIF
+
+
+   END IF
 
   ELSE  ! error opening file as NetCDF
 

@@ -47,15 +47,20 @@ MODEL = mcip.exe
 
 #...Intel Fortran
 FC      = ifort
-NETCDF = /usr/local/apps/netcdf-4.6.3/intel-18.0
-IOAPI_ROOT = /usr/local/apps/ioapi-3.2/intel-18.0
+#NETCDF = /usr/local/apps/netcdf-4.6.3/intel-18.0
+#NETCDF  =/gpfs/hps/usrx/local/prod/NetCDF/4.2/intel/haswell
+#IOAPI_ROOT = /usr/local/apps/ioapi-3.2/intel-18.0
+IOAPI_ROOT = /gpfs/hps3/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.1.8/lib/
 ###FFLAGS  = -g -O0 -check all -C -traceback -FR -I$(NETCDF)/include  \
 ###          -I$(IOAPI_ROOT)/Linux2_x86_64ifort
-FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/Linux2_x86_64ifort
-LIBS    = -L$(IOAPI_ROOT)/lib -lioapi \
-          -L$(NETCDF)/lib -lnetcdff -lnetcdf
+#FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/Linux2_x86_64ifort
+FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/sorc/aqm_ioapi_v31/Linux3_x86_64intel
+LIBS    = -L$(IOAPI_ROOT) -laqm_ioapi \
+          -L$(NETCDF)/lib -lnetcdf
 
-DEFS   = 
+
+
+/EFS   = 
 
 
 MODULES =\
@@ -133,11 +138,13 @@ OBJS =\
  pvs.o \
  qsat.o \
  rdwrfem.o \
+ rdfv3.o \
  readnml.o \
  resistcalc.o \
  setgriddefs.o \
  setup.o \
  setup_wrfem.o \
+ setup_fv3.o \
  sfclayer.o \
  statflds.o \
  vertarys.o \

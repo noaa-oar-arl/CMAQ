@@ -68,6 +68,8 @@ SUBROUTINE getmet (mcip_now)
 
   IF ( met_model == 2 ) THEN  ! WRF-ARW
     CALL rdwrfem (mcip_now)
+  ELSE IF ( met_model == 3 ) THEN  ! FV3-GFS 
+    CALL rdfv3 (mcip_now)
   ELSE
     WRITE (*,f9000) TRIM(pname), met_model
     CALL graceful_stop (pname)

@@ -178,6 +178,8 @@ SUBROUTINE alloc_met
     ALLOCATE ( pb    (met_nx, met_ny, met_nz)   )
     ALLOCATE ( ph    (met_nx, met_ny, met_nz+1) )
     ALLOCATE ( phb   (met_nx, met_ny, met_nz+1) )
+  ELSE 
+    !test
   ENDIF
 
   IF ( iflai ) THEN  ! leaf area index available

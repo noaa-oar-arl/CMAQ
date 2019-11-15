@@ -105,7 +105,7 @@ SUBROUTINE readnml
 
   NAMELIST /filenames/   file_gd, file_mm, file_geo, ioform
 
-  NAMELIST /userdefs/    lpv, lwout, luvbout,                 &
+  NAMELIST /userdefs/    inmetmodel, lpv, lwout, luvbout,     &
                          eradm, mcip_start, mcip_end, intvl,  &
                          coordnam, grdnam,                    &
                          btrim, lprt_col, lprt_row,           &
@@ -192,6 +192,11 @@ SUBROUTINE readnml
   file_gd     = "GRIDDESC"
   file_mm(:)  = " "
   file_geo    = " "
+
+!-------------------------------------------------------------------------------
+! Set default value for user-selected model (2 = WRF, 3 = FV3).
+  inmetmodel = 2
+!-------------------------------------------------------------------------------
 
 !-------------------------------------------------------------------------------
 ! Set default value for user-selected options.
@@ -319,6 +324,11 @@ SUBROUTINE readnml
 !-------------------------------------------------------------------------------
 ! Verify values of user-defined options.
 !-------------------------------------------------------------------------------
+
+  IF ( ( inmetmodel /= 2 ) .AND. ( inmetmodel /= 3 ) ) THEN
+    WRITE (*,f9300) TRIM(pname), "InMetModel", inmetmodel
+    CALL graceful_stop (pname)
+  ENDIF
 
   IF ( ( lpv /= 0 ) .AND. ( lpv /= 1 ) ) THEN
     WRITE (*,f9300) TRIM(pname), "LPV", lpv
