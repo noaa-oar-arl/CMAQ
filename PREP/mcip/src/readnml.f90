@@ -86,6 +86,7 @@ SUBROUTINE readnml
 !                        are on the Arakawa-C staggered grid, and the optional
 !                        additional 3D winds are now on the Arakawa-B staggered
 !                        grid.  (T. Spero)
+!           18 Nov 2019  Modified for FV3GFS Capability. (P. C. Campbell)
 !-------------------------------------------------------------------------------
 
   USE mcipparm

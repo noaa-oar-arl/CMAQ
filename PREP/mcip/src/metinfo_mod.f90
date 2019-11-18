@@ -64,6 +64,7 @@ MODULE metinfo
 !                        MET_LU_URBAN).  (T. Spero)
 !           22 Jun 2017  Added MET_HYBRID.  (T. Spero)
 !           14 Sep 2018  Removed support for MM5v3 input.  (T. Spero)
+!           18 Nov 2019  Modified for FV3GFS Capability. (P. C. Campbell)
 !-------------------------------------------------------------------------------
 
   IMPLICIT NONE

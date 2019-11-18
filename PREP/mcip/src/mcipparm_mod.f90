@@ -141,6 +141,7 @@ MODULE mcipparm
 !                        a flag for extra variables available with KF convective
 !                        scheme with radiative feedbacks.  (T. Spero)
 !           15 Jul 2019  Updated release stamp.  (T. Spero)
+!           18 Nov 2019  Modified for FV3GFS Capability. (P. C. Campbell)
 !-------------------------------------------------------------------------------
 
   USE m3utilio, ONLY: mxdesc3

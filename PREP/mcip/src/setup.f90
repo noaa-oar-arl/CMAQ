@@ -47,6 +47,7 @@ SUBROUTINE setup (ctmlays)
 !           07 Sep 2011  Updated disclaimer.  (T. Otte)
 !           14 Sep 2018  Removed support for MM5v3 input.  (T. Spero)
 !           15 Nov 2018  Allow WRFv4.0 input to be used.  (T. Spero)
+!           18 Nov 2019  Modified for FV3GFS Capability. (P. C. Campbell)
 !-------------------------------------------------------------------------------
 
   USE mcipparm
@@ -70,34 +71,34 @@ SUBROUTINE setup (ctmlays)
 
   CHARACTER(LEN=256), PARAMETER :: f9000 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
-    & /, 1x, '***   ERROR OPENING WRF NETCDF FILE', &
+    & /, 1x, '***   ERROR OPENING WRF or FV3 NETCDF FILE', &
     & /, 1x, '***   FILE = ', a, &
     & /, 1x, '***   NCF:  ', a, &
     & /, 1x, 70('*'))"
 
   CHARACTER(LEN=256), PARAMETER :: f9200 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
-    & /, 1x, '***   UNKNOWN WRF OUTPUT VERSION', &
+    & /, 1x, '***   UNKNOWN WRF or FV3 OUTPUT VERSION', &
     & /, 1x, '***   IVERSION = ', i3, &
     & /, 1x, '***   GRIDTYPE = ', a, &
     & /, 1x, 70('*'))"
 
   CHARACTER(LEN=256), PARAMETER :: f9300 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
-    & /, 1x, '***   ERROR RETRIEVING VARIABLE FROM WRF FILE', &
+    & /, 1x, '***   ERROR RETRIEVING VARIABLE FROM WRF or FV3 FILE', &
     & /, 1x, '***   VARIABLE = ', a, &
     & /, 1x, '***   NCF: ', a, &
     & /, 1x, 70('*'))"
 
   CHARACTER(LEN=256), PARAMETER :: f9400 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
-    & /, 1x, '***   UNKNOWN OR UNSUPPORTED WRF OUTPUT VERSION', &
+    & /, 1x, '***   UNKNOWN OR UNSUPPORTED WRF or FV3 OUTPUT VERSION', &
     & /, 1x, '***   VERSION = ', a, &
     & /, 1x, 70('*'))"
 
   CHARACTER(LEN=256), PARAMETER :: f9500 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
-    & /, 1x, '***   ERROR CLOSING WRF FILE', &
+    & /, 1x, '***   ERROR CLOSING WRF or FV3 FILE', &
     & /, 1x, '***   NCF: ', a, &
     & /, 1x, 70('*'))"
 
@@ -107,7 +108,6 @@ SUBROUTINE setup (ctmlays)
 !-------------------------------------------------------------------------------
   met_model=inmetmodel
   rcode = nf90_open (file_mm(1), nf90_nowrite, cdfid)
-
   IF ( rcode == nf90_noerr ) THEN  ! successfully opened NetCDF file; assume WRF or FV3
 
     !---------------------------------------------------------------------------
@@ -152,7 +152,6 @@ SUBROUTINE setup (ctmlays)
     ENDIF
 
    ELSE  ! FV3
-
     rcode = nf90_get_att (cdfid, nf90_global, 'source', fv3_version)
 
     IF ( rcode /= nf90_noerr ) THEN

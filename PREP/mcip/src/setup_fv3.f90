@@ -19,18 +19,18 @@
 SUBROUTINE setup_fv3 (cdfid, ctmlays)
 
 !-------------------------------------------------------------------------------
-! Name:     Set Up the WRF Domain Attributes
-! Purpose:  Establishes bounds for WRF post-processing.
-! Revised:  ?? Jun 2004  Modified from MCIP2.2 for WRF. (S.-B. Kim)
+! Name:     Set Up the FV3 Domain Attributes
+! Purpose:  Establishes bounds for FV3 post-processing.
+! Revised:  ?? Jun 2004  Modified from MCIP2.2 for FV3. (S.-B. Kim)
 !           26 May 2005  Changed vertical dimension to reflect full-layer
-!                        dimension in WRFv2 header.  Added dynamic calculation
+!                        dimension in FV3v2 header.  Added dynamic calculation
 !                        of MET_TAPFRQ.  Converted dimensions to X,Y as opposed
 !                        to the (former) convention that aligned with MM5.
 !                        Included updates from MCIPv2.3.  Added calculation of
 !                        cone factor.  Added logic for moist species, 2-m
 !                        temperature, and 10-m winds.  Added definitions for
-!                        WRF base state variables.  Added capability to use all
-!                        WRF layers for MCIP without defining a priori.
+!                        FV3 base state variables.  Added capability to use all
+!                        FV3 layers for MCIP without defining a priori.
 !                        Cleaned up code.  (T. Otte)
 !           15 Jul 2005  Added debugging on variable retrievals.  Changed check
 !                        on 3D mixing ratios from rain to ice.  Corrected RADM
@@ -50,16 +50,16 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !                        value.  (T. Otte)
 !           27 Jul 2007  Removed settings for RADMdry variable ISESN and for
 !                        MET_INHYD.  Updated read of P_TOP to account for new
-!                        method of storing "real" scalars in WRF I/O API with
-!                        WRFv2.2.  Added checks for fractional land use, leaf
+!                        method of storing "real" scalars in FV3 I/O API with
+!                        FV3v2.2.  Added checks for fractional land use, leaf
 !                        area index, Monin-Obukhov length, aerodynamic and
 !                        stomatal resistances, vegetation fraction, canopy
 !                        wetness, and soil moisture, temperature, and type in
-!                        WRF file.  Added read for number of land use
-!                        categories...new with WRFV2.2.  Added read for number
+!                        FV3 file.  Added read for number of land use
+!                        categories...new with FV3V2.2.  Added read for number
 !                        of soil layers, MET_RELEASE, MET_FDDA_3DAN and
 !                        MET_FDDA_OBS.  Set MET_FDDA_SFAN to 0 for now because
-!                        that option is not in WRF ARW as of V2.2.  Changed
+!                        that option is not in FV3 ARW as of V2.2.  Changed
 !                        MET_RADIATION into MET_LW_RAD and MET_SW_RAD.
 !                        (T. Otte)
 !           06 May 2008  Changed criteria for setting NUMMETLU when netCDF
@@ -69,31 +69,31 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !                        set flags appropriately.  Extract nudging coefficients
 !                        from header to use in metadata.  Extract whether or
 !                        not the urban canopy model was used.  (T. Otte)
-!           27 Oct 2009  Cleaned up file opening and logging in WRF I/O API to
+!           27 Oct 2009  Cleaned up file opening and logging in FV3 I/O API to
 !                        prevent condition with too many files open for long
 !                        simulations.  Added MODIFIED IGBP MODIS NOAH and 
 !                        NLCD/MODIS as land-use classification options.
 !                        Changed MET_UCMCALL to MET_URBAN_PHYS, and allowed
 !                        for variable to be set to be greater than 1.  Chnaged
 !                        code to allow for surface analysis nudging option
-!                        and coefficients to be defined per WRFv3.1.  Define
+!                        and coefficients to be defined per FV3v3.1.  Define
 !                        MET_CEN_LAT, MET_CEN_LON, MET_RICTR_DOT, MET_RJCTR_DOT,
 !                        and MET_REF_LAT.  Increased MAX_TIMES to 1000.  Compute
 !                        MET_XXCTR and MET_YYCTR.  Corrected setting for
 !                        DATE_INIT, and fill variable MET_RESTART.  Read number
-!                        of land use categories from WRF global attributes for
-!                        WRFV3.1 and beyond.  Allow output from WRF
+!                        of land use categories from FV3 global attributes for
+!                        FV3V3.1 and beyond.  Allow output from FV3
 !                        Preprocessing System (WPS) routine, GEOGRID, to provide
-!                        fractional land use output if it is unavailable in WRF
+!                        fractional land use output if it is unavailable in FV3
 !                        output.  Fill MET_P_ALP_D and MET_P_BET_D here
 !                        rather than in setgriddefs.F for Mercator.  Added
-!                        new logical variables IFLUWRFOUT and IFZNT.  (T. Otte)
+!                        new logical variables IFLUFV3OUT and IFZNT.  (T. Otte)
 !           12 Feb 2010  Removed unused variables COMM and SYSDEP_INFO.
 !                        (T. Otte)
 !           18 Mar 2010  Added CDFID as an input argument, and no longer open
-!                        and close WRF history file here.  Added CDFIDG as an
+!                        and close FV3 history file here.  Added CDFIDG as an
 !                        input argument for subroutine CHKWPSHDR.  (T. Otte)
-!           15 Dec 2010  Improved support for long MCIP runs from long WRF
+!           15 Dec 2010  Improved support for long MCIP runs from long FV3
 !                        runs by increasing MAX_TIMES to 9999.  Added
 !                        MET_RAIN_BUCKET.  (T. Otte)
 !           23 Feb 2011  Refined error checking for MET_RAIN_BUCKET.  (T. Otte)
@@ -105,17 +105,17 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !                        to GET_TIMES_CDF with explicit netCDF functions.
 !                        (T. Otte)
 !           07 Sep 2011  Updated disclaimer.  (T. Otte)
-!           21 Nov 2011  Force 2-m water vapor mixing ratio from WRF with
+!           21 Nov 2011  Force 2-m water vapor mixing ratio from FV3 with
 !                        YSU PBL to be filled with layer 1 QVAPOR to avoid
 !                        occasional Q2 < 0 in wintertime.  (T. Otte)
 !           07 Dec 2011  Removed requirement to fill nudging coefficient for
-!                        moisture when spectral nudging is used in WRF; as of
-!                        WRFv3.3.1, spectral nudging toward moisture is not
-!                        released in WRF.  Also added provision to collect
+!                        moisture when spectral nudging is used in FV3; as of
+!                        FV3v3.3.1, spectral nudging toward moisture is not
+!                        released in FV3.  Also added provision to collect
 !                        nudging coefficient for geopotential when spectral
-!                        nudging is used; was added to WRF header with WRFv3.2.
+!                        nudging is used; was added to FV3 header with FV3v3.2.
 !                        (T. Otte)
-!           21 Aug 2012  Added MET_PCP_INCR for WRFV3.2+.  (T. Otte)
+!           21 Aug 2012  Added MET_PCP_INCR for FV3V3.2+.  (T. Otte)
 !           10 Sep 2012  Added handling for 40-category 2006 NLCD-MODIS land
 !                        use classification as "NLCD40".  Added alternate name
 !                        for 50-category 2001 NLCD-MODIS land use classification
@@ -123,7 +123,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !           26 Nov 2014  Added reads of ice, lake, and urban land use indices,
 !                        and moved those definitions from getluse.f90 to this
 !                        routine.  (T. Spero)
-!           10 Apr 2015  Determine if 3D cloud fraction is part of WRF output
+!           10 Apr 2015  Determine if 3D cloud fraction is part of FV3 output
 !                        and if it represents resolved clouds.  Fill new logical
 !                        variable IFCLD3D appropriately so that if resolved
 !                        cloud fraction is available, it will be passed through
@@ -131,14 +131,14 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !           21 Aug 2015  Added flag to capture whether ACM2 was run so that
 !                        Monin-Obukhov length can be recalculated following
 !                        the "corrector" part of the predictor-corrector in
-!                        WRF/ACM2.  (T. Spero)
+!                        FV3/ACM2.  (T. Spero)
 !           17 Sep 2015  Changed IFMOLACM to IFMOLPX.  (T. Spero)
 !           21 Apr 2017  Added MODIS category 21 as "Lake".  (T. Spero)
-!           23 Jun 2017  Added a check for WRF's hybrid vertical coordinate
-!                        in WRFv3.9 and beyond.  Currently disabled MCIP when
+!           23 Jun 2017  Added a check for FV3's hybrid vertical coordinate
+!                        in FV3v3.9 and beyond.  Currently disabled MCIP when
 !                        that coordinate is detected.  To be implemented in
 !                        a later release of MCIP.  (T. Spero)
-!           09 Feb 2018  Added support for hybrid vertical coordinate in WRF
+!           09 Feb 2018  Added support for hybrid vertical coordinate in FV3
 !                        output.  Added capability to read and process data
 !                        from the NOAH Mosaic land-surface model.  (T. Spero)
 !           26 Jun 2018  Changed name of module with netCDF IO to broaden its
@@ -146,20 +146,21 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !                        (T. Spero)
 !           14 Sep 2018  Removed support for MM5v3 input.  (T. Spero)
 !           23 Nov 2018  Modify criteria to determine whether incremental
-!                        precipitation is available in WRF output.  WRFv4.0
+!                        precipitation is available in FV3 output.  FV3v4.0
 !                        allows header variable PREC_ACC_DT to appear even if
 !                        the accompanying precipitation fields are not in the
 !                        output.  (T. Spero)
 !           14 Dec 2018  Added flag (IFRCURB) to determine if fraction of urban
 !                        area is obtained from urban canopy model.  (T. Spero)
 !           10 May 2019  Removed layer collapsing.  (T. Spero)
-!           18 Jun 2019  Added a flag (IFPXWRF41) to determine of new surface
+!           18 Jun 2019  Added a flag (IFPXFV341) to determine of new surface
 !                        variables with PX LSM are available to improve dust
 !                        simulation in CCTM.  Added a flag (IFCURADFDBK) to
 !                        indicate if the convective scheme included radiative
 !                        feedbacks.  Added a flag (IFKFRADEXTRAS) for extra
 !                        variables available with KF convective scheme with
 !                        radiative feedbacks.  (T. Spero)
+!           18 Nov 2019  Modified for FV3GFS Capability. (P. C. Campbell)
 !-------------------------------------------------------------------------------
 
   USE metinfo
@@ -182,8 +183,8 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   INTEGER                           :: dimids     ( nf90_max_var_dims )
   REAL,               ALLOCATABLE   :: dum1d      ( : )
   REAL,               ALLOCATABLE   :: dum2d      ( : , : )
-  REAL                              :: dx
-  REAL                              :: dy
+!  REAL                              :: dx
+!  REAL                              :: dy
   REAL                              :: fac
   CHARACTER(LEN=256)                :: fl
   CHARACTER(LEN=256)                :: fl2
@@ -206,22 +207,21 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   INTEGER                           :: n_times
   INTEGER                           :: nxm
   INTEGER                           :: nym
-  CHARACTER(LEN=16),  PARAMETER     :: pname      = 'SETUP_WRFEM'
+  CHARACTER(LEN=16),  PARAMETER     :: pname      = 'SETUP_FV3'
   INTEGER                           :: rcode
   REAL                              :: rval
   CHARACTER(LEN=19),  ALLOCATABLE   :: times      ( : )
   CHARACTER(LEN=19),  ALLOCATABLE   :: times2     ( : )
   INTEGER                           :: varid
-  CHARACTER(LEN=80)                 :: wrfversion
-
+  CHARACTER(LEN=80)                 :: fv3version
 !-------------------------------------------------------------------------------
 ! Error, warning, and informational messages.
 !-------------------------------------------------------------------------------
 
   CHARACTER(LEN=256), PARAMETER :: f6000 = "(/, 1x, &
-    & '- SUBROUTINE SETUP_WRFEM - READING WRF HEADER')"
+    & '- SUBROUTINE SETUP_FV3 - READING FV3 HEADER')"
   CHARACTER(LEN=256), PARAMETER :: f6100 = "(3x, &
-    & 'WRF GRID DIMENSIONS (X,Y,Z) ', i4, 1x, i4, 1x, i3, //)"
+    & 'FV3 GRID DIMENSIONS (X,Y,Z) ', i4, 1x, i4, 1x, i3, //)"
 
   CHARACTER(LEN=256), PARAMETER :: f9000 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
@@ -237,7 +237,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 
   CHARACTER(LEN=256), PARAMETER :: f9225 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
-    & /, 1x, '***   QCLOUD NOT FOUND IN WRF OUTPUT...STOPPING', &
+    & /, 1x, '***   QCLOUD NOT FOUND IN FV3 OUTPUT...STOPPING', &
     & /, 1x, 70('*'))"
 
   CHARACTER(LEN=256), PARAMETER :: f9250 = "(/, 1x, 70('*'), &
@@ -258,28 +258,28 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 
   CHARACTER(LEN=256), PARAMETER :: f9400 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
-    & /, 1x, '***   ERROR RETRIEVING VARIABLE FROM WRF FILE', &
+    & /, 1x, '***   ERROR RETRIEVING VARIABLE FROM FV3 FILE', &
     & /, 1x, '***   VARIABLE = ', a, &
     & /, 1x, '***   NCF: ', a, &
     & /, 1x, 70('*'))"
 
   CHARACTER(LEN=256), PARAMETER :: f9410 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
-    & /, 1x, '***   ERROR RETRIEVING NCF ID FROM WRF FILE', &
+    & /, 1x, '***   ERROR RETRIEVING NCF ID FROM FV3 FILE', &
     & /, 1x, '***   VARIABLE = ', a, &
     & /, 1x, '***   NCF: ', a, &
     & /, 1x, 70('*'))"
 
   CHARACTER(LEN=256), PARAMETER :: f9420 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
-    & /, 1x, '***   ERROR INQUIRING ABOUT VAR IN WRF FILE', &
+    & /, 1x, '***   ERROR INQUIRING ABOUT VAR IN FV3 FILE', &
     & /, 1x, '***   VARIABLE = ', a, &
     & /, 1x, '***   NCF: ', a, &
     & /, 1x, 70('*'))"
 
   CHARACTER(LEN=256), PARAMETER :: f9430 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
-    & /, 1x, '***   ERROR RETRIEVING DIMS FROM WRF FILE', &
+    & /, 1x, '***   ERROR RETRIEVING DIMS FROM FV3 FILE', &
     & /, 1x, '***   VARIABLE = ', a, &
     & /, 1x, '***   NCF: ', a, &
     & /, 1x, 70('*'))"
@@ -292,21 +292,21 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 
   CHARACTER(LEN=256), PARAMETER :: f9550 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
-    & /, 1x, '***   NEED PRECIPITATION ACCUMULATION IN WRF TO MATCH', &
+    & /, 1x, '***   NEED PRECIPITATION ACCUMULATION IN FV3 TO MATCH', &
     & /, 1x, '***   MCIP OUTPUT INTERVAL', &
-    & /, 1x, '***   PREC_ACC_DT from WRF: ', i4, &
+    & /, 1x, '***   PREC_ACC_DT from FV3: ', i4, &
     & /, 1x, '***   INTVL from MCIP: ', i4, &
     & /, 1x, 70('*'))"
 
   CHARACTER(LEN=256), PARAMETER :: f9600 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
-    & /, 1x, '***   ERROR OPENING WRF NETCDF FILE', &
+    & /, 1x, '***   ERROR OPENING FV3 NETCDF FILE', &
     & /, 1x, '***   FILE = ', a, &
     & /, 1x, 70('*'))"
 
   CHARACTER(LEN=256), PARAMETER :: f9700 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
-    & /, 1x, '***   ERROR CLOSING WRF NETCDF FILE', &
+    & /, 1x, '***   ERROR CLOSING FV3 NETCDF FILE', &
     & /, 1x, '***   FILE = ', a, &
     & /, 1x, 70('*'))"
 
@@ -320,19 +320,18 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !-------------------------------------------------------------------------------
 ! Extract NX, NY, and NZ.
 !-------------------------------------------------------------------------------
-
   WRITE (*,f6000)
 
   fl = file_mm(1)
 
-  rcode = nf90_get_att (cdfid, nf90_global, 'WEST-EAST_GRID_DIMENSION', met_nx)
+  rcode = nf90_get_att (cdfid, nf90_global, 'im', met_nx)
   IF ( rcode /= nf90_noerr ) THEN
     WRITE (*,f9400) TRIM(pname), 'WEST-EAST_GRID_DIMENSION',  &
                     TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
 
-  rcode = nf90_get_att (cdfid, nf90_global, 'SOUTH-NORTH_GRID_DIMENSION',  &
+  rcode = nf90_get_att (cdfid, nf90_global, 'jm',  &
                         met_ny)
   IF ( rcode /= nf90_noerr ) THEN
     WRITE (*,f9400) TRIM(pname), 'SOUTH-NORTH_GRID_DIMENSION',  &
@@ -340,7 +339,13 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     CALL graceful_stop (pname)
   ENDIF
 
-  rcode = nf90_get_att (cdfid, nf90_global, 'BOTTOM-TOP_GRID_DIMENSION', ival)
+  rcode = nf90_inq_dimid (cdfid, 'phalf', dimid)
+  IF ( rcode /= nf90_noerr ) THEN
+    WRITE (*,f9400) TRIM(pname), 'ID for phalf',  &
+                    TRIM(nf90_strerror(rcode))
+    CALL graceful_stop (pname)
+  ENDIF
+  rcode = nf90_inquire_dimension (cdfid, dimid, len=ival)
   IF ( rcode /= nf90_noerr ) THEN
     WRITE (*,f9400) TRIM(pname), 'BOTTOM-TOP_GRID_DIMENSION',  &
                     TRIM(nf90_strerror(rcode))
@@ -349,19 +354,20 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     met_nz = ival - 1
   ENDIF
 
+
   WRITE (*,f6100) met_nx, met_ny, met_nz
 
   met_rictr_dot = FLOAT(met_nx - 1) / 2.0 + 1.0
   met_rjctr_dot = FLOAT(met_ny - 1) / 2.0 + 1.0
 
 !-------------------------------------------------------------------------------
-! If layer structure was not defined in user namelist, use WRF layers.
+! If layer structure was not defined in user namelist, use FV3 layers.
 !-------------------------------------------------------------------------------
 
   nlays = met_nz
-  CALL get_var_1d_real_cdf (cdfid, 'ZNW', ctmlays(1:nlays+1), 1, rcode)
+  CALL get_var_1d_real_cdf (cdfid, 'phalf', ctmlays(1:nlays+1), 1, rcode)
   IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'ZNW', TRIM(nf90_strerror(rcode))
+    WRITE (*,f9400) TRIM(pname), 'phalf', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
 
@@ -369,30 +375,30 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 ! Extract domain attributes.
 !-------------------------------------------------------------------------------
 
-   rcode = nf90_get_att (cdfid, nf90_global, 'TITLE', wrfversion)
+   rcode = nf90_get_att (cdfid, nf90_global, 'source', fv3version)
    IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'TITLE', TRIM(nf90_strerror(rcode))
+    WRITE (*,f9400) TRIM(pname), 'source', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
 
-  rcode = nf90_get_att (cdfid, nf90_global, 'DX', dx)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'DX', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
-
-  rcode = nf90_get_att (cdfid, nf90_global, 'DY', dy)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'DY', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
-
-  IF (dx == dy) THEN
-    met_resoln = dx
-  ELSE
-    WRITE (*,f9000) TRIM(pname), dx, dy
-    CALL graceful_stop (pname)
-  ENDIF
+!  rcode = nf90_get_att (cdfid, nf90_global, 'DX', dx)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'DX', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!
+!  rcode = nf90_get_att (cdfid, nf90_global, 'DY', dy)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'DY', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!
+!  IF (dx == dy) THEN
+!    met_resoln = dx
+!  ELSE
+!    WRITE (*,f9000) TRIM(pname), dx, dy
+!    CALL graceful_stop (pname)
+!  ENDIF
 
   met_nxcoarse = met_nx 
   met_nycoarse = met_ny
@@ -400,137 +406,160 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   met_x_11     = 1
   met_y_11     = 1
 
-  rcode = nf90_get_att (cdfid, nf90_global, 'MAP_PROJ', met_mapproj)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'MAP_PROJ', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
+!  rcode = nf90_get_att (cdfid, nf90_global, 'grid', met_mapproj)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'MAP_PROJ', TRIM(nf90_strerror(rcode))
+!   CALL graceful_stop (pname)
+!  ENDIF
 
-  rcode = nf90_get_att (cdfid, nf90_global, 'STAND_LON', met_proj_clon)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'STAND_LON', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
+!  rcode = nf90_get_att (cdfid, nf90_global, 'STAND_LON', met_proj_clon)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'STAND_LON', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!
+!  rcode = nf90_get_att (cdfid, nf90_global, 'MOAD_CEN_LAT', met_proj_clat)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'MOAD_CEN_LAT', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!
+!  rcode = nf90_get_att (cdfid, nf90_global, 'CEN_LON', met_cen_lon)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'CEN_LON', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!  met_x_centd = met_cen_lon
+!
+!  rcode = nf90_get_att (cdfid, nf90_global, 'CEN_LAT', met_cen_lat)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'CEN_LAT', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!  met_y_centd = met_cen_lat
+!
+!  rcode = nf90_get_att (cdfid, nf90_global, 'TRUELAT1', met_tru1)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'TRUELAT1', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!
+!  rcode = nf90_get_att (cdfid, nf90_global, 'TRUELAT2', met_tru2)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'TRUELAT2', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
 
-  rcode = nf90_get_att (cdfid, nf90_global, 'MOAD_CEN_LAT', met_proj_clat)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'MOAD_CEN_LAT', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
+!  SELECT CASE ( met_mapproj )
 
-  rcode = nf90_get_att (cdfid, nf90_global, 'CEN_LON', met_cen_lon)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'CEN_LON', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
-  met_x_centd = met_cen_lon
-
-  rcode = nf90_get_att (cdfid, nf90_global, 'CEN_LAT', met_cen_lat)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'CEN_LAT', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
-  met_y_centd = met_cen_lat
-
-  rcode = nf90_get_att (cdfid, nf90_global, 'TRUELAT1', met_tru1)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'TRUELAT1', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
-
-  rcode = nf90_get_att (cdfid, nf90_global, 'TRUELAT2', met_tru2)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'TRUELAT2', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
-
-  SELECT CASE ( met_mapproj )
+!    CASE (1)    
+!      met_p_alp_d  = MIN(met_tru1, met_tru2)  ! true latitude 1  [degrees]
+!      met_p_bet_d  = MAX(met_tru1, met_tru2)  ! true latitude 2  [degrees]
+!      met_p_gam_d  = met_proj_clon            ! central meridian [degrees]
+!      IF ( met_proj_clat < 0.0 ) THEN
+!        fac = -1.0  ! Southern Hemisphere
+!      ELSE
+!        fac =  1.0  ! Northern Hemisphere
+!      ENDIF
+!      IF ( ABS(met_tru1 - met_tru2) > 1.0e-1 ) THEN
+!        met_cone_fac = ALOG10(COS(met_tru1 * pi180)) -  &
+!                       ALOG10(COS(met_tru2 * pi180))
+!        met_cone_fac = met_cone_fac /                                      &
+!                       ( ALOG10(TAN((45.0 - fac*met_tru1/2.0) * pi180)) -  &
+!                         ALOG10(TAN((45.0 - fac*met_tru2/2.0) * pi180)) )
+!      ELSE
+!        met_cone_fac = fac * SIN(met_tru1*pi180)
+!      ENDIF
+!
+!      IF ( wrf_lc_ref_lat > -999.0 ) THEN
+!        met_ref_lat = wrf_lc_ref_lat
+!      ELSE
+!        met_ref_lat = ( met_tru1 + met_tru2 ) * 0.5
+!      ENDIF
+!
+!      CALL ll2xy_lam (met_cen_lat, met_cen_lon, met_tru1, met_tru2,  &
+!                      met_proj_clon, met_ref_lat, met_xxctr, met_yyctr)
     
-    CASE (1)  ! Lambert conformal 
-      met_p_alp_d  = MIN(met_tru1, met_tru2)  ! true latitude 1  [degrees]
-      met_p_bet_d  = MAX(met_tru1, met_tru2)  ! true latitude 2  [degrees]
-      met_p_gam_d  = met_proj_clon            ! central meridian [degrees]
-      IF ( met_proj_clat < 0.0 ) THEN
-        fac = -1.0  ! Southern Hemisphere
-      ELSE
-        fac =  1.0  ! Northern Hemisphere
-      ENDIF
-      IF ( ABS(met_tru1 - met_tru2) > 1.0e-1 ) THEN
-        met_cone_fac = ALOG10(COS(met_tru1 * pi180)) -  &
-                       ALOG10(COS(met_tru2 * pi180))
-        met_cone_fac = met_cone_fac /                                      &
-                       ( ALOG10(TAN((45.0 - fac*met_tru1/2.0) * pi180)) -  &
-                         ALOG10(TAN((45.0 - fac*met_tru2/2.0) * pi180)) )
-      ELSE
-        met_cone_fac = fac * SIN(met_tru1*pi180)
-      ENDIF
+!    CASE (2)  ! polar stereographic
+!      met_p_alp_d  = SIGN(1.0, met_y_centd)   ! +/-1.0 for North/South Pole
+!      met_p_bet_d  = met_tru1                 ! true latitude    [degrees]
+!      met_p_gam_d  = met_proj_clon            ! central meridian [degrees]
+!      met_cone_fac = 1.0                      ! cone factor
+!      met_ref_lat  = -999.0                   ! not used
+!
+!      CALL ll2xy_ps (met_cen_lat, met_cen_lon, met_tru1, met_proj_clon,  &
+!                     met_xxctr, met_yyctr)
+!    
+!    CASE (3)  ! Mercator
+!      met_p_alp_d  = 0.0                      ! lat of coord origin [deg]
+!      met_p_bet_d  = 0.0                      ! (not used)
+!      met_p_gam_d  = met_proj_clon            ! lon of coord origin [deg]
+!      met_cone_fac = 0.0                      ! cone factor
+!      met_ref_lat  = -999.0                   ! not used
+!
+!      CALL ll2xy_merc (met_cen_lat, met_cen_lon, met_proj_clon,  &
+!                       met_xxctr, met_yyctr)
+!    
+!    CASE DEFAULT
+!      met_p_bet_d  = fillreal                 ! missing
+!      met_p_alp_d  = fillreal                 ! missing
+!      met_p_gam_d  = fillreal                 ! missing
+!      met_cone_fac = fillreal                 ! missing
+!      met_ref_lat  = fillreal                 ! missing
+!  
+!  END SELECT
 
-      IF ( wrf_lc_ref_lat > -999.0 ) THEN
-        met_ref_lat = wrf_lc_ref_lat
-      ELSE
-        met_ref_lat = ( met_tru1 + met_tru2 ) * 0.5
-      ENDIF
-
-      CALL ll2xy_lam (met_cen_lat, met_cen_lon, met_tru1, met_tru2,  &
-                      met_proj_clon, met_ref_lat, met_xxctr, met_yyctr)
-    
-    CASE (2)  ! polar stereographic
-      met_p_alp_d  = SIGN(1.0, met_y_centd)   ! +/-1.0 for North/South Pole
-      met_p_bet_d  = met_tru1                 ! true latitude    [degrees]
-      met_p_gam_d  = met_proj_clon            ! central meridian [degrees]
-      met_cone_fac = 1.0                      ! cone factor
-      met_ref_lat  = -999.0                   ! not used
-
-      CALL ll2xy_ps (met_cen_lat, met_cen_lon, met_tru1, met_proj_clon,  &
-                     met_xxctr, met_yyctr)
-    
-    CASE (3)  ! Mercator
+!     FV3 Gaussian Global Grid
+      met_proj_clon  = 0.0
       met_p_alp_d  = 0.0                      ! lat of coord origin [deg]
       met_p_bet_d  = 0.0                      ! (not used)
       met_p_gam_d  = met_proj_clon            ! lon of coord origin [deg]
       met_cone_fac = 0.0                      ! cone factor
       met_ref_lat  = -999.0                   ! not used
+                                              
+      met_cen_lat  = 90.0
+      met_cen_lon  = 360.0
 
-      CALL ll2xy_merc (met_cen_lat, met_cen_lon, met_proj_clon,  &
+      CALL ll2xy_gau (met_cen_lat, met_cen_lon, met_proj_clon,  &
                        met_xxctr, met_yyctr)
-    
-    CASE DEFAULT
-      met_p_bet_d  = fillreal                 ! missing
-      met_p_alp_d  = fillreal                 ! missing
-      met_p_gam_d  = fillreal                 ! missing
-      met_cone_fac = fillreal                 ! missing
-      met_ref_lat  = fillreal                 ! missing
-  
-  END SELECT
+
+      WRITE(*,*), met_xxctr, met_yyctr
 
 !-------------------------------------------------------------------------------
 ! Extract model run options.
 !-------------------------------------------------------------------------------
 
-  rcode = nf90_get_att (cdfid, nf90_global, 'MMINLU', met_lu_src)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'MMINLU', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
+!  rcode = nf90_get_att (cdfid, nf90_global, 'MMINLU', met_lu_src)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'MMINLU', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!
+!  rcode = nf90_get_att (cdfid, nf90_global, 'ISWATER', met_lu_water)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'ISWATER', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!
+!  rcode = nf90_inq_dimid (cdfid, 'soil_layers_stag', dimid)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'ID for soil_layers_stag',  &
+!                    TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!  rcode = nf90_inquire_dimension (cdfid, dimid, len=met_ns)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'value for soil_layers_stag',  &
+!                    TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
 
-  rcode = nf90_get_att (cdfid, nf90_global, 'ISWATER', met_lu_water)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'ISWATER', TRIM(nf90_strerror(rcode))
+   rcode = nf90_get_att (cdfid, nf90_global, 'nsoil', met_ns)
+   IF ( rcode /= nf90_noerr ) THEN
+    WRITE (*,f9400) TRIM(pname), 'value for soil layers', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
-  ENDIF
+   ENDIF
 
-  rcode = nf90_inq_dimid (cdfid, 'soil_layers_stag', dimid)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'ID for soil_layers_stag',  &
-                    TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
-  rcode = nf90_inquire_dimension (cdfid, dimid, len=met_ns)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'value for soil_layers_stag',  &
-                    TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
 
   ! Determine if NOAH Mosaic was run and created the correct output fields.
   ! Note that this code is temporarily modified later in this subroutine to
@@ -572,12 +601,12 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   ENDIF
 
 
-  ! NUM_LAND_CAT was added in WRFv3.1 to define number of land use categories.
-  ! "land_cat_stag" was added in WRFv2.2 to define fractional land use.
-  ! Older WRF runs do not include this dimension and they are restricted
+  ! NUM_LAND_CAT was added in FV3v3.1 to define number of land use categories.
+  ! "land_cat_stag" was added in FV3v2.2 to define fractional land use.
+  ! Older FV3 runs do not include this dimension and they are restricted
   ! to 24-category USGS land cover.
 
-  IF ( wrfversion(18:22) >= "V3.1" ) THEN  ! WRFv3.1 or later
+  IF ( fv3version(18:22) >= "V3.1" ) THEN  ! FV3v3.1 or later
 
     rcode = nf90_get_att (cdfid, nf90_global, 'NUM_LAND_CAT', nummetlu)
     IF ( rcode /= nf90_noerr ) THEN
@@ -608,8 +637,8 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     IF ( rcode /= nf90_noerr ) THEN  ! only exists with fractional land use
       SELECT CASE ( met_lu_src(1:3) )
         CASE ( "USG" )  ! USGS -- typically 24, but can be up to 33 in V2.2+
-          IF ( ( wrfversion(18:21) == "V2.2" ) .OR.  &
-               ( wrfversion(18:19) == "V3"   ) ) THEN
+          IF ( ( fv3version(18:21) == "V2.2" ) .OR.  &
+               ( fv3version(18:19) == "V3"   ) ) THEN
             nummetlu = 33
           ELSE
             nummetlu = 24
@@ -635,7 +664,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
           met_lu_water = 17
           met_lu_ice   = 15
           met_lu_urban = 13
-          IF ( wrfversion(18:22) >= "V3.8" ) THEN  ! WRFv3.8 or later
+          IF ( fv3version(18:22) >= "V3.8" ) THEN  ! FV3v3.8 or later
             met_lu_lake = 21
           ELSE
             met_lu_lake = -1
@@ -714,7 +743,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 
   ! Determine if an urban model was used.
 
-  IF ( wrfversion(18:21) >= "V3.1" ) THEN
+  IF ( fv3version(18:21) >= "V3.1" ) THEN
 
     rcode = nf90_get_att (cdfid, nf90_global, 'SF_URBAN_PHYSICS',  &
                           met_urban_phys)
@@ -724,7 +753,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
       CALL graceful_stop (pname)
     ENDIF
 
-  ELSE IF ( wrfversion(18:21) == "V3.0" ) THEN
+  ELSE IF ( fv3version(18:21) == "V3.0" ) THEN
 
     rcode = nf90_get_att (cdfid, nf90_global, 'UCMCALL', met_urban_phys)
     IF ( rcode /= nf90_noerr ) THEN
@@ -765,7 +794,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 
   ! Determine if shallow convection was used.
 
-  IF ( wrfversion(18:21) >= "V3.3" ) THEN
+  IF ( fv3version(18:21) >= "V3.3" ) THEN
 
     rcode = nf90_get_att (cdfid, nf90_global, 'SHCU_PHYSICS', met_shal_cu)
     IF ( rcode /= nf90_noerr ) THEN
@@ -791,11 +820,11 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 
   ENDIF
 
-  met_snow_opt = 1  ! not used for WRF yet
+  met_snow_opt = 1  ! not used for FV3 yet
 
   rcode = nf90_get_att (cdfid, nf90_global, 'BUCKET_MM', met_rain_bucket)
   IF ( rcode /= nf90_noerr ) THEN
-    IF ( wrfversion(18:22) >= "V3.2" ) then  ! BUCKET_MM implemented in WRFv3.2
+    IF ( fv3version(18:22) >= "V3.2" ) then  ! BUCKET_MM implemented in FV3v3.2
       WRITE (*,f9400) TRIM(pname), 'BUCKET_MM', TRIM(nf90_strerror(rcode))
       CALL graceful_stop (pname)
     ELSE
@@ -805,7 +834,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 
   rcode = nf90_get_att (cdfid, nf90_global, 'PREC_ACC_DT', rval)
   IF ( rcode /= nf90_noerr ) THEN
-    IF ( wrfversion(18:22) >= "V3.2" ) then  ! PREC_ACC_DT added in WRFv3.2
+    IF ( fv3version(18:22) >= "V3.2" ) then  ! PREC_ACC_DT added in FV3v3.2
       WRITE (*,f9400) TRIM(pname), 'PREC_ACC_DT', TRIM(nf90_strerror(rcode))
       CALL graceful_stop (pname)
     ELSE
@@ -833,7 +862,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   ! scheme.
 
   rcode = nf90_get_att (cdfid, nf90_global, 'ICLOUD_CU', ival)
-  IF ( rcode == nf90_noerr ) THEN  ! new enough version of WRF
+  IF ( rcode == nf90_noerr ) THEN  ! new enough version of FV3
     SELECT CASE ( ival )
       CASE ( 0 )
         ifcuradfdbk = .FALSE.
@@ -847,7 +876,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   ENDIF
 
 !-------------------------------------------------------------------------------
-! Extract WRF start date and time information.
+! Extract FV3 start date and time information.
 !-------------------------------------------------------------------------------
 
   rcode = nf90_get_att (cdfid, nf90_global, 'SIMULATION_START_DATE', date_init)
@@ -954,14 +983,14 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 
 !-------------------------------------------------------------------------------
 ! Set variables for non-hydrostatic base state.  There is no option for
-! hydrostatic run in WRF.  The base state variables are not currently output
-! (as of WRFv2.2), so fill in "default" values from WRF namelist.
+! hydrostatic run in FV3.  The base state variables are not currently output
+! (as of FV3v2.2), so fill in "default" values from FV3 namelist.
 !
-! Note:  In WRFv2.2 NCAR changed the way "real" scalars (e.g., P_TOP) are
-!        stored in the WRF I/O API.
+! Note:  In FV3v2.2 NCAR changed the way "real" scalars (e.g., P_TOP) are
+!        stored in the FV3 I/O API.
 !-------------------------------------------------------------------------------
 
-  IF ( (wrfversion(18:21) == "V2.2") .OR. (wrfversion(18:19) >= "V3") ) THEN
+  IF ( (fv3version(18:21) == "V2.2") .OR. (fv3version(18:19) >= "V3") ) THEN
     CALL get_var_real_cdf (cdfid, 'P_TOP', met_ptop, rcode)
   ELSE
     ALLOCATE ( dum1d ( 1 ) )
@@ -980,25 +1009,25 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   met_tiso  = fillreal ! base state stratospheric isothermal T [K]  ! not used
 
 !-------------------------------------------------------------------------------
-! Determine WRF release.
+! Determine FV3 release.
 !-------------------------------------------------------------------------------
 
   met_release = '        '
 
-  IF ( wrfversion(18:18) == "V" ) THEN
-    met_release(1:2) = wrfversion(18:19)
+  IF ( fv3version(18:18) == "V" ) THEN
+    met_release(1:2) = fv3version(18:19)
   ENDIF
 
-  IF ( wrfversion(20:20) == '.' ) THEN
-    met_release(3:4) = wrfversion(20:21)
+  IF ( fv3version(20:20) == '.' ) THEN
+    met_release(3:4) = fv3version(20:21)
   ENDIF
 
-  IF ( wrfversion(22:22) == '.' ) THEN
-    met_release(5:6) = wrfversion(22:23)
+  IF ( fv3version(22:22) == '.' ) THEN
+    met_release(5:6) = fv3version(22:23)
   ENDIF
 
-  IF ( wrfversion(24:24) == '.' ) THEN
-    met_release(7:8) = wrfversion(24:25)
+  IF ( fv3version(24:24) == '.' ) THEN
+    met_release(7:8) = fv3version(24:25)
   ENDIF
 
 !-------------------------------------------------------------------------------
@@ -1100,7 +1129,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     ENDIF
 
   ELSE
-    met_fdda_sfan  =  0  ! sfc analysis nudging not in WRF until V3.1
+    met_fdda_sfan  =  0  ! sfc analysis nudging not in FV3 until V3.1
     met_fdda_gvsfc = -1.0
     met_fdda_gtsfc = -1.0
     met_fdda_gqsfc = -1.0
@@ -1160,9 +1189,9 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   rcode = nf90_inq_varid (cdfid, 'LANDUSEF', varid)
   IF ( rcode == nf90_noerr ) THEN
     iflufrc    = .TRUE.   ! fractional land use is available
-    ifluwrfout = .TRUE.   ! fractional land use is located in WRF history file
+    ifluwrfout = .TRUE.   ! fractional land use is located in FV3 history file
   ELSE
-    ifluwrfout = .FALSE.  ! fractional land use is not available in WRF history
+    ifluwrfout = .FALSE.  ! fractional land use is not available in FV3 history
     geofile = TRIM( file_geo )
     INQUIRE ( FILE=geofile, EXIST=ifgeo )
     IF ( .NOT. ifgeo ) THEN
@@ -1200,13 +1229,13 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     IF ( rcode == nf90_noerr ) THEN
       rcode = nf90_inq_varid (cdfid, 'MOSAIC_CAT_INDEX', varid)
       IF ( rcode == nf90_noerr ) THEN
-        iflu2wrfout = .TRUE.   ! lookup for LANDUSEF2 is in WRF history
+        iflu2wrfout = .TRUE.   ! lookup for LANDUSEF2 is in FV3 history
       ELSE
         iflu2wrfout = .FALSE.
         ifmosaic    = .FALSE.
       ENDIF
     ELSE
-      iflu2wrfout = .FALSE.  ! frac land use 2 is not available in WRF history
+      iflu2wrfout = .FALSE.  ! frac land use 2 is not available in FV3 history
       ifmosaic    = .FALSE.
     ENDIF
   ELSE
@@ -1290,7 +1319,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     ifmol = .FALSE. ! (inverse) Monin-Obukhov length is not in the file
   ENDIF
 
-  IF ( met_soil_lsm == 7 ) THEN  ! PX was used in WRF
+  IF ( met_soil_lsm == 7 ) THEN  ! PX was used in FV3
     ifmolpx = .TRUE.
     rcode = nf90_inq_varid (cdfid, 'LAI_PX', varid)  ! there are 7 variables
     rcode = rcode + nf90_inq_varid (cdfid, 'WWLT_PX', varid)
@@ -1377,7 +1406,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     ifznt = .FALSE. ! roughness length is not in the file
   ENDIF
 
-  IF ( met_cumulus == 1 .AND. ifcuradfdbk ) THEN  ! KF-Rad was used in WRF
+  IF ( met_cumulus == 1 .AND. ifcuradfdbk ) THEN  ! KF-Rad was used in FV3
     rcode = nf90_inq_varid (cdfid, 'QC_CU', varid)  ! there are 4 variables
     rcode = rcode + nf90_inq_varid (cdfid, 'QI_CU', varid)
     rcode = rcode + nf90_inq_varid (cdfid, 'CLDFRA_DP', varid)
@@ -1396,7 +1425,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 ! mixing ratio and rain water mixing ratio will occur together.  Also assume
 ! that cloud ice mixing ratio and cloud snow mixing ratio will occur together,
 ! but check for availability.  Check for graupel, as well.
-! Note:  In WRFv2.1.2 and prior, the Eta/Ferrier microphysics scheme only
+! Note:  In FV3v2.1.2 and prior, the Eta/Ferrier microphysics scheme only
 ! outputs QCLOUD which represents total condensate, not cloud water mixing
 ! ratio.  CMAQv4.6 and prior cannot handle this field, so MCIP will stop in
 ! this case.
@@ -1449,9 +1478,9 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   ENDIF
 
 !-------------------------------------------------------------------------------
-! Determine whether 3D resolved cloud fraction is part of WRF output.  If
+! Determine whether 3D resolved cloud fraction is part of FV3 output.  If
 ! Kain-Fritsch scheme with radiative feedbacks to subgrid clouds is used (new
-! in WRFv3.6) or if MSKF is used (new in WRFv3.7) in WRF, then the 3D cloud
+! in FV3v3.6) or if MSKF is used (new in FV3v3.7) in FV3, then the 3D cloud
 ! fraction includes both resolved and subgrid clouds.
 !-------------------------------------------------------------------------------
 
@@ -1477,8 +1506,8 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   ENDIF
 
 !-------------------------------------------------------------------------------
-! Determine if the hybrid vertical coordinate has been used in WRF.  It is
-! available as of WRFv3.9.
+! Determine if the hybrid vertical coordinate has been used in FV3.  It is
+! available as of FV3v3.9.
 !-------------------------------------------------------------------------------
 
   IF ( TRIM(met_release) >= "V3.9") THEN
