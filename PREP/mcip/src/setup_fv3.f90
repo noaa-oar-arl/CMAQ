@@ -23,7 +23,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 ! Purpose:  Establishes bounds for FV3 post-processing.
 ! Revised:  ?? Jun 2004  Modified from MCIP2.2 for FV3. (S.-B. Kim)
 !           26 May 2005  Changed vertical dimension to reflect full-layer
-!                        dimension in FV3v2 header.  Added dynamic calculation
+!                        dimension in FV3 header.  Added dynamic calculation
 !                        of MET_TAPFRQ.  Converted dimensions to X,Y as opposed
 !                        to the (former) convention that aligned with MM5.
 !                        Included updates from MCIPv2.3.  Added calculation of
@@ -51,7 +51,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !           27 Jul 2007  Removed settings for RADMdry variable ISESN and for
 !                        MET_INHYD.  Updated read of P_TOP to account for new
 !                        method of storing "real" scalars in FV3 I/O API with
-!                        FV3v2.2.  Added checks for fractional land use, leaf
+!                        FV3.  Added checks for fractional land use, leaf
 !                        area index, Monin-Obukhov length, aerodynamic and
 !                        stomatal resistances, vegetation fraction, canopy
 !                        wetness, and soil moisture, temperature, and type in
@@ -76,7 +76,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !                        Changed MET_UCMCALL to MET_URBAN_PHYS, and allowed
 !                        for variable to be set to be greater than 1.  Chnaged
 !                        code to allow for surface analysis nudging option
-!                        and coefficients to be defined per FV3v3.1.  Define
+!                        and coefficients to be defined per FV3.  Define
 !                        MET_CEN_LAT, MET_CEN_LON, MET_RICTR_DOT, MET_RJCTR_DOT,
 !                        and MET_REF_LAT.  Increased MAX_TIMES to 1000.  Compute
 !                        MET_XXCTR and MET_YYCTR.  Corrected setting for
@@ -110,7 +110,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !                        occasional Q2 < 0 in wintertime.  (T. Otte)
 !           07 Dec 2011  Removed requirement to fill nudging coefficient for
 !                        moisture when spectral nudging is used in FV3; as of
-!                        FV3v3.3.1, spectral nudging toward moisture is not
+!                        FV3, spectral nudging toward moisture is not
 !                        released in FV3.  Also added provision to collect
 !                        nudging coefficient for geopotential when spectral
 !                        nudging is used; was added to FV3 header with FV3v3.2.
@@ -177,12 +177,15 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   INTEGER                           :: cdfid2
   INTEGER                           :: cdfidg
   REAL,               INTENT(OUT)   :: ctmlays    ( maxlays )
+  REAL                              :: ctmlays2   ( maxlays )
   CHARACTER(LEN=19)                 :: date_init
+  CHARACTER(LEN=256)                :: date_init2
   CHARACTER(LEN=19)                 :: date_start
   INTEGER                           :: dimid
   INTEGER                           :: dimids     ( nf90_max_var_dims )
   REAL,               ALLOCATABLE   :: dum1d      ( : )
   REAL,               ALLOCATABLE   :: dum2d      ( : , : )
+  INTEGER,            ALLOCATABLE   :: dum2d_i    ( : , : )
 !  REAL                              :: dx
 !  REAL                              :: dy
   REAL                              :: fac
@@ -210,7 +213,8 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   CHARACTER(LEN=16),  PARAMETER     :: pname      = 'SETUP_FV3'
   INTEGER                           :: rcode
   REAL                              :: rval
-  CHARACTER(LEN=19),  ALLOCATABLE   :: times      ( : )
+!  CHARACTER(LEN=19),  ALLOCATABLE   :: times      ( : )
+  REAL,  ALLOCATABLE                :: times      ( : )
   CHARACTER(LEN=19),  ALLOCATABLE   :: times2     ( : )
   INTEGER                           :: varid
   CHARACTER(LEN=80)                 :: fv3version
@@ -312,7 +316,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 
   CHARACTER(LEN=256), PARAMETER :: f9800 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
-    & /, 1x, '***   DID NOT FIND FRACTIONAL LAND USE IN wrfout', &
+    & /, 1x, '***   DID NOT FIND FRACTIONAL LAND USE IN FV3 output', &
     & /, 1x, '***   AND DID NOT FIND GEOGRID FILE' &
     & /, 1x, '***   -- WILL NOT USE FRACTIONAL LAND USE DATA' &
     & /, 1x, 70('*'))"
@@ -370,6 +374,13 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     WRITE (*,f9400) TRIM(pname), 'phalf', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
+
+  CALL get_var_1d_real_cdf (cdfid, 'pfull', ctmlays2(1:nlays), 1, rcode)
+  IF ( rcode /= nf90_noerr ) THEN
+    WRITE (*,f9400) TRIM(pname), 'pfull', TRIM(nf90_strerror(rcode))
+    CALL graceful_stop (pname)
+  ENDIF
+
 
 !-------------------------------------------------------------------------------
 ! Extract domain attributes.
@@ -517,13 +528,11 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
       met_cone_fac = 0.0                      ! cone factor
       met_ref_lat  = -999.0                   ! not used
                                               
-      met_cen_lat  = 90.0
-      met_cen_lon  = 360.0
+      met_cen_lat  = 89.9103191600434         ! Hardcoded for now GFSv16 Gaussian...
+      met_cen_lon  = 359.882792740194         ! Hardcoded for now GFSv16 Gaussian...
 
       CALL ll2xy_gau (met_cen_lat, met_cen_lon, met_proj_clon,  &
                        met_xxctr, met_yyctr)
-
-      WRITE(*,*), met_xxctr, met_yyctr
 
 !-------------------------------------------------------------------------------
 ! Extract model run options.
@@ -567,625 +576,687 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   ! available.  That change is temporary until a subroutine is added to
   ! reconstruct the fractional land use rank if it is missing.
 
-  rcode = nf90_inq_dimid (cdfid, 'mosaic', dimid)
+  ! FV3 does not have a Noah Mosaic option, so turn off
+  ifmosaic = .FALSE.
+
+!  rcode = nf90_inq_dimid (cdfid, 'mosaic', dimid)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    ifmosaic = .FALSE.
+!  ELSE
+!    rcode = nf90_inq_varid (cdfid, 'TSK_MOSAIC', rcode)
+!    IF ( rcode /= nf90_noerr ) THEN
+!      ifmosaic = .FALSE.
+!    ELSE
+!      rcode = nf90_inq_varid (cdfid, 'ZNT_MOSAIC', rcode)
+!      IF ( rcode /= nf90_noerr ) THEN
+!        ifmosaic = .FALSE.
+!      ELSE
+!        rcode = nf90_inq_varid (cdfid, 'LAI_MOSAIC', rcode)
+!        IF ( rcode /= nf90_noerr ) THEN
+!          ifmosaic = .FALSE.
+!        ELSE
+!          rcode = nf90_inq_varid (cdfid, 'RS_MOSAIC', rcode)
+!          IF ( rcode /= nf90_noerr ) THEN
+!            ifmosaic = .FALSE.
+!          ELSE
+!            ifmosaic = .TRUE.
+!            rcode = nf90_inquire_dimension (cdfid, dimid, len=nummosaic)
+!            IF ( rcode /= nf90_noerr ) THEN
+!              WRITE (*,f9400) TRIM(pname), 'value for mosaic',  &
+!                              TRIM(nf90_strerror(rcode))
+!              CALL graceful_stop (pname)
+!            ENDIF
+!          ENDIF
+!        ENDIF
+!      ENDIF
+!    ENDIF
+!  ENDIF
+
+
+  ! Define number of land use categories.
+
+  rcode = nf90_inq_varid (cdfid, 'vtype', varid)
   IF ( rcode /= nf90_noerr ) THEN
-    ifmosaic = .FALSE.
+    WRITE (*,f9400) TRIM(pname), 'Land Use Type',  &
+                    TRIM(nf90_strerror(rcode))
+    CALL graceful_stop (pname)
+ 
   ELSE
-    rcode = nf90_inq_varid (cdfid, 'TSK_MOSAIC', rcode)
-    IF ( rcode /= nf90_noerr ) THEN
-      ifmosaic = .FALSE.
-    ELSE
-      rcode = nf90_inq_varid (cdfid, 'ZNT_MOSAIC', rcode)
-      IF ( rcode /= nf90_noerr ) THEN
-        ifmosaic = .FALSE.
-      ELSE
-        rcode = nf90_inq_varid (cdfid, 'LAI_MOSAIC', rcode)
-        IF ( rcode /= nf90_noerr ) THEN
-          ifmosaic = .FALSE.
-        ELSE
-          rcode = nf90_inq_varid (cdfid, 'RS_MOSAIC', rcode)
-          IF ( rcode /= nf90_noerr ) THEN
-            ifmosaic = .FALSE.
-          ELSE
-            ifmosaic = .TRUE.
-            rcode = nf90_inquire_dimension (cdfid, dimid, len=nummosaic)
-            IF ( rcode /= nf90_noerr ) THEN
-              WRITE (*,f9400) TRIM(pname), 'value for mosaic',  &
-                              TRIM(nf90_strerror(rcode))
-              CALL graceful_stop (pname)
-            ENDIF
-          ENDIF
-        ENDIF
-      ENDIF
-    ENDIF
+  nxm = met_nx - 1
+  nym = met_ny - 1
+  ALLOCATE ( dum2d_i ( nxm, nym ) )
+  rcode = nf90_get_var (cdfid, varid, dum2d_i)
+  nummetlu=MAXVAL(dum2d_i)
+  DEALLOCATE (dum2d_i)
   ENDIF
 
+!  IF ( fv3version(18:22) >= "V3.1" ) THEN  ! FV3v3.1 or later
+!
+!    rcode = nf90_get_att (cdfid, nf90_global, 'NUM_LAND_CAT', nummetlu)
+!    IF ( rcode /= nf90_noerr ) THEN
+!      WRITE (*,f9400) TRIM(pname), 'NUM_LAND_CAT', TRIM(nf90_strerror(rcode))
+!      CALL graceful_stop (pname)
+!    ENDIF
+!
+!    rcode = nf90_get_att (cdfid, nf90_global, 'ISICE', met_lu_ice)
+!    IF ( rcode /= nf90_noerr ) THEN
+!      WRITE (*,f9400) TRIM(pname), 'ISICE', TRIM(nf90_strerror(rcode))
+!      CALL graceful_stop (pname)
+!    ENDIF
+!
+!    rcode = nf90_get_att (cdfid, nf90_global, 'ISLAKE', met_lu_lake)
+!    IF ( rcode /= nf90_noerr ) THEN
+!      WRITE (*,f9400) TRIM(pname), 'ISLAKE', TRIM(nf90_strerror(rcode))
+!      CALL graceful_stop (pname)
+!    ENDIF
+!
+!    rcode = nf90_get_att (cdfid, nf90_global, 'ISURBAN', met_lu_urban)
+!    IF ( rcode /= nf90_noerr ) THEN
+!      WRITE (*,f9400) TRIM(pname), 'ISURBAN', TRIM(nf90_strerror(rcode))
+!      CALL graceful_stop (pname)
+!    ENDIF
+!
+!  ELSE
+!    rcode = nf90_inq_dimid (cdfid, 'land_cat_stag', dimid)
+!    IF ( rcode /= nf90_noerr ) THEN  ! only exists with fractional land use
+!      SELECT CASE ( met_lu_src(1:3) )
+!        CASE ( "USG" )  ! USGS -- typically 24, but can be up to 33 in V2.2+
+!          IF ( ( fv3version(18:21) == "V2.2" ) .OR.  &
+!               ( fv3version(18:19) == "V3"   ) ) THEN
+!            nummetlu = 33
+!          ELSE
+!            nummetlu = 24
+!          ENDIF
+!          met_lu_water = 16
+!          met_lu_ice   = 24
+!          met_lu_urban =  1
+!          met_lu_lake  = -1
+!        CASE ( "OLD" )  ! old MM5 13-category system
+!          nummetlu     = 13
+!          met_lu_water =  7
+!          met_lu_ice   = 11
+!          met_lu_urban =  1
+!          met_lu_lake  = -1
+!        CASE ( "SiB" )  ! SiB 16-category system
+!          nummetlu     = 16
+!          met_lu_water = 15
+!          met_lu_ice   = 16
+!          met_lu_urban = -1
+!          met_lu_lake  = -1
+!        CASE ( "MOD" )  ! Modified IGBP MODIS NOAH 33-category system
+!          nummetlu     = 33
 
-  ! NUM_LAND_CAT was added in FV3v3.1 to define number of land use categories.
-  ! "land_cat_stag" was added in FV3v2.2 to define fractional land use.
-  ! Older FV3 runs do not include this dimension and they are restricted
-  ! to 24-category USGS land cover.
-
-  IF ( fv3version(18:22) >= "V3.1" ) THEN  ! FV3v3.1 or later
-
-    rcode = nf90_get_att (cdfid, nf90_global, 'NUM_LAND_CAT', nummetlu)
-    IF ( rcode /= nf90_noerr ) THEN
-      WRITE (*,f9400) TRIM(pname), 'NUM_LAND_CAT', TRIM(nf90_strerror(rcode))
-      CALL graceful_stop (pname)
-    ENDIF
-
-    rcode = nf90_get_att (cdfid, nf90_global, 'ISICE', met_lu_ice)
-    IF ( rcode /= nf90_noerr ) THEN
-      WRITE (*,f9400) TRIM(pname), 'ISICE', TRIM(nf90_strerror(rcode))
-      CALL graceful_stop (pname)
-    ENDIF
-
-    rcode = nf90_get_att (cdfid, nf90_global, 'ISLAKE', met_lu_lake)
-    IF ( rcode /= nf90_noerr ) THEN
-      WRITE (*,f9400) TRIM(pname), 'ISLAKE', TRIM(nf90_strerror(rcode))
-      CALL graceful_stop (pname)
-    ENDIF
-
-    rcode = nf90_get_att (cdfid, nf90_global, 'ISURBAN', met_lu_urban)
-    IF ( rcode /= nf90_noerr ) THEN
-      WRITE (*,f9400) TRIM(pname), 'ISURBAN', TRIM(nf90_strerror(rcode))
-      CALL graceful_stop (pname)
-    ENDIF
-
-  ELSE
-    rcode = nf90_inq_dimid (cdfid, 'land_cat_stag', dimid)
-    IF ( rcode /= nf90_noerr ) THEN  ! only exists with fractional land use
-      SELECT CASE ( met_lu_src(1:3) )
-        CASE ( "USG" )  ! USGS -- typically 24, but can be up to 33 in V2.2+
-          IF ( ( fv3version(18:21) == "V2.2" ) .OR.  &
-               ( fv3version(18:19) == "V3"   ) ) THEN
-            nummetlu = 33
-          ELSE
-            nummetlu = 24
-          ENDIF
-          met_lu_water = 16
-          met_lu_ice   = 24
-          met_lu_urban =  1
-          met_lu_lake  = -1
-        CASE ( "OLD" )  ! old MM5 13-category system
-          nummetlu     = 13
-          met_lu_water =  7
-          met_lu_ice   = 11
-          met_lu_urban =  1
-          met_lu_lake  = -1
-        CASE ( "SiB" )  ! SiB 16-category system
-          nummetlu     = 16
-          met_lu_water = 15
-          met_lu_ice   = 16
-          met_lu_urban = -1
-          met_lu_lake  = -1
-        CASE ( "MOD" )  ! Modified IGBP MODIS NOAH 33-category system
-          nummetlu     = 33
+! FV3 only  has MODIS 20-category:  Harcoded Ice, water, urban, lake         
           met_lu_water = 17
           met_lu_ice   = 15
           met_lu_urban = 13
-          IF ( fv3version(18:22) >= "V3.8" ) THEN  ! FV3v3.8 or later
-            met_lu_lake = 21
-          ELSE
-            met_lu_lake = -1
-          ENDIF
-        CASE ( "NLC" )  ! NLCD/MODIS combined system
-          IF ( met_lu_src(4:6) == "D40") THEN
-            nummetlu     = 40
-            met_lu_water = 17
-            met_lu_ice   = 15
-            met_lu_urban = 13
-            met_lu_lake  = -1
-          ELSE
-            nummetlu     = 50
-            met_lu_water =  1
-            met_lu_ice   =  2
-            met_lu_urban =  3
-            met_lu_lake  = -1
-          ENDIF
-        CASE DEFAULT
-          WRITE (*,f9100) TRIM(pname), met_lu_src(1:3)
-          CALL graceful_stop (pname)
-      END SELECT
-    ELSE
-      rcode = nf90_inquire_dimension (cdfid, dimid, len=nummetlu)
-      IF ( rcode /= nf90_noerr ) THEN
-        WRITE (*,f9400) TRIM(pname), 'value for land_cat_stag',  &
-                        TRIM(nf90_strerror(rcode))
-        CALL graceful_stop (pname)
-      ENDIF
-    ENDIF
-  ENDIF
+          met_lu_lake = -1
 
-  rcode = nf90_get_att (cdfid, nf90_global, 'RA_LW_PHYSICS', met_lw_rad)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'RA_LW_PHYSICS', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
+!          IF ( fv3version(18:22) >= "V3.8" ) THEN  ! FV3v3.8 or later
+!            met_lu_lake = 21
+!          ELSE
+!            met_lu_lake = -1
+!          ENDIF
+!        CASE ( "NLC" )  ! NLCD/MODIS combined system
+!          IF ( met_lu_src(4:6) == "D40") THEN
+!            nummetlu     = 40
+!            met_lu_water = 17
+!            met_lu_ice   = 15
+!            met_lu_urban = 13
+!            met_lu_lake  = -1
+!          ELSE
+!            nummetlu     = 50
+!            met_lu_water =  1
+!            met_lu_ice   =  2
+!            met_lu_urban =  3
+!            met_lu_lake  = -1
+!          ENDIF
+!        CASE DEFAULT
+!          WRITE (*,f9100) TRIM(pname), met_lu_src(1:3)
+!          CALL graceful_stop (pname)
+!      END SELECT
+!    ELSE
+!      rcode = nf90_inquire_dimension (cdfid, dimid, len=nummetlu)
+!      IF ( rcode /= nf90_noerr ) THEN
+!        WRITE (*,f9400) TRIM(pname), 'value for land_cat_stag',  &
+!                        TRIM(nf90_strerror(rcode))
+!        CALL graceful_stop (pname)
+!      ENDIF
+!    ENDIF
+!  ENDIF
 
-  rcode = nf90_get_att (cdfid, nf90_global, 'RA_SW_PHYSICS', met_sw_rad)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'RA_SW_PHYSICS', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
+!  rcode = nf90_get_att (cdfid, nf90_global, 'RA_LW_PHYSICS', met_lw_rad)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'RA_LW_PHYSICS', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!
+!  rcode = nf90_get_att (cdfid, nf90_global, 'RA_SW_PHYSICS', met_sw_rad)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'RA_SW_PHYSICS', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!
+!  rcode = nf90_get_att (cdfid, nf90_global, 'CU_PHYSICS', met_cumulus)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'CU_PHYSICS', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!
+!  rcode = nf90_get_att (cdfid, nf90_global, 'MP_PHYSICS', met_expl_moist)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'MP_PHYSICS', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!
+!  rcode = nf90_get_att (cdfid, nf90_global, 'BL_PBL_PHYSICS', met_pbl)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'BL_PBL_PHYSICS', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!
+!  rcode = nf90_get_att (cdfid, nf90_global, 'SF_SFCLAY_PHYSICS', met_sfc_lay)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'SF_SFCLAY_PHYSICS', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!
+!  rcode = nf90_get_att (cdfid, nf90_global, 'SF_SURFACE_PHYSICS', met_soil_lsm)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'SF_SURFACE_PHYSICS',  &
+!                   TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!
+!
+!  ! Determine if an urban model was used.
+!  
+!  ! FV3 does not have an urban model.
+   met_urban_phys = 0
+   ifrcurb = .FALSE.
+!  IF ( fv3version(18:21) >= "V3.1" ) THEN
+!
+!    rcode = nf90_get_att (cdfid, nf90_global, 'SF_URBAN_PHYSICS',  &
+!                          met_urban_phys)
+!    IF ( rcode /= nf90_noerr ) THEN
+!      WRITE (*,f9400) TRIM(pname), 'SF_URBAN_PHYSICS',  &
+!                      TRIM(nf90_strerror(rcode))
+!      CALL graceful_stop (pname)
+!    ENDIF
+!
+!  ELSE IF ( fv3version(18:21) == "V3.0" ) THEN
+!
+!    rcode = nf90_get_att (cdfid, nf90_global, 'UCMCALL', met_urban_phys)
+!    IF ( rcode /= nf90_noerr ) THEN
+!      WRITE (*,f9400) TRIM(pname), 'SF_URBAN_PHYSICS',  &
+!                      TRIM(nf90_strerror(rcode))
+!      CALL graceful_stop (pname)
+!    ENDIF
+!
+!  ELSE 
+!
+!    ! In v2.2, header variable UCMCALL seems to always be 0 for nested runs,
+!    ! even when UCM is invoked.  For now, use field TC_URB (canopy temperature)
+!    ! as a proxy to determine if the UCM was used.  If the field does not exist,
+!    ! then the UCM was not used.  If the field exists, determine if the data are
+!    ! "reasonable" (i.e., positive and non-zero); assume that UCM was used if
+!    ! the field contains "physical" data.
+!
+!    nxm = met_nx - 1
+!    nym = met_ny - 1
+!    it  = 1  ! use first time in file since some files just have one time
+!    ALLOCATE ( dum2d ( nxm, nym ) )
+!      CALL get_var_2d_real_cdf (cdfid, 'TC_URB', dum2d, it, rcode)
+!      IF ( ( rcode == nf90_noerr ) .AND. ( MAXVAL(dum2d) > 100.0 ) ) THEN  ! UCM
+!        met_urban_phys = 1
+!      ELSE
+!        met_urban_phys = 0
+!      ENDIF
+!    DEALLOCATE ( dum2d )
+!
+!  ENDIF
+!
+!  IF ( met_urban_phys >= 1 ) THEN
+!    ifrcurb = .TRUE.
+!  ELSE
+!    ifrcurb = .FALSE.
+!  ENDIF
+!
+!
+!  ! Determine if shallow convection was used.
+!  ! FV3 does not have shallow convection scheme, or anyway to determine, turn off
+   met_shal_cu = 0
+!  IF ( fv3version(18:21) >= "V3.3" ) THEN
+!
+!    rcode = nf90_get_att (cdfid, nf90_global, 'SHCU_PHYSICS', met_shal_cu)
+!    IF ( rcode /= nf90_noerr ) THEN
+!      WRITE (*,f9400) TRIM(pname), 'SHCU_PHYSICS', TRIM(nf90_strerror(rcode))
+!      CALL graceful_stop (pname)
+!    ENDIF
+!
+!    IF ( met_shal_cu == 0 .AND. met_cumulus == 5 ) THEN  ! Grell shallow on?
+!      rcode = nf90_get_att (cdfid, nf90_global, 'ISHALLOW', met_shal_cu)
+!      IF ( rcode /= nf90_noerr ) THEN
+!        WRITE (*,f9400) TRIM(pname), 'ISHALLOW', TRIM(nf90_strerror(rcode))
+!        CALL graceful_stop (pname)
+!      ENDIF
+!    ENDIF
+!
+!  ELSE  ! no way to easily tell if Grell 3D used shallow convection
+!
+!    IF ( met_cumulus == 5 ) THEN  ! Grell 3D
+!      met_shal_cu = -1
+!    ELSE
+!      met_shal_cu = 0
+!    ENDIF
+!
+!  ENDIF
 
-  rcode = nf90_get_att (cdfid, nf90_global, 'CU_PHYSICS', met_cumulus)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'CU_PHYSICS', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
+  met_snow_opt = 1       ! not used for FV3 yet, but set conistent with original MCIP
+  met_rain_bucket = -1.0 ! FV3 includes both bucket and prate, so leave bucket turned off
+  met_pcp_incr = 1       ! FV3 has time step average prate, so leave pcp_inc turned on
 
-  rcode = nf90_get_att (cdfid, nf90_global, 'MP_PHYSICS', met_expl_moist)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'MP_PHYSICS', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
-
-  rcode = nf90_get_att (cdfid, nf90_global, 'BL_PBL_PHYSICS', met_pbl)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'BL_PBL_PHYSICS', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
-
-  rcode = nf90_get_att (cdfid, nf90_global, 'SF_SFCLAY_PHYSICS', met_sfc_lay)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'SF_SFCLAY_PHYSICS', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
-
-  rcode = nf90_get_att (cdfid, nf90_global, 'SF_SURFACE_PHYSICS', met_soil_lsm)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'SF_SURFACE_PHYSICS',  &
-                   TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
-
-
-  ! Determine if an urban model was used.
-
-  IF ( fv3version(18:21) >= "V3.1" ) THEN
-
-    rcode = nf90_get_att (cdfid, nf90_global, 'SF_URBAN_PHYSICS',  &
-                          met_urban_phys)
-    IF ( rcode /= nf90_noerr ) THEN
-      WRITE (*,f9400) TRIM(pname), 'SF_URBAN_PHYSICS',  &
-                      TRIM(nf90_strerror(rcode))
-      CALL graceful_stop (pname)
-    ENDIF
-
-  ELSE IF ( fv3version(18:21) == "V3.0" ) THEN
-
-    rcode = nf90_get_att (cdfid, nf90_global, 'UCMCALL', met_urban_phys)
-    IF ( rcode /= nf90_noerr ) THEN
-      WRITE (*,f9400) TRIM(pname), 'SF_URBAN_PHYSICS',  &
-                      TRIM(nf90_strerror(rcode))
-      CALL graceful_stop (pname)
-    ENDIF
-
-  ELSE 
-
-    ! In v2.2, header variable UCMCALL seems to always be 0 for nested runs,
-    ! even when UCM is invoked.  For now, use field TC_URB (canopy temperature)
-    ! as a proxy to determine if the UCM was used.  If the field does not exist,
-    ! then the UCM was not used.  If the field exists, determine if the data are
-    ! "reasonable" (i.e., positive and non-zero); assume that UCM was used if
-    ! the field contains "physical" data.
-
-    nxm = met_nx - 1
-    nym = met_ny - 1
-    it  = 1  ! use first time in file since some files just have one time
-    ALLOCATE ( dum2d ( nxm, nym ) )
-      CALL get_var_2d_real_cdf (cdfid, 'TC_URB', dum2d, it, rcode)
-      IF ( ( rcode == nf90_noerr ) .AND. ( MAXVAL(dum2d) > 100.0 ) ) THEN  ! UCM
-        met_urban_phys = 1
-      ELSE
-        met_urban_phys = 0
-      ENDIF
-    DEALLOCATE ( dum2d )
-
-  ENDIF
-
-  IF ( met_urban_phys >= 1 ) THEN
-    ifrcurb = .TRUE.
-  ELSE
-    ifrcurb = .FALSE.
-  ENDIF
-
-
-  ! Determine if shallow convection was used.
-
-  IF ( fv3version(18:21) >= "V3.3" ) THEN
-
-    rcode = nf90_get_att (cdfid, nf90_global, 'SHCU_PHYSICS', met_shal_cu)
-    IF ( rcode /= nf90_noerr ) THEN
-      WRITE (*,f9400) TRIM(pname), 'SHCU_PHYSICS', TRIM(nf90_strerror(rcode))
-      CALL graceful_stop (pname)
-    ENDIF
-
-    IF ( met_shal_cu == 0 .AND. met_cumulus == 5 ) THEN  ! Grell shallow on?
-      rcode = nf90_get_att (cdfid, nf90_global, 'ISHALLOW', met_shal_cu)
-      IF ( rcode /= nf90_noerr ) THEN
-        WRITE (*,f9400) TRIM(pname), 'ISHALLOW', TRIM(nf90_strerror(rcode))
-        CALL graceful_stop (pname)
-      ENDIF
-    ENDIF
-
-  ELSE  ! no way to easily tell if Grell 3D used shallow convection
-
-    IF ( met_cumulus == 5 ) THEN  ! Grell 3D
-      met_shal_cu = -1
-    ELSE
-      met_shal_cu = 0
-    ENDIF
-
-  ENDIF
-
-  met_snow_opt = 1  ! not used for FV3 yet
-
-  rcode = nf90_get_att (cdfid, nf90_global, 'BUCKET_MM', met_rain_bucket)
-  IF ( rcode /= nf90_noerr ) THEN
-    IF ( fv3version(18:22) >= "V3.2" ) then  ! BUCKET_MM implemented in FV3v3.2
-      WRITE (*,f9400) TRIM(pname), 'BUCKET_MM', TRIM(nf90_strerror(rcode))
-      CALL graceful_stop (pname)
-    ELSE
-      met_rain_bucket = -1.0
-    ENDIF
-  ENDIF
-
-  rcode = nf90_get_att (cdfid, nf90_global, 'PREC_ACC_DT', rval)
-  IF ( rcode /= nf90_noerr ) THEN
-    IF ( fv3version(18:22) >= "V3.2" ) then  ! PREC_ACC_DT added in FV3v3.2
-      WRITE (*,f9400) TRIM(pname), 'PREC_ACC_DT', TRIM(nf90_strerror(rcode))
-      CALL graceful_stop (pname)
-    ELSE
-      met_pcp_incr = 0
-    ENDIF
-  ELSE
-    rcode =         nf90_inq_varid (cdfid, 'PREC_ACC_C',  rcode)
-    rcode = rcode + nf90_inq_varid (cdfid, 'PREC_ACC_NC', rcode)
-    IF ( rcode /= nf90_noerr ) THEN
-      met_pcp_incr = 0
-    ELSE
-      met_pcp_incr = NINT(rval)
-    ENDIF
-  ENDIF
-
-  IF ( met_pcp_incr > 0 ) THEN
-    IF ( met_pcp_incr /= intvl ) THEN  ! can't compute precip for CMAQ
-      WRITE (*,f9550) TRIM(pname), met_pcp_incr, intvl
-      CALL graceful_stop (pname)
-    ENDIF
-  ENDIF
+!  rcode = nf90_get_att (cdfid, nf90_global, 'BUCKET_MM', met_rain_bucket)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    IF ( fv3version(18:22) >= "V3.2" ) then  ! BUCKET_MM implemented in FV3v3.2
+!      WRITE (*,f9400) TRIM(pname), 'BUCKET_MM', TRIM(nf90_strerror(rcode))
+!      CALL graceful_stop (pname)
+!    ELSE
+!      met_rain_bucket = -1.0
+!    ENDIF
+!  ENDIF
+!
+!  rcode = nf90_get_att (cdfid, nf90_global, 'PREC_ACC_DT', rval)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    IF ( fv3version(18:22) >= "V3.2" ) then  ! PREC_ACC_DT added in FV3v3.2
+!      WRITE (*,f9400) TRIM(pname), 'PREC_ACC_DT', TRIM(nf90_strerror(rcode))
+!      CALL graceful_stop (pname)
+!    ELSE
+!      met_pcp_incr = 0
+!    ENDIF
+!  ELSE
+!    rcode =         nf90_inq_varid (cdfid, 'PREC_ACC_C',  rcode)
+!    rcode = rcode + nf90_inq_varid (cdfid, 'PREC_ACC_NC', rcode)
+!    IF ( rcode /= nf90_noerr ) THEN
+!      met_pcp_incr = 0
+!    ELSE
+!      met_pcp_incr = NINT(rval)
+!    ENDIF
+!  ENDIF
+!
+!  IF ( met_pcp_incr > 0 ) THEN
+!    IF ( met_pcp_incr /= intvl ) THEN  ! can't compute precip for CMAQ
+!      WRITE (*,f9550) TRIM(pname), met_pcp_incr, intvl
+!      CALL graceful_stop (pname)
+!    ENDIF
+!  ENDIF
 
 
   ! Determine if radiative feedbacks accompany the convective parameterization
   ! scheme.
 
-  rcode = nf90_get_att (cdfid, nf90_global, 'ICLOUD_CU', ival)
-  IF ( rcode == nf90_noerr ) THEN  ! new enough version of FV3
-    SELECT CASE ( ival )
-      CASE ( 0 )
-        ifcuradfdbk = .FALSE.
-      CASE ( 1:2 )  ! 1=Grell, 2=KF or MSKF
-        ifcuradfdbk = .TRUE.
-      CASE DEFAULT
-        ifcuradfdbk = .FALSE.
-    END SELECT
-  ELSE
-    ifcuradfdbk = .FALSE.
-  ENDIF
+  ! Currently there are no radiative feedbacks in FV3 accompaning the convective 
+  ! parameterization scheme, turn off.
+  ifcuradfdbk = .FALSE.
+
+!  rcode = nf90_get_att (cdfid, nf90_global, 'ICLOUD_CU', ival)
+!  IF ( rcode == nf90_noerr ) THEN  ! new enough version `of FV3
+!    SELECT CASE ( ival )
+!      CASE ( 0 )
+!        ifcuradfdbk = .FALSE.
+!      CASE ( 1:2 )  ! 1=Grell, 2=KF or MSKF
+!        ifcuradfdbk = .TRUE.
+!      CASE DEFAULT
+!        ifcuradfdbk = .FALSE.
+!    END SELECT
+!  ELSE
+!    ifcuradfdbk = .FALSE.
+!  ENDIF
 
 !-------------------------------------------------------------------------------
 ! Extract FV3 start date and time information.
 !-------------------------------------------------------------------------------
+  rcode = nf90_inq_varid (cdfid, 'time', varid)
+  IF ( rcode /= nf90_noerr ) THEN
+    WRITE (*,f9400) TRIM(pname), 'time',  &
+                    TRIM(nf90_strerror(rcode))
+    CALL graceful_stop (pname)
+  ENDIF 
 
-  rcode = nf90_get_att (cdfid, nf90_global, 'SIMULATION_START_DATE', date_init)
+  rcode = nf90_get_att (cdfid, varid, 'units', date_init2)
   IF ( rcode /= nf90_noerr ) THEN
     WRITE (*,f9400) TRIM(pname), 'SIMULATION_START_DATE',  &
                     TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
-  met_startdate =  date_init(1:19) // '.0000'
-  met_startdate(11:11) = "-"  ! change from "_" to "-" for consistency
 
-  rcode = nf90_get_att (cdfid, nf90_global, 'START_DATE', date_start)
+  met_startdate =  date_init2(13:32) // '.0000'
+
+  ! FV3 always turned on for "met restart" in MCIP
+  date_start = date_init
+  met_restart = 1
+ 
+!  rcode = nf90_get_att (cdfid, nf90_global, 'SIMULATION_START_DATE', date_init)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'SIMULATION_START_DATE',  &
+!                    TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!  met_startdate =  date_init(1:19) // '.0000'
+!  met_startdate(11:11) = "-"  ! change from "_" to "-" for consistency
+
+!  rcode = nf90_get_att (cdfid, nf90_global, 'START_DATE', date_start)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'START_DATE', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!
+!  IF ( date_init == date_start ) THEN
+!    met_restart = 0
+!  ELSE
+!    met_restart = 1
+!  ENDIF
+
+!  rcode = nf90_inq_varid (cdfid, 'time', id_data)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9410) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!  rcode = nf90_inquire_variable (cdfid, id_data, dimids=dimids)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9420) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!  rcode = nf90_inquire_dimension (cdfid, dimids(1), len=lent)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9430) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+!  rcode = nf90_inquire_dimension (cdfid, dimids(2), len=n_times)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9430) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+
+  rcode = nf90_inquire_variable (cdfid, varid, dimids=dimids)
   IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'START_DATE', TRIM(nf90_strerror(rcode))
+    WRITE (*,f9420) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
 
-  IF ( date_init == date_start ) THEN
-    met_restart = 0
-  ELSE
-    met_restart = 1
+  rcode = nf90_inquire_dimension (cdfid, dimids(1), len=n_times)
+  IF ( rcode /= nf90_noerr ) THEN
+    WRITE (*,f9430) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
+    CALL graceful_stop (pname)
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'Times', id_data)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9410) TRIM(pname), 'Times', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
-  rcode = nf90_inquire_variable (cdfid, id_data, dimids=dimids)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9420) TRIM(pname), 'Times', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
-  rcode = nf90_inquire_dimension (cdfid, dimids(1), len=lent)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9430) TRIM(pname), 'Times', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
-  rcode = nf90_inquire_dimension (cdfid, dimids(2), len=n_times)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9430) TRIM(pname), 'Times', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
   IF ( ALLOCATED ( times ) ) DEALLOCATE ( times )
   ALLOCATE ( times ( n_times ) )
-  rcode = nf90_get_var (cdfid, id_data, times,   &
-                        start=(/1,1/), count=(/lent,n_times/))
+  rcode = nf90_get_var (cdfid, varid, times)
+!                        start=(/1/), count=(/n_times/))
   IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'Times', TRIM(nf90_strerror(rcode))
+    WRITE (*,f9400) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
 
-  IF ( n_times > 1 ) THEN
-    CALL geth_idts (times(2)(1:19), times(1)(1:19), idtsec)
-  ELSE
-    fl2 = file_mm(2)
-    IF ( fl2(1:10) == '          ' ) THEN
-      WRITE (*,f9500) TRIM(pname)
-      idtsec = 60
-    ELSE
-      rcode = nf90_open (fl2, nf90_nowrite, cdfid2)
-      IF ( rcode == nf90_noerr ) THEN
-        rcode = nf90_inq_varid (cdfid2, 'Times', id_data)
-        IF ( rcode /= nf90_noerr ) THEN
-          WRITE (*,f9410) TRIM(pname), 'Times', TRIM(nf90_strerror(rcode))
-          CALL graceful_stop (pname)
-        ENDIF
-        rcode = nf90_inquire_variable (cdfid2, id_data, dimids=dimids)
-        IF ( rcode /= nf90_noerr ) THEN
-          WRITE (*,f9420) TRIM(pname), 'Times', TRIM(nf90_strerror(rcode))
-          CALL graceful_stop (pname)
-        ENDIF
-        rcode = nf90_inquire_dimension (cdfid2, dimids(1), len=lent)
-        IF ( rcode /= nf90_noerr ) THEN
-          WRITE (*,f9430) TRIM(pname), 'Times', TRIM(nf90_strerror(rcode))
-          CALL graceful_stop (pname)
-        ENDIF
-        rcode = nf90_inquire_dimension (cdfid2, dimids(2), len=n_times)
-        IF ( rcode /= nf90_noerr ) THEN
-          WRITE (*,f9430) TRIM(pname), 'Times', TRIM(nf90_strerror(rcode))
-          CALL graceful_stop (pname)
-        ENDIF
-        IF ( ALLOCATED ( times2 ) ) DEALLOCATE ( times2 )
-        ALLOCATE ( times2 ( n_times ) )
-        rcode = nf90_get_var (cdfid2, id_data, times2,   &
-                              start=(/1,1/), count=(/lent,n_times/))
-        IF ( rcode /= nf90_noerr ) THEN
-          WRITE (*,f9400) TRIM(pname), 'Times', TRIM(nf90_strerror(rcode))
-          CALL graceful_stop (pname)
-        ENDIF
-        CALL geth_idts (times2(1)(1:19), times(1)(1:19), idtsec)
-      ELSE
-        WRITE (*,f9600) TRIM(pname), TRIM(fl2)
-        CALL graceful_stop (pname)
-      ENDIF
-      rcode = nf90_close (cdfid2)
-      IF ( rcode /= nf90_noerr ) THEN
-        WRITE (*,f9700) TRIM(pname), TRIM(fl2)
-        CALL graceful_stop (pname)
-      ENDIF
-    ENDIF
-  ENDIF
-  met_tapfrq = REAL(idtsec / 60)  ! convert sec --> min
+!  IF ( n_times > 1 ) THEN
+!    CALL geth_idts (times(2)(1:19), times(1)(1:19), idtsec)
+!  ELSE
+!    fl2 = file_mm(2)
+!    IF ( fl2(1:10) == '          ' ) THEN
+!      WRITE (*,f9500) TRIM(pname)
+!      idtsec = 60
+!    ELSE
+!      rcode = nf90_open (fl2, nf90_nowrite, cdfid2)
+!      IF ( rcode == nf90_noerr ) THEN
+!        rcode = nf90_inq_varid (cdfid2, 'time', id_data)
+!        IF ( rcode /= nf90_noerr ) THEN
+!          WRITE (*,f9410) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
+!          CALL graceful_stop (pname)
+!        ENDIF
+!        rcode = nf90_inquire_variable (cdfid2, id_data, dimids=dimids)
+!        IF ( rcode /= nf90_noerr ) THEN
+!          WRITE (*,f9420) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
+!          CALL graceful_stop (pname)
+!        ENDIF
+!        rcode = nf90_inquire_dimension (cdfid2, dimids(1), len=lent)
+!        IF ( rcode /= nf90_noerr ) THEN
+!          WRITE (*,f9430) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
+!          CALL graceful_stop (pname)
+!        ENDIF
+!        rcode = nf90_inquire_dimension (cdfid2, dimids(2), len=n_times)
+!        IF ( rcode /= nf90_noerr ) THEN
+!          WRITE (*,f9430) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
+!          CALL graceful_stop (pname)
+!        ENDIF
+!        IF ( ALLOCATED ( times2 ) ) DEALLOCATE ( times2 )
+!        ALLOCATE ( times2 ( n_times ) )
+!        rcode = nf90_get_var (cdfid2, id_data, times2,   &
+!                              start=(/1,1/), count=(/lent,n_times/))
+!        IF ( rcode /= nf90_noerr ) THEN
+!          WRITE (*,f9400) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
+!          CALL graceful_stop (pname)
+!        ENDIF
+!        CALL geth_idts (times2(1)(1:19), times(1)(1:19), idtsec)
+!      ELSE
+!        WRITE (*,f9600) TRIM(pname), TRIM(fl2)
+!        CALL graceful_stop (pname)
+!      ENDIF
+!      rcode = nf90_close (cdfid2)
+!      IF ( rcode /= nf90_noerr ) THEN
+!        WRITE (*,f9700) TRIM(pname), TRIM(fl2)
+!        CALL graceful_stop (pname)
+!      ENDIF
+!    ENDIF
+!  ENDIF
 
+  met_tapfrq = times(1)*60  ! convert hrs --> min
 !-------------------------------------------------------------------------------
 ! Set variables for non-hydrostatic base state.  There is no option for
 ! hydrostatic run in FV3.  The base state variables are not currently output
-! (as of FV3v2.2), so fill in "default" values from FV3 namelist.
+! , so fill in "default" values from FV3 namelist.
 !
 ! Note:  In FV3v2.2 NCAR changed the way "real" scalars (e.g., P_TOP) are
 !        stored in the FV3 I/O API.
 !-------------------------------------------------------------------------------
 
-  IF ( (fv3version(18:21) == "V2.2") .OR. (fv3version(18:19) >= "V3") ) THEN
-    CALL get_var_real_cdf (cdfid, 'P_TOP', met_ptop, rcode)
-  ELSE
-    ALLOCATE ( dum1d ( 1 ) )
-    CALL get_var_1d_real_cdf (cdfid, 'P_TOP', dum1d, 1, rcode)
-    met_ptop = dum1d(1)
-  ENDIF
+!  IF ( (fv3version(18:21) == "V2.2") .OR. (fv3version(18:19) >= "V3") ) THEN
+!    CALL get_var_real_cdf (cdfid, 'P_TOP', met_ptop, rcode)
+!  ELSE
+!    ALLOCATE ( dum1d ( 1 ) )
+!    CALL get_var_1d_real_cdf (cdfid, 'P_TOP', dum1d, 1, rcode)
+!    met_ptop = dum1d(1)
+!  ENDIF
 
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'P_TOP', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'P_TOP', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
 
+  met_ptop  = ctmlays(1) !FV3 set met_ptop to first value of pressure levels, top-down
   met_p00   = 100000.0 ! base state sea-level pressure [Pa]
   met_ts0   =    290.0 ! base state sea-level temperature [K]
   met_tlp   =     50.0 ! base state lapse rate d(T)/d(ln P) from 1000 to 300 mb
   met_tiso  = fillreal ! base state stratospheric isothermal T [K]  ! not used
-
 !-------------------------------------------------------------------------------
 ! Determine FV3 release.
 !-------------------------------------------------------------------------------
 
-  met_release = '        '
+  met_release = ' FV3  '
 
-  IF ( fv3version(18:18) == "V" ) THEN
-    met_release(1:2) = fv3version(18:19)
-  ENDIF
-
-  IF ( fv3version(20:20) == '.' ) THEN
-    met_release(3:4) = fv3version(20:21)
-  ENDIF
-
-  IF ( fv3version(22:22) == '.' ) THEN
-    met_release(5:6) = fv3version(22:23)
-  ENDIF
-
-  IF ( fv3version(24:24) == '.' ) THEN
-    met_release(7:8) = fv3version(24:25)
-  ENDIF
+!  IF ( fv3version(18:18) == "V" ) THEN
+!    met_release(1:2) = fv3version(18:19)
+!  ENDIF
+!
+!  IF ( fv3version(20:20) == '.' ) THEN
+!    met_release(3:4) = fv3version(20:21)
+!  ENDIF
+!
+!  IF ( fv3version(22:22) == '.' ) THEN
+!    met_release(5:6) = fv3version(22:23)
+!  ENDIF
+!
+!  IF ( fv3version(24:24) == '.' ) THEN
+!    met_release(7:8) = fv3version(24:25)
+!  ENDIF
 
 !-------------------------------------------------------------------------------
 ! Determine FDDA options.
 !-------------------------------------------------------------------------------
-
-  rcode = nf90_get_att (cdfid, nf90_global, 'GRID_FDDA', met_fdda_3dan)
-  IF ( rcode /= nf90_noerr ) THEN
-    IF ( TRIM(met_release) < 'V2.2' ) THEN
-      met_fdda_3dan = 0  ! not implemented until V2.2
-    ELSE
-      WRITE (*,f9400) TRIM(pname), 'GRID_FDDA', TRIM(nf90_strerror(rcode))
-      CALL graceful_stop (pname)
-    ENDIF
-  ENDIF
-
-  rcode = nf90_get_att (cdfid, nf90_global, 'GUV', met_fdda_gv3d)
-  IF ( rcode /= nf90_noerr ) THEN
-    IF ( TRIM(met_release) < 'V2.2' ) THEN
-      met_fdda_gv3d = -1.0  ! not in header until V2.2
-    ELSE IF ( met_fdda_3dan == 0 ) THEN
-      met_fdda_gv3d = -1.0  ! not in header if analysis nudging is off
-    ELSE
-      WRITE (*,f9400) TRIM(pname), 'GUV', TRIM(nf90_strerror(rcode))
-      CALL graceful_stop (pname)
-    ENDIF
-  ENDIF
-
-  rcode = nf90_get_att (cdfid, nf90_global, 'GT', met_fdda_gt3d)
-  IF ( rcode /= nf90_noerr ) THEN
-    IF ( TRIM(met_release) < 'V2.2' ) THEN
-      met_fdda_gt3d = -1.0  ! not in header until V2.2
-    ELSE IF ( met_fdda_3dan == 0 ) THEN
-      met_fdda_gt3d = -1.0  ! not in header if analysis nudging is off
-    ELSE
-      WRITE (*,f9400) TRIM(pname), 'GT', TRIM(nf90_strerror(rcode))
-      CALL graceful_stop (pname)
-    ENDIF
-  ENDIF
-
-  rcode = nf90_get_att (cdfid, nf90_global, 'GQ', met_fdda_gq3d)
-  IF ( rcode /= nf90_noerr ) THEN
-    IF ( TRIM(met_release) < 'V2.2' ) THEN
-      met_fdda_gq3d = -1.0  ! not in header until V2.2
-    ELSE IF ( met_fdda_3dan /= 1 ) THEN
-      met_fdda_gq3d = -1.0  ! not in header if analysis nudging is off
-    ELSE
-      WRITE (*,f9400) TRIM(pname), 'GQ', TRIM(nf90_strerror(rcode))
-      CALL graceful_stop (pname)
-    ENDIF
-  ENDIF
-
-  rcode = nf90_get_att (cdfid, nf90_global, 'GPH', met_fdda_gph3d)
-  IF ( rcode /= nf90_noerr ) THEN
-    IF ( TRIM(met_release) < 'V3.2' ) THEN
-      met_fdda_gph3d = -1.0  ! not in header until V3.2
-    ELSE IF ( met_fdda_3dan /= 2 ) THEN
-      met_fdda_gph3d = -1.0  ! not in header if spectral nudging is off
-    ELSE
-      WRITE (*,f9400) TRIM(pname), 'GPH', TRIM(nf90_strerror(rcode))
-      CALL graceful_stop (pname)
-    ENDIF
-  ENDIF
-
-  IF ( TRIM(met_release) >= 'V3.1' ) THEN  ! find sfc analysis nudging info
-
-    rcode = nf90_get_att (cdfid, nf90_global, 'GRID_SFDDA', met_fdda_sfan)
-    IF ( rcode /= nf90_noerr ) THEN
-      WRITE (*,f9400) TRIM(pname), 'GRID_SFDDA', TRIM(nf90_strerror(rcode))
-      CALL graceful_stop (pname)
-    ENDIF
-
-    IF ( met_fdda_sfan == 1 ) THEN
-
-      rcode = nf90_get_att (cdfid, nf90_global, 'GUV_SFC', met_fdda_gvsfc)
-      IF ( rcode /= nf90_noerr ) THEN
-        WRITE (*,f9400) TRIM(pname), 'GUV_SFC', TRIM(nf90_strerror(rcode))
-        CALL graceful_stop (pname)
-      ENDIF
-
-      rcode = nf90_get_att (cdfid, nf90_global, 'GT_SFC', met_fdda_gtsfc)
-      IF ( rcode /= nf90_noerr ) THEN
-        WRITE (*,f9400) TRIM(pname), 'GT_SFC', TRIM(nf90_strerror(rcode))
-        CALL graceful_stop (pname)
-      ENDIF
-
-      rcode = nf90_get_att (cdfid, nf90_global, 'GQ_SFC', met_fdda_gqsfc)
-      IF ( rcode /= nf90_noerr ) THEN
-        WRITE (*,f9400) TRIM(pname), 'GQ_SFC', TRIM(nf90_strerror(rcode))
-        CALL graceful_stop (pname)
-      ENDIF
-
-    ELSE
-
-      met_fdda_gvsfc = -1.0
-      met_fdda_gtsfc = -1.0
-      met_fdda_gqsfc = -1.0
-
-    ENDIF
-
-  ELSE
-    met_fdda_sfan  =  0  ! sfc analysis nudging not in FV3 until V3.1
+  met_fdda_3dan = 0
+!  rcode = nf90_get_att (cdfid, nf90_global, 'GRID_FDDA', met_fdda_3dan)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    IF ( TRIM(met_release) < 'V2.2' ) THEN
+!      met_fdda_3dan = 0  ! not implemented until V2.2
+!    ELSE
+!      WRITE (*,f9400) TRIM(pname), 'GRID_FDDA', TRIM(nf90_strerror(rcode))
+!      CALL graceful_stop (pname)
+!    ENDIF
+!  ENDIF
+  met_fdda_gv3d = -1.0 
+!  rcode = nf90_get_att (cdfid, nf90_global, 'GUV', met_fdda_gv3d)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    IF ( TRIM(met_release) < 'V2.2' ) THEN
+!      met_fdda_gv3d = -1.0  ! not in header until V2.2
+!    ELSE IF ( met_fdda_3dan == 0 ) THEN
+!      met_fdda_gv3d = -1.0  ! not in header if analysis nudging is off
+!    ELSE
+!      WRITE (*,f9400) TRIM(pname), 'GUV', TRIM(nf90_strerror(rcode))
+!      CALL graceful_stop (pname)
+!    ENDIF
+!  ENDIF
+  met_fdda_gt3d = -1.0
+!  rcode = nf90_get_att (cdfid, nf90_global, 'GT', met_fdda_gt3d)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    IF ( TRIM(met_release) < 'V2.2' ) THEN
+!      met_fdda_gt3d = -1.0  ! not in header until V2.2
+!    ELSE IF ( met_fdda_3dan == 0 ) THEN
+!      met_fdda_gt3d = -1.0  ! not in header if analysis nudging is off
+!    ELSE
+!      WRITE (*,f9400) TRIM(pname), 'GT', TRIM(nf90_strerror(rcode))
+!      CALL graceful_stop (pname)
+!    ENDIF
+!  ENDIF
+  met_fdda_gq3d = -1.0
+!  rcode = nf90_get_att (cdfid, nf90_global, 'GQ', met_fdda_gq3d)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    IF ( TRIM(met_release) < 'V2.2' ) THEN
+!      met_fdda_gq3d = -1.0  ! not in header until V2.2
+!    ELSE IF ( met_fdda_3dan /= 1 ) THEN
+!      met_fdda_gq3d = -1.0  ! not in header if analysis nudging is off
+!    ELSE
+!      WRITE (*,f9400) TRIM(pname), 'GQ', TRIM(nf90_strerror(rcode))
+!      CALL graceful_stop (pname)
+!    ENDIF
+!  ENDIF
+  met_fdda_gph3d = -1.0
+!  rcode = nf90_get_att (cdfid, nf90_global, 'GPH', met_fdda_gph3d)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    IF ( TRIM(met_release) < 'V3.2' ) THEN
+!      met_fdda_gph3d = -1.0  ! not in header until V3.2
+!    ELSE IF ( met_fdda_3dan /= 2 ) THEN
+!      met_fdda_gph3d = -1.0  ! not in header if spectral nudging is off
+!    ELSE
+!      WRITE (*,f9400) TRIM(pname), 'GPH', TRIM(nf90_strerror(rcode))
+!      CALL graceful_stop (pname)
+!    ENDIF
+!  ENDIF
+!
+!  IF ( TRIM(met_release) >= 'V3.1' ) THEN  ! find sfc analysis nudging info
+!
+!    rcode = nf90_get_att (cdfid, nf90_global, 'GRID_SFDDA', met_fdda_sfan)
+!    IF ( rcode /= nf90_noerr ) THEN
+!      WRITE (*,f9400) TRIM(pname), 'GRID_SFDDA', TRIM(nf90_strerror(rcode))
+!      CALL graceful_stop (pname)
+!    ENDIF
+!
+!    IF ( met_fdda_sfan == 1 ) THEN
+!
+!      rcode = nf90_get_att (cdfid, nf90_global, 'GUV_SFC', met_fdda_gvsfc)
+!      IF ( rcode /= nf90_noerr ) THEN
+!        WRITE (*,f9400) TRIM(pname), 'GUV_SFC', TRIM(nf90_strerror(rcode))
+!        CALL graceful_stop (pname)
+!      ENDIF
+!
+!      rcode = nf90_get_att (cdfid, nf90_global, 'GT_SFC', met_fdda_gtsfc)
+!      IF ( rcode /= nf90_noerr ) THEN
+!        WRITE (*,f9400) TRIM(pname), 'GT_SFC', TRIM(nf90_strerror(rcode))
+!        CALL graceful_stop (pname)
+!      ENDIF
+!
+!      rcode = nf90_get_att (cdfid, nf90_global, 'GQ_SFC', met_fdda_gqsfc)
+!      IF ( rcode /= nf90_noerr ) THEN
+!        WRITE (*,f9400) TRIM(pname), 'GQ_SFC', TRIM(nf90_strerror(rcode))
+!        CALL graceful_stop (pname)
+!      ENDIF
+!
+!    ELSE
+!
+!      met_fdda_gvsfc = -1.0
+!      met_fdda_gtsfc = -1.0
+!      met_fdda_gqsfc = -1.0
+!
+!    ENDIF
+!
+!  ELSE
+    met_fdda_sfan  =  0  ! sfc analysis nudging not in FV3
     met_fdda_gvsfc = -1.0
     met_fdda_gtsfc = -1.0
     met_fdda_gqsfc = -1.0
-  ENDIF
-
-  rcode = nf90_get_att (cdfid, nf90_global, 'OBS_NUDGE_OPT', met_fdda_obs)
-  IF ( rcode /= nf90_noerr ) THEN
-    IF ( TRIM(met_release) < 'V2.2' ) THEN
-      met_fdda_obs = 0  ! not implemented until V2.2
-    ELSE
-      WRITE (*,f9400) TRIM(pname), 'OBS_NUDGE_OPT', TRIM(nf90_strerror(rcode))
-      CALL graceful_stop (pname)
-    ENDIF
-  ENDIF
-
-  rcode = nf90_get_att (cdfid, nf90_global, 'OBS_COEF_WIND', met_fdda_giv)
-  IF ( rcode /= nf90_noerr ) THEN
-    IF ( TRIM(met_release) < 'V2.2' ) THEN
-      met_fdda_giv = -1.0  ! not in header until V2.2
-    ELSE IF ( met_fdda_obs == 0 ) THEN
-      met_fdda_giv = -1.0  ! not in header if obs nudging is off
-    ELSE
-      WRITE (*,f9400) TRIM(pname), 'OBS_COEF_WIND', TRIM(nf90_strerror(rcode))
-      CALL graceful_stop (pname)
-    ENDIF
-  ENDIF
-
-  rcode = nf90_get_att (cdfid, nf90_global, 'OBS_COEF_TEMP', met_fdda_git)
-  IF ( rcode /= nf90_noerr ) THEN
-    IF ( TRIM(met_release) < 'V2.2' ) THEN
-      met_fdda_git = -1.0  ! not in header until V2.2
-    ELSE IF ( met_fdda_obs == 0 ) THEN
-      met_fdda_git = -1.0  ! not in header if obs nudging is off
-    ELSE
-      WRITE (*,f9400) TRIM(pname), 'OBS_COEF_TEMP', TRIM(nf90_strerror(rcode))
-      CALL graceful_stop (pname)
-    ENDIF
-  ENDIF
-
-  rcode = nf90_get_att (cdfid, nf90_global, 'OBS_COEF_MOIS', met_fdda_giq)
-  IF ( rcode /= nf90_noerr ) THEN
-    IF ( TRIM(met_release) < 'V2.2' ) THEN
-      met_fdda_giq = -1.0  ! not in header until V2.2
-    ELSE IF ( met_fdda_obs == 0 ) THEN
-      met_fdda_giq = -1.0  ! not in header if obs nudging is off
-    ELSE
-      WRITE (*,f9400) TRIM(pname), 'OBS_COEF_MOIS', TRIM(nf90_strerror(rcode))
-      CALL graceful_stop (pname)
-    ENDIF
-  ENDIF
+!  ENDIF
+  met_fdda_obs = 0       ! not implemented in FV3
+!  rcode = nf90_get_att (cdfid, nf90_global, 'OBS_NUDGE_OPT', met_fdda_obs)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    IF ( TRIM(met_release) < 'V2.2' ) THEN
+!      met_fdda_obs = 0  ! not implemented until V2.2
+!    ELSE
+!      WRITE (*,f9400) TRIM(pname), 'OBS_NUDGE_OPT', TRIM(nf90_strerror(rcode))
+!      CALL graceful_stop (pname)
+!    ENDIF
+!  ENDIF
+  met_fdda_giv = -1.0    ! not implemented in FV3
+!  rcode = nf90_get_att (cdfid, nf90_global, 'OBS_COEF_WIND', met_fdda_giv)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    IF ( TRIM(met_release) < 'V2.2' ) THEN
+!      met_fdda_giv = -1.0  ! not in header until V2.2
+!    ELSE IF ( met_fdda_obs == 0 ) THEN
+!      met_fdda_giv = -1.0  ! not in header if obs nudging is off
+!    ELSE
+!      WRITE (*,f9400) TRIM(pname), 'OBS_COEF_WIND', TRIM(nf90_strerror(rcode))
+!      CALL graceful_stop (pname)
+!    ENDIF
+!  ENDIF
+  met_fdda_git = -1.0    ! not implemented in FV3
+!  rcode = nf90_get_att (cdfid, nf90_global, 'OBS_COEF_TEMP', met_fdda_git)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    IF ( TRIM(met_release) < 'V2.2' ) THEN
+!      met_fdda_git = -1.0  ! not in header until V2.2
+!    ELSE IF ( met_fdda_obs == 0 ) THEN
+!      met_fdda_git = -1.0  ! not in header if obs nudging is off
+!    ELSE
+!      WRITE (*,f9400) TRIM(pname), 'OBS_COEF_TEMP', TRIM(nf90_strerror(rcode))
+!      CALL graceful_stop (pname)
+!    ENDIF
+!  ENDIF
+  met_fdda_giq = -1.0    ! not implemented in FV3
+!  rcode = nf90_get_att (cdfid, nf90_global, 'OBS_COEF_MOIS', met_fdda_giq)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    IF ( TRIM(met_release) < 'V2.2' ) THEN
+!      met_fdda_giq = -1.0  ! not in header until V2.2
+!    ELSE IF ( met_fdda_obs == 0 ) THEN
+!      met_fdda_giq = -1.0  ! not in header if obs nudging is off
+!    ELSE
+!      WRITE (*,f9400) TRIM(pname), 'OBS_COEF_MOIS', TRIM(nf90_strerror(rcode))
+!      CALL graceful_stop (pname)
+!    ENDIF
+!  ENDIF
 
 !-------------------------------------------------------------------------------
 ! Determine whether or not fractional land use is available in the output.
 ! Set the flag appropriately.
 !-------------------------------------------------------------------------------
-
+  !Leave check in FV3 MCIP version in case fractional land use becomes available,
+  ! and it does not stop model if not available
   rcode = nf90_inq_varid (cdfid, 'LANDUSEF', varid)
   IF ( rcode == nf90_noerr ) THEN
     iflufrc    = .TRUE.   ! fractional land use is available
@@ -1241,21 +1312,20 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   ELSE
     iflu2wrfout = .FALSE.
   ENDIF
-
 !-------------------------------------------------------------------------------
 ! Determine whether or not the 2-m temperature, the 2-m mixing ratio, the
 ! 10-m wind components, and the turbulent kinetic energy are in the output,
 ! and set the flags appropriately.
 !-------------------------------------------------------------------------------
 
-  rcode = nf90_inq_varid (cdfid, 'T2', varid)
+  rcode = nf90_inq_varid (cdfid, 'tmp2m', varid)
   IF ( rcode == nf90_noerr ) THEN
     ift2m = .TRUE.  ! 2-m temperature is in the file
   ELSE
     ift2m = .FALSE. ! 2-m temperature is not in the file
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'Q2', varid)
+  rcode = nf90_inq_varid (cdfid, 'spfh2m', varid)
   IF ( rcode == nf90_noerr ) THEN
     IF ( met_pbl == 1 ) THEN  ! YSU PBL scheme
       ifq2m = .FALSE. ! do not use Q2 from YSU PBL; occasional winter negatives
@@ -1266,14 +1336,14 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     ifq2m = .FALSE. ! 2-m mixing ratio is not in the file
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'U10', varid)
+  rcode = nf90_inq_varid (cdfid, 'ugrd10m', varid)
   IF ( rcode == nf90_noerr ) THEN
     ifu10m = .TRUE.  ! 10-m u-component wind is in the file
   ELSE
     ifu10m = .FALSE. ! 10-m u-component wind is not in the file
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'V10', varid)
+  rcode = nf90_inq_varid (cdfid, 'vgrd10m', varid)
   IF ( rcode == nf90_noerr ) THEN
     ifv10m = .TRUE.  ! 10-m v-component wind is in the file
   ELSE
@@ -1286,7 +1356,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     ifw10m = .FALSE.
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'TKE_MYJ', varid)
+  rcode = nf90_inq_varid (cdfid, 'TKE_MYJ', varid)  !Left as TKE_MYJ, not in FV3 = False
   IF ( rcode == nf90_noerr ) THEN
     IF ( met_pbl == 2 ) THEN  ! Mellor-Yamada-Janjic (Eta)
       iftke  = .TRUE.  ! turbulent kinetic energy is in the file
@@ -1299,53 +1369,52 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     iftke  = .FALSE. ! turbulent kinetic energy is not in the file
     iftkef = .FALSE.
   ENDIF
-
 !-------------------------------------------------------------------------------
 ! Determine whether or not some surface variables are in the output, and set
 ! the flags appropriately.
 !-------------------------------------------------------------------------------
 
-  rcode = nf90_inq_varid (cdfid, 'LAI', varid)
+  rcode = nf90_inq_varid (cdfid, 'LAI', varid)  !not in FV3GFSv16
   IF ( rcode == nf90_noerr ) THEN
     iflai = .TRUE.  ! leaf area index is in the file
   ELSE
     iflai = .FALSE. ! leaf area index is not in the file
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'RMOL', varid)
+  rcode = nf90_inq_varid (cdfid, 'RMOL', varid) !not in FV3GFSv16
   IF ( rcode == nf90_noerr ) THEN
     ifmol = .TRUE.  ! (inverse) Monin-Obukhov length is in the file
   ELSE
     ifmol = .FALSE. ! (inverse) Monin-Obukhov length is not in the file
   ENDIF
 
-  IF ( met_soil_lsm == 7 ) THEN  ! PX was used in FV3
-    ifmolpx = .TRUE.
-    rcode = nf90_inq_varid (cdfid, 'LAI_PX', varid)  ! there are 7 variables
-    rcode = rcode + nf90_inq_varid (cdfid, 'WWLT_PX', varid)
-    rcode = rcode + nf90_inq_varid (cdfid, 'WFC_PX', varid)
-    rcode = rcode + nf90_inq_varid (cdfid, 'WSAT_PX', varid)
-    rcode = rcode + nf90_inq_varid (cdfid, 'CSAND_PX', varid)
-    rcode = rcode + nf90_inq_varid (cdfid, 'FMSAND_PX', varid)
-    rcode = rcode + nf90_inq_varid (cdfid, 'CLAY_PX', varid)
-    IF ( rcode == nf90_noerr ) THEN
-      ifpxwrf41 = .TRUE.  !  all 7 variables are available
-    ELSE
-      ifpxwrf41 = .FALSE.
-    ENDIF
-  ELSE
+!  IF ( met_soil_lsm == 7 ) THEN  ! PX LSM is not in FV3...yay!
+!    ifmolpx = .TRUE.
+!    rcode = nf90_inq_varid (cdfid, 'LAI_PX', varid)  ! there are 7 variables
+!    rcode = rcode + nf90_inq_varid (cdfid, 'WWLT_PX', varid)
+!    rcode = rcode + nf90_inq_varid (cdfid, 'WFC_PX', varid)
+!    rcode = rcode + nf90_inq_varid (cdfid, 'WSAT_PX', varid)
+!    rcode = rcode + nf90_inq_varid (cdfid, 'CSAND_PX', varid)
+!    rcode = rcode + nf90_inq_varid (cdfid, 'FMSAND_PX', varid)
+!    rcode = rcode + nf90_inq_varid (cdfid, 'CLAY_PX', varid)
+!    IF ( rcode == nf90_noerr ) THEN
+!      ifpxwrf41 = .TRUE.  !  all 7 variables are available
+!    ELSE
+!      ifpxwrf41 = .FALSE.
+!    ENDIF
+!  ELSE
     ifmolpx   = .FALSE.
     ifpxwrf41 = .FALSE.
-  ENDIF
+!  ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'RA', varid)
+  rcode = nf90_inq_varid (cdfid, 'acond', varid) 
   IF ( rcode == nf90_noerr ) THEN
     ifra = .TRUE.  ! aerodynamic resistance is in the file
   ELSE
     ifra = .FALSE. ! aerodynamic resistance is not in the file
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'RS', varid)
+  rcode = nf90_inq_varid (cdfid, 'RS', varid)  !not in FV3GFSv16??
   IF ( rcode == nf90_noerr ) THEN
     ifrs = .TRUE.  ! stomatal resistance is in the file
   ELSE
@@ -1358,35 +1427,35 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     ifresist = .FALSE.
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'VEGFRA', varid)
+  rcode = nf90_inq_varid (cdfid, 'veg', varid) 
   IF ( rcode == nf90_noerr ) THEN
     ifveg = .TRUE.  ! vegetation fraction is in the file
   ELSE
     ifveg = .FALSE. ! vegetation fraction is not in the file
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'CANWAT', varid)
+  rcode = nf90_inq_varid (cdfid, 'cnwat', varid) 
   IF ( rcode == nf90_noerr ) THEN
     ifwr = .TRUE.  ! canopy wetness is in the file
   ELSE
     ifwr = .FALSE. ! canopy wetness is not in the file
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'SMOIS', varid)
+  rcode = nf90_inq_varid (cdfid, 'soill1', varid) 
   IF ( rcode == nf90_noerr ) THEN
     ifsmois = .TRUE.  ! soil moisture is in the file
   ELSE
     ifsmois = .FALSE. ! soil moisture is not in the file
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'TSLB', varid)
+  rcode = nf90_inq_varid (cdfid, 'soilt1', varid)
   IF ( rcode == nf90_noerr ) THEN
     iftslb = .TRUE.  ! soil temperature is in the file
   ELSE
     iftslb = .FALSE. ! soil temperature is not in the file
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'ISLTYP', varid)
+  rcode = nf90_inq_varid (cdfid, 'sotyp', varid)
   IF ( rcode == nf90_noerr ) THEN
     ifisltyp = .TRUE.  ! soil type is in the file
   ELSE
@@ -1399,26 +1468,28 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     ifsoil = .FALSE.
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'ZNT', varid)
+  rcode = nf90_inq_varid (cdfid, 'sfcr', varid)
   IF ( rcode == nf90_noerr ) THEN
     ifznt = .TRUE.  ! roughness length is in the file
   ELSE
     ifznt = .FALSE. ! roughness length is not in the file
   ENDIF
 
-  IF ( met_cumulus == 1 .AND. ifcuradfdbk ) THEN  ! KF-Rad was used in FV3
-    rcode = nf90_inq_varid (cdfid, 'QC_CU', varid)  ! there are 4 variables
-    rcode = rcode + nf90_inq_varid (cdfid, 'QI_CU', varid)
-    rcode = rcode + nf90_inq_varid (cdfid, 'CLDFRA_DP', varid)
-    rcode = rcode + nf90_inq_varid (cdfid, 'CLDFRA_SH', varid)
-    IF ( rcode == nf90_noerr ) THEN
-      ifkfradextras = .TRUE.  !  all 4 variables are available
-    ELSE
-      ifkfradextras = .FALSE.
-    ENDIF
-  ELSE
+!KF-Radiative Feedback is not in FV3
+
+!  IF ( met_cumulus == 1 .AND. ifcuradfdbk ) THEN  ! KF-Rad was used in FV3
+!    rcode = nf90_inq_varid (cdfid, 'QC_CU', varid)  ! there are 4 variables
+!    rcode = rcode + nf90_inq_varid (cdfid, 'QI_CU', varid)
+!    rcode = rcode + nf90_inq_varid (cdfid, 'CLDFRA_DP', varid)
+!    rcode = rcode + nf90_inq_varid (cdfid, 'CLDFRA_SH', varid)
+!   IF ( rcode == nf90_noerr ) THEN
+!      ifkfradextras = .TRUE.  !  all 4 variables are available
+!    ELSE
+!      ifkfradextras = .FALSE.
+!    ENDIF
+!  ELSE
     ifkfradextras = .FALSE.
-  ENDIF
+!  ENDIF
 
 !-------------------------------------------------------------------------------
 ! Determine the number of 3D cloud moisture species.  Assume that cloud water
