@@ -16,7 +16,7 @@
 !  subject to their copyright restrictions.                                    !
 !------------------------------------------------------------------------------!
 
-SUBROUTINE readnml
+SUBROUTINE readnml (ctmlays)
 
 !-------------------------------------------------------------------------------
 ! Name:     Read Namelist
@@ -96,6 +96,7 @@ SUBROUTINE readnml
   IMPLICIT NONE
 
   INTEGER                           :: btrim
+  REAL,               INTENT(OUT)   :: ctmlays    ( maxlays )
   INTEGER                           :: hh
   INTEGER                           :: istat
   INTEGER                           :: mm
@@ -106,9 +107,9 @@ SUBROUTINE readnml
 
   NAMELIST /filenames/   file_gd, file_mm, file_geo, ioform
 
-  NAMELIST /userdefs/    inmetmodel, lpv, lwout, luvbout,     &
+  NAMELIST /userdefs/    inmetmodel, dx_in, dy_in, lpv, lwout, luvbout,     &
                          eradm, mcip_start, mcip_end, intvl,  &
-                         coordnam, grdnam,                    &
+                         coordnam, grdnam, ctmlays,           &
                          btrim, lprt_col, lprt_row,           &
                          wrf_lc_ref_lat
 
@@ -163,6 +164,25 @@ SUBROUTINE readnml
     & /, 1x, '***   Input LPRT_COL and LPRT_ROW are ', i4, 2x, i4, &
     & /, 1x, 70('*'))"
 
+  CHARACTER(LEN=256), PARAMETER :: f9700 = "(/, 1x, 70('*'), &
+    & /, 1x, '*** SUBROUTINE: ', a, &
+    & /, 1x, '***   First CTM layer must be 1.0', &
+    & /, 1x, '***   First input CTM layer is ', f7.4, &
+    & /, 1x, 70('*'))"
+
+  CHARACTER(LEN=256), PARAMETER :: f9800 = "(/, 1x, 70('*'), &
+    & /, 1x, '*** SUBROUTINE: ', a, &
+    & /, 1x, '***   Input CTM layers seem to be out of order', &
+    & /, 1x, '***     Layers must be in descending order', &
+    & /, 1x, '***   Input CTM layers are ', 50f7.4, &
+    & /, 1x, 70('*'))"
+
+  CHARACTER(LEN=256), PARAMETER :: f9900 = "(/, 1x, 70('*'), &
+    & /, 1x, '*** SUBROUTINE: ', a, &
+    & /, 1x, '***   Last CTM layer must be 0.0', &
+    & /, 1x, '***   Last input CTM layer is ', f7.4, &
+    & /, 1x, 70('*'))"
+
   CHARACTER(LEN=256), PARAMETER :: f9950 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
     & /, 1x, '***   Minimum value for X0 and Y0 is 1', &
@@ -197,6 +217,12 @@ SUBROUTINE readnml
 !-------------------------------------------------------------------------------
 ! Set default value for user-selected model (2 = WRF, 3 = FV3).
   inmetmodel = 2
+!-------------------------------------------------------------------------------
+
+!-------------------------------------------------------------------------------
+! Set default value for input meteorological model resolution (m).
+  dx_in = 12000
+  dy_in = 12000
 !-------------------------------------------------------------------------------
 
 !-------------------------------------------------------------------------------
@@ -249,6 +275,13 @@ SUBROUTINE readnml
 
   lprt_col = 0
   lprt_row = 0
+
+
+!-------------------------------------------------------------------------------
+! Initialize CTM layers to an unrealistic value (-1).
+!-------------------------------------------------------------------------------
+
+   ctmlays(:) = -1.0
 
 !-------------------------------------------------------------------------------
 ! Set default meteorology "boundary" point removal to 5.
@@ -389,6 +422,47 @@ SUBROUTINE readnml
   IF ( ( lprt_col < 0 ) .OR. ( lprt_row < 0 ) ) THEN
     WRITE (*,f9650) TRIM(pname), lprt_col, lprt_row
     CALL graceful_stop (pname)
+  ENDIF
+
+
+!-------------------------------------------------------------------------------
+! Determine actual CTM layers and fill arrays.  !Put this back in for FV3 to define
+! layers if necessary
+! If maximum value of CTMLAYS is -1.0 (which indicates that the namelist value
+! was not filled or was set with -1.0), use this as a flag to process MCIP
+! using the vertical structure of the input meteorology data with no collapsing.
+!-------------------------------------------------------------------------------
+
+  IF ( MAXVAL(ctmlays) < 0.0 ) THEN
+
+    needlayers = .TRUE.  ! read layer structure in setup.F from input met file
+
+  ELSE
+
+    needlayers = .FALSE.  ! using layer definition from namelist file
+
+    DO n = 1, maxlays
+      IF ( ctmlays(n) < 0.0 ) EXIT
+      IF ( n == 1 ) THEN
+        IF ( ctmlays(n) /= 1.0 ) THEN
+          WRITE (*,f9700) TRIM(pname), ctmlays(1)
+          CALL graceful_stop (pname)
+        ENDIF
+        CYCLE
+      ENDIF
+      IF ( ctmlays(n) >= ctmlays(n-1) ) THEN
+        WRITE (*,f9800) TRIM(pname), ctmlays(:)
+        CALL graceful_stop (pname)
+      ENDIF
+    ENDDO
+
+    IF ( ctmlays(n-1) /= 0.0 ) THEN
+      WRITE (*,f9900) TRIM(pname), ctmlays(n-1)
+      CALL graceful_stop (pname)
+    ENDIF
+
+    nlays = n - 2  ! one less than number in array, and one less than loop counter
+
   ENDIF
 
 !-------------------------------------------------------------------------------

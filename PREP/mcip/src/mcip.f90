@@ -111,7 +111,7 @@ PROGRAM mcip
 !-------------------------------------------------------------------------------
 
   CALL vstamp
-  CALL readnml
+  CALL readnml(ctmlays)
 
   mcip_now = mcip_start
   CALL getsdt (mcip_now, sdate, stime)
@@ -149,7 +149,6 @@ PROGRAM mcip
 !-------------------------------------------------------------------------------
 
   CALL vertarys (ctmlays)
-
 !-------------------------------------------------------------------------------
 ! Loop over time to get input, process fields, and write output.
 !-------------------------------------------------------------------------------

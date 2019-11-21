@@ -42,6 +42,7 @@ SUBROUTINE getmet (mcip_now)
 !           29 Aug 2011  Improved error handling.  (T. Otte)
 !           07 Sep 2011  Updated disclaimer.  (T. Otte)
 !           14 Sep 2018  Removed support for MM5v3 input.  (T. Spero)
+!           18 Nov 2019  Modified for FV3GFS Capability. (P. C. Campbell)
 !-------------------------------------------------------------------------------
 
   USE metinfo, ONLY: met_model
@@ -58,7 +59,7 @@ SUBROUTINE getmet (mcip_now)
   CHARACTER(LEN=256), PARAMETER :: f9000 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
     & /, 1x, '***   UNKNOWN INPUT MET MODEL SOURCE', &
-    & /, 1x, '***   MUST BE WRF-ARW', &
+    & /, 1x, '***   MUST BE WRF or FV3', &
     & /, 1x, '***   MET_MODEL = ', i4, &
     & /, 1x, 70('*'))"
 

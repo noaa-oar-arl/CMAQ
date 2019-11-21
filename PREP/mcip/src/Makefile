@@ -93,6 +93,7 @@ OBJS =\
  blddesc.o \
  chkwpshdr.o \
  chkwrfhdr.o \
+ chkfv3hdr.o \
  close_files.o \
  comheader.o \
  comheader_lufrac.o \

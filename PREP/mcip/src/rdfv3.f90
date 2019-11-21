@@ -177,6 +177,7 @@ SUBROUTINE rdfv3 (mcip_now)
 !                        improve dust simulation in CCTM.  Added optional
 !                        variables from KF convective scheme with radiative
 !                        feedbacks.  (T. Spero)
+!           21 Nov 2019  Modified for FV3GFS Capability. (P. C. Campbell)
 !-------------------------------------------------------------------------------
 
   USE date_pack
@@ -249,14 +250,16 @@ SUBROUTINE rdfv3 (mcip_now)
   INTEGER                           :: nxm
   INTEGER                           :: nym
   INTEGER                           :: nzp
-  CHARACTER(LEN=16),  PARAMETER     :: pname      = 'RDWRFEM'
+  CHARACTER(LEN=16),  PARAMETER     :: pname      = 'RDFV3'
   INTEGER                           :: rcode
   REAL,               PARAMETER     :: rdovcp     = 2.0 / 7.0
   REAL,               PARAMETER     :: smallnum   = 1.0e-7
   CHARACTER(LEN=19)                 :: startseas
   CHARACTER(LEN=2)                  :: str1
   CHARACTER(LEN=2)                  :: str2
-  CHARACTER(LEN=19),SAVE,ALLOCATABLE:: times      ( : )
+  
+!  CHARACTER(LEN=19),SAVE,ALLOCATABLE:: times      ( : )
+  REAL,SAVE,ALLOCATABLE             :: times      ( : )
   REAL                              :: xoff
   REAL                              :: xxin
   REAL                              :: yoff
@@ -347,7 +350,7 @@ SUBROUTINE rdfv3 (mcip_now)
   CHARACTER(LEN=256), PARAMETER :: f9100 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
     & /, 1x, '***   LOOKING FOR INPUT MET AT TIME ', a, &
-    & /, 1x, '***   NO MORE INPUT WRF FILES', &
+    & /, 1x, '***   NO MORE INPUT FV3 FILES', &
     & /, 1x, 70('*'))"
 
   CHARACTER(LEN=256), PARAMETER :: f9200 = "(/, 1x, 70('*'), &
@@ -365,28 +368,28 @@ SUBROUTINE rdfv3 (mcip_now)
 
   CHARACTER(LEN=256), PARAMETER :: f9400 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
-    & /, 1x, '***   ERROR RETRIEVING VARIABLE FROM WRF FILE', &
+    & /, 1x, '***   ERROR RETRIEVING VARIABLE FROM FV3 FILE', &
     & /, 1x, '***   VARIABLE = ', a, &
     & /, 1x, '***   RCODE = ', a, &
     & /, 1x, 70('*'))"
 
   CHARACTER(LEN=256), PARAMETER :: f9410 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
-    & /, 1x, '***   ERROR RETRIEVING NCF ID FROM WRF FILE', &
+    & /, 1x, '***   ERROR RETRIEVING NCF ID FROM FV3 FILE', &
     & /, 1x, '***   VARIABLE = ', a, &
     & /, 1x, '***   NCF: ', a, &
     & /, 1x, 70('*'))"
 
   CHARACTER(LEN=256), PARAMETER :: f9420 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
-    & /, 1x, '***   ERROR INQUIRING ABOUT VAR IN WRF FILE', &
+    & /, 1x, '***   ERROR INQUIRING ABOUT VAR IN FV3 FILE', &
     & /, 1x, '***   VARIABLE = ', a, &
     & /, 1x, '***   NCF: ', a, &
     & /, 1x, 70('*'))"
 
   CHARACTER(LEN=256), PARAMETER :: f9430 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
-    & /, 1x, '***   ERROR RETRIEVING DIMS FROM WRF FILE', &
+    & /, 1x, '***   ERROR RETRIEVING DIMS FROM FV3 FILE', &
     & /, 1x, '***   VARIABLE = ', a, &
     & /, 1x, '***   NCF: ', a, &
     & /, 1x, 70('*'))"
@@ -414,12 +417,12 @@ SUBROUTINE rdfv3 (mcip_now)
 
   CHARACTER(LEN=256), PARAMETER :: f9900 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
-    & /, 1x, '***   ERROR OPENING WRF NETCDF FILE', &
+    & /, 1x, '***   ERROR OPENING FV3 NETCDF FILE', &
     & /, 1x, 70('*'))"
 
   CHARACTER(LEN=256), PARAMETER :: f9950 = "(/, 1x, 70('*'), &
     & /, 1x, '*** SUBROUTINE: ', a, &
-    & /, 1x, '***   ERROR CLOSING WRF NETCDF FILE', &
+    & /, 1x, '***   ERROR CLOSING FV3 NETCDF FILE', &
     & /, 1x, 70('*'))"
 
   CHARACTER(LEN=256), PARAMETER :: f9975 = "(/, 1x, 70('*'), &
@@ -617,39 +620,41 @@ SUBROUTINE rdfv3 (mcip_now)
           WRITE (*,f9900) TRIM(pname)
           CALL graceful_stop (pname)
         ENDIF
-        CALL chkwrfhdr (fl, cdfid)
-        rcode = nf90_inq_varid (cdfid, 'Times', id_data)
+        CALL chkfv3hdr (fl, cdfid)
+        rcode = nf90_inq_varid (cdfid, 'time', id_data)
         IF ( rcode /= nf90_noerr ) THEN
-          WRITE (*,f9410) TRIM(pname), 'Times', TRIM(nf90_strerror(rcode))
+          WRITE (*,f9410) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
           CALL graceful_stop (pname)
         ENDIF
         rcode = nf90_inquire_variable (cdfid, id_data, dimids=dimids)
         IF ( rcode /= nf90_noerr ) THEN
-          WRITE (*,f9420) TRIM(pname), 'Times', TRIM(nf90_strerror(rcode))
+          WRITE (*,f9420) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
           CALL graceful_stop (pname)
         ENDIF
-        rcode = nf90_inquire_dimension (cdfid, dimids(1), len=lent)
+!        rcode = nf90_inquire_dimension (cdfid, dimids(1), len=lent)
+!        IF ( rcode /= nf90_noerr ) THEN
+!          WRITE (*,f9430) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
+!          CALL graceful_stop (pname)
+!        ENDIF
+        rcode = nf90_inquire_dimension (cdfid, dimids(1), len=n_times)
         IF ( rcode /= nf90_noerr ) THEN
-          WRITE (*,f9430) TRIM(pname), 'Times', TRIM(nf90_strerror(rcode))
-          CALL graceful_stop (pname)
-        ENDIF
-        rcode = nf90_inquire_dimension (cdfid, dimids(2), len=n_times)
-        IF ( rcode /= nf90_noerr ) THEN
-          WRITE (*,f9430) TRIM(pname), 'Times', TRIM(nf90_strerror(rcode))
+          WRITE (*,f9430) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
           CALL graceful_stop (pname)
         ENDIF
         IF ( ALLOCATED ( times ) ) DEALLOCATE ( times )
         ALLOCATE ( times ( n_times ) )
-        rcode = nf90_get_var (cdfid, id_data, times,   &
-                              start=(/1,1/), count=(/lent,n_times/))
+        rcode = nf90_get_var (cdfid, id_data, times)
+!                              start=(/1,1/), count=(/lent,n_times/))
         IF ( rcode /= nf90_noerr ) THEN
-          WRITE (*,f9400) TRIM(pname), 'Times', TRIM(nf90_strerror(rcode))
+          WRITE (*,f9400) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
           CALL graceful_stop (pname)
         ENDIF
         newfilem1  = .FALSE.
       ENDIF
+
       DO i = 1, n_times
-        CALL geth_idts (times(i), mcip_previous(1:19), idtsec)
+!        CALL geth_idts (times(i), mcip_previous(1:19), idtsec)
+        idtsec     = times(i)*3600  ! convert hrs --> sec
         IF ( ABS(idtsec) < ttol_sec ) THEN  ! found MCIP_PREVIOUS in WRF output
           itm1 = i
           EXIT findprev
@@ -675,7 +680,7 @@ SUBROUTINE rdfv3 (mcip_now)
       ENDIF
     ENDDO findprev
 
-    CALL get_var_2d_real_cdf (cdfid, 'RAINC', dum2d, itm1, rcode)
+    CALL get_var_2d_real_cdf (cdfid, 'cprat_ave', dum2d, itm1, rcode)
     IF ( rcode == nf90_noerr ) THEN
       rcold(1:nxm,1:nym) = dum2d(:,:)
       rcold(met_nx,:) = rcold(nxm,:)
@@ -684,11 +689,13 @@ SUBROUTINE rdfv3 (mcip_now)
         rcold = 0.0
       ENDWHERE
     ELSE
-      WRITE (*,f9400) TRIM(pname), 'RAINC', TRIM(nf90_strerror(rcode))
+      WRITE (*,f9400) TRIM(pname), 'cprat_ave', TRIM(nf90_strerror(rcode))
       CALL graceful_stop (pname)
     ENDIF
+    print*, rcode
 
-    CALL get_var_2d_real_cdf (cdfid, 'RAINNC', dum2d, itm1, rcode)
+
+    CALL get_var_2d_real_cdf (cdfid, 'prate_ave', dum2d, itm1, rcode)
     IF ( rcode == nf90_noerr ) THEN
       rnold(1:nxm,1:nym) = dum2d(:,:)
       rnold(met_nx,:) = rnold(nxm,:)
@@ -697,29 +704,29 @@ SUBROUTINE rdfv3 (mcip_now)
         rnold = 0.0
       ENDWHERE
     ELSE
-      WRITE (*,f9400) TRIM(pname), 'RAINNC', TRIM(nf90_strerror(rcode))
+      WRITE (*,f9400) TRIM(pname), 'prate_ave', TRIM(nf90_strerror(rcode))
       CALL graceful_stop (pname)
     ENDIF
 
     IF ( met_rain_bucket > 0.0 ) THEN  ! tipping bucket is on
     
-      CALL get_var_2d_int_cdf (cdfid, 'I_RAINC', dum2d_i, itm1, rcode)
+      CALL get_var_2d_int_cdf (cdfid, 'cpratb_ave', dum2d_i, itm1, rcode)
       IF ( rcode == nf90_noerr ) THEN
         ircold(1:nxm,1:nym) = dum2d_i(:,:)
         ircold(met_nx,:) = ircold(nxm,:)
         ircold(:,met_ny) = ircold(:,nym)
       ELSE
-        WRITE (*,f9400) TRIM(pname), 'I_RAINC', TRIM(nf90_strerror(rcode))
+        WRITE (*,f9400) TRIM(pname), 'cpratb_ave', TRIM(nf90_strerror(rcode))
         CALL graceful_stop (pname)
       ENDIF
 
-      CALL get_var_2d_int_cdf (cdfid, 'I_RAINNC', dum2d_i, itm1, rcode)
+      CALL get_var_2d_int_cdf (cdfid, 'prateb_ave', dum2d_i, itm1, rcode)
       IF ( rcode == nf90_noerr ) THEN
         irnold(1:nxm,1:nym) = dum2d_i(:,:)
         irnold(met_nx,:) = irnold(nxm,:)
         irnold(:,met_ny) = irnold(:,nym)
       ELSE
-        WRITE (*,f9400) TRIM(pname), 'I_RAINNC', TRIM(nf90_strerror(rcode))
+        WRITE (*,f9400) TRIM(pname), 'prateb_ave', TRIM(nf90_strerror(rcode))
         CALL graceful_stop (pname)
       ENDIF
 
@@ -751,40 +758,41 @@ SUBROUTINE rdfv3 (mcip_now)
         WRITE (*,f9900) TRIM(pname)
         CALL graceful_stop (pname)
       ENDIF
-      CALL chkwrfhdr (fl, cdfid)
-      rcode = nf90_inq_varid (cdfid, 'Times', id_data)
+      CALL chkfv3hdr (fl, cdfid)
+      rcode = nf90_inq_varid (cdfid, 'time', id_data)
       IF ( rcode /= nf90_noerr ) THEN
-        WRITE (*,f9410) TRIM(pname), 'Times', TRIM(nf90_strerror(rcode))
+        WRITE (*,f9410) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
         CALL graceful_stop (pname)
       ENDIF
       rcode = nf90_inquire_variable (cdfid, id_data, dimids=dimids)
       IF ( rcode /= nf90_noerr ) THEN
-        WRITE (*,f9420) TRIM(pname), 'Times', TRIM(nf90_strerror(rcode))
+        WRITE (*,f9420) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
         CALL graceful_stop (pname)
       ENDIF
-      rcode = nf90_inquire_dimension (cdfid, dimids(1), len=lent)
+!      rcode = nf90_inquire_dimension (cdfid, dimids(1), len=lent)
+!      IF ( rcode /= nf90_noerr ) THEN
+!        WRITE (*,f9430) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
+!        CALL graceful_stop (pname)
+!      ENDIF
+      rcode = nf90_inquire_dimension (cdfid, dimids(1), len=n_times)
       IF ( rcode /= nf90_noerr ) THEN
-        WRITE (*,f9430) TRIM(pname), 'Times', TRIM(nf90_strerror(rcode))
-        CALL graceful_stop (pname)
-      ENDIF
-      rcode = nf90_inquire_dimension (cdfid, dimids(2), len=n_times)
-      IF ( rcode /= nf90_noerr ) THEN
-        WRITE (*,f9430) TRIM(pname), 'Times', TRIM(nf90_strerror(rcode))
+        WRITE (*,f9430) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
         CALL graceful_stop (pname)
       ENDIF
       IF ( ALLOCATED ( times ) ) DEALLOCATE ( times )
       ALLOCATE ( times ( n_times ) )
-      rcode = nf90_get_var (cdfid, id_data, times,   &
-                            start=(/1,1/), count=(/lent,n_times/))
+      rcode = nf90_get_var (cdfid, id_data, times)
+!                            start=(/1,1/), count=(/lent,n_times/))
       IF ( rcode /= nf90_noerr ) THEN
-        WRITE (*,f9400) TRIM(pname), 'Times', TRIM(nf90_strerror(rcode))
+        WRITE (*,f9400) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
         CALL graceful_stop (pname)
       ENDIF
       newfile  = .FALSE.
       it_start = 1
     ENDIF
     DO i = it_start, n_times
-      CALL geth_idts (times(i), mcip_now(1:19), idtsec)
+!      CALL geth_idts (times(i), mcip_now(1:19), idtsec)
+      idtsec     = times(i)*3600  ! convert hrs --> sec
       IF ( ABS(idtsec) < ttol_sec ) THEN  ! found MCIP_NOW in WRF output
         it = i
         IF ( i < n_times ) it_start = i + 1

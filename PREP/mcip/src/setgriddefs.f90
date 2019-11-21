@@ -161,6 +161,7 @@ SUBROUTINE setgriddefs
 !                        write for IOFORM to log.  Added flag for optional
 !                        variable with KF convective scheme with radiative
 !                        feedbacks.  (T. Spero)
+!           19 Nov 2019  Modified for FV3GFS Capability. (P. C. Campbell)
 !-------------------------------------------------------------------------------
 
   USE mcipparm
@@ -212,7 +213,7 @@ SUBROUTINE setgriddefs
       "(/, 1x, a, ' was ', a, ' used in the meteorology model')"
 
   CHARACTER(LEN=256), PARAMETER :: f6200 = &
-      "(1x, a, ' domain dimensions (col, row, lay):', 3(2x, i3))"
+      "(1x, a, ' domain dimensions (col, row, lay):', 3(2x, i4))"
 
   CHARACTER(LEN=256), PARAMETER :: f6300 = "(4x, a, 1x, a, 3x, i4, 2x, i4)"
   CHARACTER(LEN=256), PARAMETER :: f6400 = "(4x, a, 2x, i14)"
@@ -302,12 +303,10 @@ SUBROUTINE setgriddefs
     ncols = met_nx - (2 * nbdrytrim) - (2 * nthik) - 1
     nrows = met_ny - (2 * nbdrytrim) - (2 * nthik) - 1
   ENDIF
-
   nrows_x = nrows + 2 * nthik
   ncols_x = ncols + 2 * nthik
 
   nbndy   = 2 * nthik * (ncols + nrows + 2*nthik)
-
 !-------------------------------------------------------------------------------
 ! Check dimensions of domain.
 !-------------------------------------------------------------------------------
@@ -349,7 +348,6 @@ SUBROUTINE setgriddefs
 
   ncg_x = 1 + INT( ncols + 2 * nthik - 1 )
   ncg_y = 1 + INT( nrows + 2 * nthik - 1 )
-
 !-------------------------------------------------------------------------------
 ! GDTYP_GD:
 ! The map projection types in I/O API are:
@@ -371,6 +369,8 @@ SUBROUTINE setgriddefs
     gdtyp_gd = polgrd3
   ELSE IF ( met_mapproj == 3 ) THEN  ! equatorial Mercator
     gdtyp_gd = eqmgrd3
+   ELSE IF ( met_mapproj == 4 ) THEN  ! Gaussian (FV3) currently set to lat-lon...wrong??
+    gdtyp_gd = latgrd3
   ELSE
     WRITE (*,f9275) TRIM(pname), met_mapproj
     CALL graceful_stop (pname)
@@ -414,21 +414,19 @@ SUBROUTINE setgriddefs
   ELSE IF ( gdtyp_gd == eqmgrd3 ) THEN
     xcent_gd = DBLE(met_proj_clon)  ! [degrees longitude]
     ycent_gd = 0.0d0                ! [degrees latitude]
-  ELSE
+  ELSE                              !WRF polar stereographic or FV3 Gaussian
     xcent_gd = DBLE(met_proj_clon)  ! [degrees longitude]
     ycent_gd = DBLE(met_proj_clat)  ! [degrees latitude]
   ENDIF
-
 !-------------------------------------------------------------------------------
 ! (XCELL_GD, YCELL_GD):
 ! The X-direction and Y-direction cell dimensions (m) for a regular grid
 ! If zero, the grid is assumed irregular and described by other means (e.g.
 ! a grid-geometry file).
 !-------------------------------------------------------------------------------
-
+  !FV3 cell resolutions are not in attributes of output, thus, set to zero, OK??
   xcell_gd   =  DBLE(met_resoln)  ! [m]
   ycell_gd   =  DBLE(met_resoln)  ! [m]
-
 !-------------------------------------------------------------------------------
 ! VGTYP_GD:
 ! The vertical grid type:
@@ -452,6 +450,12 @@ SUBROUTINE setgriddefs
     ENDIF
   ENDIF
 
+  IF ( met_model == 3 ) THEN     ! FV3 only hybrid sigma-pressure vertical coordinate
+      vgtyp_gd = imiss3
+  ENDIF
+
+
+  
 !-------------------------------------------------------------------------------
 ! VGTPUN_GD:
 ! The units of the vertical coordinate top.
@@ -527,7 +531,7 @@ SUBROUTINE setgriddefs
 ! For Lat-Lon: units are degrees - unused
 !-------------------------------------------------------------------------------
 
-  IF ( met_model == 2 ) THEN  ! WRF -- Allow trailing digits.
+  IF ( ( met_model == 2 ) .OR. ( met_model == 3) ) THEN  ! WRF or FV3 -- Allow trailing digits.
     xorig_gd   = DBLE(xorig_ctm)        ! X-origin [m]
     yorig_gd   = DBLE(yorig_ctm)        ! Y-origin [m]
   ENDIF
@@ -776,7 +780,7 @@ SUBROUTINE setgriddefs
   WRITE (*,f6200) 'Output', ncols,   nrows,   nlays
   WRITE (*,'(/)')
 
-  WRITE (*,*) 'Output grid resolution: ', xcell_gd / 1000.0,  ' km'
+  WRITE (*,*) 'Input/Output grid resolution: ', xcell_gd / 1000.0,  ' km'
   WRITE (*,*) 'Window domain origin on met domain (col,row):     ',  &
               x0, ', ', y0
   WRITE (*,*) 'Window domain far corner on met domain (col,row): ',  &

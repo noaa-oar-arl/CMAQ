@@ -53,7 +53,6 @@ SUBROUTINE vertarys (ctmlays)
 !-------------------------------------------------------------------------------
 
   vglvs_gd(1:nlays+1) = ctmlays(1:nlays+1)
-
 !-------------------------------------------------------------------------------
 ! X3FACE_GD( 0: NLAYS ):
 ! The list of vertical coordinate surface values in the VGLVUN_GD units 
@@ -80,19 +79,19 @@ SUBROUTINE vertarys (ctmlays)
 
   IF ( (k1 - 1) > 0 ) THEN
     IF ( k2 > 0 ) THEN
-      ifmt1 = "(/,4x,a,6(2x,f7.5),/," // str1 // "(12x,6(2x,f7.5),/),12x,"   &
-         &    // str2 // "(2x,f7.5),/)"
+      ifmt1 = "(/,4x,a,6(2x,f9.4),/," // str1 // "(12x,6(2x,f9.4),/),12x,"   &
+         &    // str2 // "(2x,f9.4),/)"
     ELSE
-      ifmt1 = "(/,4x,a,6(2x,f7.5),/," // str1 // "(12x,6(2x,f7.5),/))"
+      ifmt1 = "(/,4x,a,6(2x,f9.4),/," // str1 // "(12x,6(2x,f9.4),/))"
     ENDIF
   ELSE
     IF ( k2 > 0 ) THEN
-      ifmt1 = "(/,4x,a,6(2x,f7.5),/,12x," // str2 // "(2x,f7.5),/)"
+      ifmt1 = "(/,4x,a,6(2x,f9.4),/,12x," // str2 // "(2x,f9.4),/)"
     ELSE
-      ifmt1 = "(/,4x,a,6(2x,f7.5),/)"
+      ifmt1 = "(/,4x,a,6(2x,f9.4),/)"
     ENDIF
   ENDIF
-
+  
   WRITE (*,ifmt1) 'VGLVS3D ', vglvs_gd
 
   WRITE (*, "(1x, 78('-'), /)")

@@ -176,8 +176,9 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   INTEGER     ,       INTENT(IN)    :: cdfid
   INTEGER                           :: cdfid2
   INTEGER                           :: cdfidg
-  REAL,               INTENT(OUT)   :: ctmlays    ( maxlays )
-  REAL                              :: ctmlays2   ( maxlays )
+  REAL,               INTENT(OUT)   :: ctmlays     ( maxlays )
+  REAL                              :: phalf_lays  ( maxlays )
+  REAL                              :: pfull_lays  ( maxlays )
   CHARACTER(LEN=19)                 :: date_init
   CHARACTER(LEN=256)                :: date_init2
   CHARACTER(LEN=19)                 :: date_start
@@ -186,8 +187,8 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   REAL,               ALLOCATABLE   :: dum1d      ( : )
   REAL,               ALLOCATABLE   :: dum2d      ( : , : )
   INTEGER,            ALLOCATABLE   :: dum2d_i    ( : , : )
-!  REAL                              :: dx
-!  REAL                              :: dy
+  INTEGER                           :: dx
+  INTEGER                           :: dy
   REAL                              :: fac
   CHARACTER(LEN=256)                :: fl
   CHARACTER(LEN=256)                :: fl2
@@ -213,9 +214,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   CHARACTER(LEN=16),  PARAMETER     :: pname      = 'SETUP_FV3'
   INTEGER                           :: rcode
   REAL                              :: rval
-!  CHARACTER(LEN=19),  ALLOCATABLE   :: times      ( : )
   REAL,  ALLOCATABLE                :: times      ( : )
-  CHARACTER(LEN=19),  ALLOCATABLE   :: times2     ( : )
   INTEGER                           :: varid
   CHARACTER(LEN=80)                 :: fv3version
 !-------------------------------------------------------------------------------
@@ -365,17 +364,17 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   met_rjctr_dot = FLOAT(met_ny - 1) / 2.0 + 1.0
 
 !-------------------------------------------------------------------------------
-! If layer structure was not defined in user namelist, use FV3 layers.
+! Read FV3 Pressure layers.
 !-------------------------------------------------------------------------------
 
   nlays = met_nz
-  CALL get_var_1d_real_cdf (cdfid, 'phalf', ctmlays(1:nlays+1), 1, rcode)
+  CALL get_var_1d_real_cdf (cdfid, 'phalf', phalf_lays(1:nlays+1), 1, rcode)
   IF ( rcode /= nf90_noerr ) THEN
     WRITE (*,f9400) TRIM(pname), 'phalf', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
 
-  CALL get_var_1d_real_cdf (cdfid, 'pfull', ctmlays2(1:nlays), 1, rcode)
+  CALL get_var_1d_real_cdf (cdfid, 'pfull', pfull_lays(1:nlays), 1, rcode)
   IF ( rcode /= nf90_noerr ) THEN
     WRITE (*,f9400) TRIM(pname), 'pfull', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
@@ -403,13 +402,17 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !    WRITE (*,f9400) TRIM(pname), 'DY', TRIM(nf90_strerror(rcode))
 !    CALL graceful_stop (pname)
 !  ENDIF
+
+!FV3 the user sets the input dx/dy resolutions in namelist
+   dx=dx_in
+   dy=dy_in
 !
-!  IF (dx == dy) THEN
-!    met_resoln = dx
-!  ELSE
-!    WRITE (*,f9000) TRIM(pname), dx, dy
-!    CALL graceful_stop (pname)
-!  ENDIF
+  IF (dx == dy) THEN
+    met_resoln = dx
+  ELSE
+    WRITE (*,f9000) TRIM(pname), dx, dy
+    CALL graceful_stop (pname)
+  ENDIF
 
   met_nxcoarse = met_nx 
   met_nycoarse = met_ny
@@ -521,6 +524,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !  END SELECT
 
 !     FV3 Gaussian Global Grid
+      met_mapproj    = 4                      ! FV3 Gaussian Map Projection      
       met_proj_clon  = 0.0
       met_p_alp_d  = 0.0                      ! lat of coord origin [deg]
       met_p_bet_d  = 0.0                      ! (not used)
@@ -725,49 +729,53 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !    ENDIF
 !  ENDIF
 
+!  Initial FV3 version no options/attributes set for different physics options
+!  in the met netCDF output file.
+!  Initially set all physics = 0, but should match FV3 with WRF settings
+
 !  rcode = nf90_get_att (cdfid, nf90_global, 'RA_LW_PHYSICS', met_lw_rad)
 !  IF ( rcode /= nf90_noerr ) THEN
 !    WRITE (*,f9400) TRIM(pname), 'RA_LW_PHYSICS', TRIM(nf90_strerror(rcode))
 !    CALL graceful_stop (pname)
 !  ENDIF
-!
+   met_lw_rad=0
 !  rcode = nf90_get_att (cdfid, nf90_global, 'RA_SW_PHYSICS', met_sw_rad)
 !  IF ( rcode /= nf90_noerr ) THEN
 !    WRITE (*,f9400) TRIM(pname), 'RA_SW_PHYSICS', TRIM(nf90_strerror(rcode))
 !    CALL graceful_stop (pname)
 !  ENDIF
-!
+   met_sw_rad=0
 !  rcode = nf90_get_att (cdfid, nf90_global, 'CU_PHYSICS', met_cumulus)
 !  IF ( rcode /= nf90_noerr ) THEN
 !    WRITE (*,f9400) TRIM(pname), 'CU_PHYSICS', TRIM(nf90_strerror(rcode))
 !    CALL graceful_stop (pname)
 !  ENDIF
-!
+   met_cumulus=0   
 !  rcode = nf90_get_att (cdfid, nf90_global, 'MP_PHYSICS', met_expl_moist)
 !  IF ( rcode /= nf90_noerr ) THEN
 !    WRITE (*,f9400) TRIM(pname), 'MP_PHYSICS', TRIM(nf90_strerror(rcode))
 !    CALL graceful_stop (pname)
 !  ENDIF
-!
+   met_expl_moist=0
 !  rcode = nf90_get_att (cdfid, nf90_global, 'BL_PBL_PHYSICS', met_pbl)
 !  IF ( rcode /= nf90_noerr ) THEN
 !    WRITE (*,f9400) TRIM(pname), 'BL_PBL_PHYSICS', TRIM(nf90_strerror(rcode))
 !    CALL graceful_stop (pname)
 !  ENDIF
-!
+   met_pbl=0
 !  rcode = nf90_get_att (cdfid, nf90_global, 'SF_SFCLAY_PHYSICS', met_sfc_lay)
 !  IF ( rcode /= nf90_noerr ) THEN
 !    WRITE (*,f9400) TRIM(pname), 'SF_SFCLAY_PHYSICS', TRIM(nf90_strerror(rcode))
 !    CALL graceful_stop (pname)
 !  ENDIF
-!
+   met_sfc_lay=0
 !  rcode = nf90_get_att (cdfid, nf90_global, 'SF_SURFACE_PHYSICS', met_soil_lsm)
 !  IF ( rcode /= nf90_noerr ) THEN
 !    WRITE (*,f9400) TRIM(pname), 'SF_SURFACE_PHYSICS',  &
 !                   TRIM(nf90_strerror(rcode))
 !    CALL graceful_stop (pname)
 !  ENDIF
-!
+   met_soil_lsm=0
 !
 !  ! Determine if an urban model was used.
 !  
@@ -1050,7 +1058,8 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !    ENDIF
 !  ENDIF
 
-  met_tapfrq = times(1)*60  ! convert hrs --> min
+  met_tapfrq = (times(1))*60  ! convert hrs --> min
+  idtsec     = met_tapfrq*60  ! convert min --> sec 
 !-------------------------------------------------------------------------------
 ! Set variables for non-hydrostatic base state.  There is no option for
 ! hydrostatic run in FV3.  The base state variables are not currently output
@@ -1073,11 +1082,22 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !    CALL graceful_stop (pname)
 !  ENDIF
 
-  met_ptop  = ctmlays(1) !FV3 set met_ptop to first value of pressure levels, top-down
+  met_ptop  = phalf_lays(1)*100.0 !FV3 set met_ptop to first value of pressure array, FV3 top-down [Pa]
   met_p00   = 100000.0 ! base state sea-level pressure [Pa]
   met_ts0   =    290.0 ! base state sea-level temperature [K]
   met_tlp   =     50.0 ! base state lapse rate d(T)/d(ln P) from 1000 to 300 mb
   met_tiso  = fillreal ! base state stratospheric isothermal T [K]  ! not used
+
+
+!-------------------------------------------------------------------------------
+! If Eta layer structure (ctmlays) was not defined in user namelist, calculate using FV3 pressure.
+!-------------------------------------------------------------------------------
+
+  IF ( needlayers ) THEN
+    !FV3 is top down, but CMAQ levels are bottom up, reverse pressure array order:
+    ctmlays = (phalf_lays(nlays+1:1:-1) - phalf_lays(1)) / (MAXVAL(phalf_lays) - phalf_lays(1))
+  ENDIF
+
 !-------------------------------------------------------------------------------
 ! Determine FV3 release.
 !-------------------------------------------------------------------------------
@@ -1502,7 +1522,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 ! this case.
 !-------------------------------------------------------------------------------
 
-  rcode = nf90_inq_varid (cdfid, 'QCLOUD', varid)
+  rcode = nf90_inq_varid (cdfid, 'clwmr', varid)
   IF ( rcode == nf90_noerr ) THEN
     nqspecies = 1  ! QCLOUD is in the file
   ELSE  ! need hydrometeor fields for CMAQ
@@ -1510,7 +1530,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     CALL graceful_stop (pname)
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'QRAIN', varid)
+  rcode = nf90_inq_varid (cdfid, 'rwmr', varid)
   IF ( rcode == nf90_noerr ) THEN
     nqspecies = nqspecies + 1  ! QRAIN is in the file
   ELSE
@@ -1523,12 +1543,12 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     ENDIF
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'QICE', varid)
+  rcode = nf90_inq_varid (cdfid, 'icmr', varid)
   IF ( rcode == nf90_noerr ) THEN
     nqspecies = nqspecies + 1  ! QICE is in the file
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'QSNOW', varid)
+  rcode = nf90_inq_varid (cdfid, 'snmr', varid)
   IF ( rcode == nf90_noerr ) THEN
     nqspecies = nqspecies + 1  ! QSNOW is in the file
   ENDIF
@@ -1538,7 +1558,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     CALL graceful_stop (pname)
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'QGRAUP', varid)
+  rcode = nf90_inq_varid (cdfid, 'grle', varid)
   IF ( rcode == nf90_noerr ) THEN
     nqspecies = nqspecies + 1  ! QGRAUP is in the file
   ENDIF
@@ -1555,40 +1575,39 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 ! fraction includes both resolved and subgrid clouds.
 !-------------------------------------------------------------------------------
 
-  rcode = nf90_inq_varid (cdfid, 'CLDFRA', varid)
+  rcode = nf90_inq_varid (cdfid, 'cld_amt', varid)
   IF ( rcode == nf90_noerr ) THEN
-    IF ( TRIM(met_release) >= 'V3.6' ) THEN
-      rcode = nf90_get_att (cdfid, nf90_global, 'ICLOUD_CU', icloud_cu)
-      IF ( rcode == nf90_noerr ) THEN
-        IF ( ( ( met_cumulus ==  1 ) .AND. ( icloud_cu == 2 ) ) .OR. &
-               ( met_cumulus == 11 ) ) THEN
-          ifcld3d = .FALSE.  ! 3D resolved cloud fraction is not in the file
-        ELSE
+!    IF ( TRIM(met_release) >= 'V3.6' ) THEN  !FV3 does not have cloud feedbacks
+!      rcode = nf90_get_att (cdfid, nf90_global, 'ICLOUD_CU', icloud_cu)
+!      IF ( rcode == nf90_noerr ) THEN
+!        IF ( ( ( met_cumulus ==  1 ) .AND. ( icloud_cu == 2 ) ) .OR. &
+!               ( met_cumulus == 11 ) ) THEN
+!          ifcld3d = .FALSE.  ! 3D resolved cloud fraction is not in the file
+!        ELSE
           ifcld3d = .TRUE.  ! 3D resolved cloud fraction is in the file
-        ENDIF
-      ELSE
-        ifcld3d = .TRUE.  ! 3D resolved cloud fraction is in the file
-      ENDIF
-    ELSE
-      ifcld3d = .TRUE.  ! 3D resolved cloud fraction is in the file
-    ENDIF
+!        ENDIF
+!      ELSE
+!        ifcld3d = .TRUE.  ! 3D resolved cloud fraction is in the file
+!      ENDIF
+!    ELSE
+!      ifcld3d = .TRUE.  ! 3D resolved cloud fraction is in the file
+!    ENDIF
   ELSE
     ifcld3d = .FALSE. ! 3D cloud fraction is not if the file
   ENDIF
-
 !-------------------------------------------------------------------------------
 ! Determine if the hybrid vertical coordinate has been used in FV3.  It is
 ! available as of FV3v3.9.
 !-------------------------------------------------------------------------------
-
-  IF ( TRIM(met_release) >= "V3.9") THEN
-    rcode = nf90_get_att (cdfid, nf90_global, 'HYBRID_OPT', met_hybrid)
-    IF ( rcode /= nf90_noerr ) THEN
-      WRITE (*,f9400) TRIM(pname), 'HYBRID_OPT', TRIM(nf90_strerror(rcode))
-      CALL graceful_stop (pname)
-    ENDIF
-  ELSE
-    met_hybrid = -1
-  ENDIF
-
+   met_hybrid = 2   ! FV3 employs a hybrid vertical coordinate as default = 2 (mimic WRF hybrid flag)
+!  IF ( TRIM(met_release) >= "V3.9") THEN
+!    rcode = nf90_get_att (cdfid, nf90_global, 'HYBRID_OPT', met_hybrid)
+!    IF ( rcode /= nf90_noerr ) THEN
+!      WRITE (*,f9400) TRIM(pname), 'HYBRID_OPT', TRIM(nf90_strerror(rcode))
+!      CALL graceful_stop (pname)
+!    ENDIF
+!  ELSE
+!    met_hybrid = -1
+!  ENDIF
+  met_hybrid = 2
 END SUBROUTINE setup_fv3
