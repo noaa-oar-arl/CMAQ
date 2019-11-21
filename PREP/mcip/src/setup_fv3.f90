@@ -180,7 +180,6 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   REAL                              :: phalf_lays  ( maxlays )
   REAL                              :: pfull_lays  ( maxlays )
   CHARACTER(LEN=19)                 :: date_init
-  CHARACTER(LEN=256)                :: date_init2
   CHARACTER(LEN=19)                 :: date_start
   INTEGER                           :: dimid
   INTEGER                           :: dimids     ( nf90_max_var_dims )
@@ -931,18 +930,17 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     CALL graceful_stop (pname)
   ENDIF 
 
-  rcode = nf90_get_att (cdfid, varid, 'units', date_init2)
+  rcode = nf90_get_att (cdfid, varid, 'units', date_init)
   IF ( rcode /= nf90_noerr ) THEN
     WRITE (*,f9400) TRIM(pname), 'SIMULATION_START_DATE',  &
                     TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
 
-  met_startdate =  date_init2(13:32) // '.0000'
+  met_startdate =  date_init(13:32) // '.0000'
 
-  ! FV3 always turned on for "met restart" in MCIP
-  date_start = date_init
-  met_restart = 1
+  ! FV3 always turned off for "met restart" in MCIP
+  met_restart = 0
  
 !  rcode = nf90_get_att (cdfid, nf90_global, 'SIMULATION_START_DATE', date_init)
 !  IF ( rcode /= nf90_noerr ) THEN
@@ -1059,7 +1057,6 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !  ENDIF
 
   met_tapfrq = (times(1))*60  ! convert hrs --> min
-  idtsec     = met_tapfrq*60  ! convert min --> sec 
 !-------------------------------------------------------------------------------
 ! Set variables for non-hydrostatic base state.  There is no option for
 ! hydrostatic run in FV3.  The base state variables are not currently output

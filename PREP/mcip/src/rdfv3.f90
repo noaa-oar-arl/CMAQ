@@ -651,10 +651,11 @@ SUBROUTINE rdfv3 (mcip_now)
         ENDIF
         newfilem1  = .FALSE.
       ENDIF
-
       DO i = 1, n_times
 !        CALL geth_idts (times(i), mcip_previous(1:19), idtsec)
-        idtsec     = times(i)*3600  ! convert hrs --> sec
+!      Commented geth_idts function for time difference/tolerance
+!      Assumed that the file time is same as valid previous time
+!      idtsec not populated = 0 < ttol_sec (300 sec tolerance)
         IF ( ABS(idtsec) < ttol_sec ) THEN  ! found MCIP_PREVIOUS in WRF output
           itm1 = i
           EXIT findprev
@@ -739,7 +740,6 @@ SUBROUTINE rdfv3 (mcip_now)
 !-------------------------------------------------------------------------------
 
   fl = file_mm(mmcount)
-
   rcode = nf90_open (fl, nf90_nowrite, cdfid)
   IF ( rcode /= nf90_noerr ) THEN
     WRITE (*,f9900) TRIM(pname)
@@ -792,7 +792,9 @@ SUBROUTINE rdfv3 (mcip_now)
     ENDIF
     DO i = it_start, n_times
 !      CALL geth_idts (times(i), mcip_now(1:19), idtsec)
-      idtsec     = times(i)*3600  ! convert hrs --> sec
+!      Commented geth_idts function to get time difference/tolerance
+!      Assumed that the file time is same as valid now time 
+!      idtsec not populated = 0 < ttol_sec (300 sec tolerance)
       IF ( ABS(idtsec) < ttol_sec ) THEN  ! found MCIP_NOW in WRF output
         it = i
         IF ( i < n_times ) it_start = i + 1
@@ -806,7 +808,12 @@ SUBROUTINE rdfv3 (mcip_now)
         WRITE (*,f9100) TRIM(pname), mcip_now
         CALL graceful_stop (pname)
       ENDIF
-      fl = file_mm(mmcount)
+     
+    fl = file_mm(mmcount)
+    print*, 'mmcount = ', mmcount
+    print*, 'file_mm(mmcount) = ', file_mm(mmcount)
+    print*, 'fl(1:10) = ', fl(1:10)
+
       IF ( fl(1:10) == '          ' ) THEN
         WRITE (*,f9200) TRIM(pname), mcip_now, mmcount
         CALL graceful_stop (pname)
