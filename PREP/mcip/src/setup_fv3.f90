@@ -1092,7 +1092,8 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 
   IF ( needlayers ) THEN
     !FV3 is top down, but CMAQ levels are bottom up, reverse pressure array order:
-    ctmlays = (phalf_lays(nlays+1:1:-1) - phalf_lays(1)) / (MAXVAL(phalf_lays) - phalf_lays(1))
+!    ctmlays = (phalf_lays(nlays+1:1:-1) - phalf_lays(1)) / (MAXVAL(phalf_lays) - phalf_lays(1))
+    ctmlays = (phalf_lays - phalf_lays(1)) / (MAXVAL(phalf_lays) - phalf_lays(1))
   ENDIF
 
 !-------------------------------------------------------------------------------

@@ -156,7 +156,7 @@ SUBROUTINE alloc_met
   ALLOCATE ( ua      (met_nx, met_ny, met_nz) )
   ALLOCATE ( ust     (met_nx, met_ny) )
   ALLOCATE ( va      (met_nx, met_ny, met_nz) )
-  ALLOCATE ( wa      (met_nx, met_ny, met_nz+1) )
+  ALLOCATE ( wa      (met_nx, met_ny, met_nz) )
   ALLOCATE ( zpbl    (met_nx, met_ny) )
 
   IF ( ift2m ) THEN  ! 2-m temperature available
