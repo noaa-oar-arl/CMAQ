@@ -138,16 +138,17 @@ SUBROUTINE chkfv3hdr (fl, cdfid)
     CALL graceful_stop (pname)
   ENDIF
 
-  rcode = nf90_inq_dimid (cdfid, 'phalf', dimid)
+  rcode = nf90_inq_dimid (cdfid, 'pfull', dimid)
   IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'ID for phalf',  &
+    WRITE (*,f9400) TRIM(pname), 'ID for pfull',  &
                     TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
 
   rcode = nf90_inquire_dimension (cdfid, dimid, len=ival)
   IF ( rcode == nf90_noerr ) THEN
-    IF ( ival-1 /= met_nz ) THEN
+    IF ( ival /= met_nz ) THEN
+!    IF ( ival-1 /= met_nz ) THEN
       WRITE (*,f9000) TRIM(pname), 'BOTTOM-TOP_GRID_DIMENSION'
       WRITE (*,f9100) TRIM(fl1), met_nz, TRIM(fl), ival-1
       CALL graceful_stop (pname)

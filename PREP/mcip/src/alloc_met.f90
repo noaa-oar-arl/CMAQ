@@ -96,8 +96,9 @@ SUBROUTINE alloc_met
   ALLOCATE ( mapdot   (met_nx, met_ny) )
   ALLOCATE ( mapu     (met_nx, met_ny) )
   ALLOCATE ( mapv     (met_nx, met_ny) )
-  ALLOCATE ( sigmaf                   (met_nz+1) )
-  ALLOCATE ( sigmah                   (met_nz) )
+  ALLOCATE ( sigmaf                   (met_nz) )
+  ALLOCATE ( sigmah                   (met_nz+1) )
+  ALLOCATE ( b_k                      (met_nz+1) ) 
   ALLOCATE ( terrain  (met_nx, met_ny) )
   ALLOCATE ( znt      (met_nx, met_ny) )
 
@@ -114,10 +115,10 @@ SUBROUTINE alloc_met
   ENDIF
 
   IF ( met_hybrid >= 0 ) THEN
-    ALLOCATE ( c1f (met_nz+1) )
-    ALLOCATE ( c1h (met_nz)   )
-    ALLOCATE ( c2f (met_nz+1) )
-    ALLOCATE ( c2h (met_nz)   )
+    ALLOCATE ( c1f (met_nz) )
+    ALLOCATE ( c1h (met_nz+1)   )
+    ALLOCATE ( c2f (met_nz) )
+    ALLOCATE ( c2h (met_nz+1)   )
   ENDIF
 
   IF ( met_ns > 0 ) THEN

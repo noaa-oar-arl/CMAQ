@@ -135,6 +135,7 @@ MODULE metvars
   REAL,          ALLOCATABLE   :: seaice     ( : , : )
   REAL,          ALLOCATABLE   :: sigmaf     ( : )
   REAL,          ALLOCATABLE   :: sigmah     ( : )
+  REAL,          ALLOCATABLE   :: b_k        ( : )
   REAL,          ALLOCATABLE   :: snowcovr   ( : , : )
   REAL,          ALLOCATABLE   :: snowh      ( : , : )
   REAL,          ALLOCATABLE   :: soilt1     ( : , : )

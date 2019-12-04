@@ -51,7 +51,6 @@ SUBROUTINE vertarys (ctmlays)
 ! The list of vertical coordinate surface values in the VGLVUN_GD units
 ! Layer k extends from VGLVS3D( k ) to VGLVS3D( k+1 ).
 !-------------------------------------------------------------------------------
-
   vglvs_gd(1:nlays+1) = ctmlays(1:nlays+1)
 !-------------------------------------------------------------------------------
 ! X3FACE_GD( 0: NLAYS ):
@@ -70,11 +69,11 @@ SUBROUTINE vertarys (ctmlays)
 !-------------------------------------------------------------------------------
 
   nfull = nlays + 1
-
   k1 = nfull / 6
   k2 = MOD(nfull, 6)
 
   WRITE ( str1, '(i2)' ) k1 - 1
+  
   WRITE ( str2, '(i2)' ) k2
 
   IF ( (k1 - 1) > 0 ) THEN

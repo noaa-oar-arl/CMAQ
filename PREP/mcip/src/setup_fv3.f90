@@ -341,9 +341,9 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     CALL graceful_stop (pname)
   ENDIF
 
-  rcode = nf90_inq_dimid (cdfid, 'phalf', dimid)
+  rcode = nf90_inq_dimid (cdfid, 'pfull', dimid)
   IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'ID for phalf',  &
+    WRITE (*,f9400) TRIM(pname), 'ID for pfull',  &
                     TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
@@ -353,7 +353,9 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
                     TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ELSE
-    met_nz = ival - 1
+!    Curiously the pfull levels already have one less than phalf
+!    met_nz = ival - 1
+     met_nz = ival
   ENDIF
 
 
@@ -863,6 +865,8 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   met_rain_bucket = -1.0 ! FV3 includes both bucket and prate, so leave bucket turned off
   met_pcp_incr = 1       ! FV3 has time step average prate, so leave pcp_inc turned on
 
+  !Determine if bucket or time-step precipitation accumulation rate exists
+
 !  rcode = nf90_get_att (cdfid, nf90_global, 'BUCKET_MM', met_rain_bucket)
 !  IF ( rcode /= nf90_noerr ) THEN
 !    IF ( fv3version(18:22) >= "V3.2" ) then  ! BUCKET_MM implemented in FV3v3.2
@@ -1079,7 +1083,8 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !    CALL graceful_stop (pname)
 !  ENDIF
 
-  met_ptop  = phalf_lays(1)*100.0 !FV3 set met_ptop to first value of pressure array, FV3 top-down [Pa]
+!  met_ptop  = phalf_lays(1)*100.0 !FV3 set met_ptop to first value of phalf array, FV3 top-down [Pa]
+  met_ptop  = pfull_lays(1)*100.0 !FV3 set met_ptop to first value of pfull array, FV3 top-down [Pa]
   met_p00   = 100000.0 ! base state sea-level pressure [Pa]
   met_ts0   =    290.0 ! base state sea-level temperature [K]
   met_tlp   =     50.0 ! base state lapse rate d(T)/d(ln P) from 1000 to 300 mb
@@ -1093,9 +1098,9 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   IF ( needlayers ) THEN
     !FV3 is top down, but CMAQ levels are bottom up, reverse pressure array order:
 !    ctmlays = (phalf_lays(nlays+1:1:-1) - phalf_lays(1)) / (MAXVAL(phalf_lays) - phalf_lays(1))
-    ctmlays = (phalf_lays - phalf_lays(1)) / (MAXVAL(phalf_lays) - phalf_lays(1))
+!    ctmlays = (phalf_lays - phalf_lays(1)) / (MAXVAL(phalf_lays) - phalf_lays(1))
+     ctmlays = (pfull_lays - pfull_lays(1)) / (MAXVAL(pfull_lays) - pfull_lays(1))
   ENDIF
-
 !-------------------------------------------------------------------------------
 ! Determine FV3 release.
 !-------------------------------------------------------------------------------
@@ -1406,7 +1411,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     ifmol = .FALSE. ! (inverse) Monin-Obukhov length is not in the file
   ENDIF
 
-!  IF ( met_soil_lsm == 7 ) THEN  ! PX LSM is not in FV3...yay!
+!  IF ( met_soil_lsm == 7 ) THEN  ! PX LSM is not in FV3. :)
 !    ifmolpx = .TRUE.
 !    rcode = nf90_inq_varid (cdfid, 'LAI_PX', varid)  ! there are 7 variables
 !    rcode = rcode + nf90_inq_varid (cdfid, 'WWLT_PX', varid)
