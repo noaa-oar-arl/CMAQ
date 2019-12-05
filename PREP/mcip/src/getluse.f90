@@ -159,7 +159,6 @@ SUBROUTINE getluse
   ENDIF
 
   lumax  = nummetlu
-
   IF ( ( met_lu_src(1:3) == "USG" ) .AND. ( nummetlu == 24 ) ) THEN
     xlusrc = "USGS24"  ! accounts for lake category 28
     DO i = 1, nummetlu

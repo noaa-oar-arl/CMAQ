@@ -163,7 +163,7 @@ SUBROUTINE init_x
     xwga  (:,:)   = fillreal
   ENDIF
 
-  IF ( met_model == 2 ) THEN  ! WRF
+  IF ( met_model == 2 .OR. met_model == 3 ) THEN  ! WRF or FV3
     xmu   (:,:)   = fillreal
     xgeof (:,:,:) = fillreal
   ENDIF

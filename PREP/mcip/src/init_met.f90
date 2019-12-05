@@ -130,7 +130,7 @@ SUBROUTINE init_met
     lufrac   (:,:,:) = 0.0
   ENDIF
 
-  IF ( met_model == 2 ) THEN  ! WRF
+  IF ( met_model == 2  .OR. met_model == 3 )  THEN  ! WRF or FV3
     mu     (:,:)   = 0.0      ;      mub      (:,:)   = 0.0
     pb     (:,:,:) = 0.0
     ph     (:,:,:) = 0.0      ;      phb      (:,:,:) = 0.0

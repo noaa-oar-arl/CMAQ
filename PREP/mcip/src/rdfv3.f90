@@ -239,6 +239,7 @@ SUBROUTINE rdfv3 (mcip_now)
   INTEGER                           :: lent
   REAL,               EXTERNAL      :: mapfac_lam
   REAL,               EXTERNAL      :: mapfac_merc
+  REAL,               EXTERNAL      :: mapfac_gau
   REAL,               EXTERNAL      :: mapfac_ps
   CHARACTER(LEN=24),  INTENT(IN)    :: mcip_now
   CHARACTER(LEN=24)                 :: mcip_previous
@@ -956,6 +957,19 @@ SUBROUTINE rdfv3 (mcip_now)
 !    WRITE (*,f9400) TRIM(pname), 'T', TRIM(nf90_strerror(rcode))
 !    CALL graceful_stop (pname)
 !  ENDIF
+
+  
+  CALL get_var_1d_real_cdf (cdfid, 'phalf', phalf, it, rcode)
+  IF ( rcode /= nf90_noerr ) THEN
+    WRITE (*,f9400) TRIM(pname), 'phalf', TRIM(nf90_strerror(rcode))
+    CALL graceful_stop (pname)
+  ENDIF
+
+  CALL get_var_1d_real_cdf (cdfid, 'pfull', pfull, it, rcode)
+  IF ( rcode /= nf90_noerr ) THEN
+    WRITE (*,f9400) TRIM(pname), 'pfull', TRIM(nf90_strerror(rcode))
+    CALL graceful_stop (pname)
+  ENDIF
 
   CALL get_var_3d_real_cdf (cdfid, 'tmp', dum3d_t, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
@@ -2202,13 +2216,15 @@ SUBROUTINE rdfv3 (mcip_now)
 
   ENDIF
 
+!FV3 output doesn't have soil thicknesses, hardcode to 4 Noah LSM levels!
 
-  CALL get_var_1d_real_cdf (cdfid, 'DZS', dzs, it, rcode)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'DZS', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
+!  CALL get_var_1d_real_cdf (cdfid, 'DZS', dzs, it, rcode)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'DZS', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
 
+  dzs = (/0.1, 0.3, 0.6, 1/)
 
   rcode = nf90_close (cdfid)
   IF ( rcode /= nf90_noerr ) THEN
@@ -2228,10 +2244,204 @@ SUBROUTINE rdfv3 (mcip_now)
     ! and map-scale factors using offset distance of given grid point from
     ! center of domain.
 
-    SELECT CASE ( met_mapproj )
 
-      CASE (1)  ! Lambert conformal
+! FV3 only has Gaussian grid projection, see below.
 
+!    SELECT CASE ( met_mapproj )
+!
+!      CASE (1)  ! Lambert conformal
+!
+!        xoff = 0.0  ! dot-point grid: no offset from dot-point center value
+!        yoff = 0.0  ! dot-point grid: no offset from dot-point center value
+!
+!        DO j = 1, met_ny
+!          DO i = 1, met_nx
+!
+!            xxin = met_xxctr -  &
+!                   ( met_rictr_dot - (FLOAT(i) + xoff) ) * met_resoln
+!
+!            yyin = met_yyctr -  &
+!                   ( met_rjctr_dot - (FLOAT(j) + yoff) ) * met_resoln
+!
+!            CALL xy2ll_lam (xxin, yyin, met_tru1, met_tru2, met_proj_clon,  &
+!                            met_ref_lat, latdot(i,j), londot(i,j))
+!
+!            mapdot(i,j) = mapfac_lam (latdot(i,j), met_tru1, met_tru2)
+!
+!          ENDDO
+!        ENDDO
+!
+!        IF ( .NOT. gotfaces ) THEN  ! get lat, lon, map-scale factor on faces
+!
+!          xoff = 0.0  ! U-face: no offset in X from dot-point center value
+!          yoff = 0.5  ! U-face: 0.5-cell offset in Y from dot-point center value
+!
+!          DO j = 1, met_ny  ! use all Y to fill array; last row outside domain
+!            DO i = 1, met_nx
+!
+!              xxin = met_xxctr -  &
+!                     ( met_rictr_dot - (FLOAT(i) + xoff) ) * met_resoln
+!
+!              yyin = met_yyctr -  &
+!                     ( met_rjctr_dot - (FLOAT(j) + yoff) ) * met_resoln
+!
+!              CALL xy2ll_lam (xxin, yyin, met_tru1, met_tru2, met_proj_clon,  &
+!                              met_ref_lat, latu(i,j), lonu(i,j))
+!
+!              mapu(i,j) = mapfac_lam (latu(i,j), met_tru1, met_tru2)
+!
+!            ENDDO
+!          ENDDO
+!
+!          xoff = 0.5  ! V-face: 0.5-cell offset in X from dot-point center value
+!          yoff = 0.0  ! V-face: no offset in Y from dot-point center value
+!
+!          DO j = 1, met_ny
+!            DO i = 1, met_nx  ! use all X to fill array; last col outside domain
+!
+!              xxin = met_xxctr -  &
+!                     ( met_rictr_dot - (FLOAT(i) + xoff) ) * met_resoln
+!
+!              yyin = met_yyctr -  &
+!                     ( met_rjctr_dot - (FLOAT(j) + yoff) ) * met_resoln
+!
+!              CALL xy2ll_lam (xxin, yyin, met_tru1, met_tru2, met_proj_clon,  &
+!                              met_ref_lat, latv(i,j), lonv(i,j))
+!
+!              mapv(i,j) = mapfac_lam (latv(i,j), met_tru1, met_tru2)
+!
+!            ENDDO
+!          ENDDO
+!
+!        ENDIF
+!
+!
+!      CASE (2)  ! polar stereographic
+!
+!        DO j = 1, met_ny
+!          DO i = 1, met_nx
+!
+!            ! Use four-point interpolation here for latitude and longitude.
+!            ! Because CMAQ will never use outermost row and column from WRF
+!            ! due to location of CMAQ boundaries, inexact values in the
+!            ! outermost row and column will not matter.
+!
+!            ii = MIN(i,nxm)
+!            jj = MIN(j,nym)
+!
+!            im1 = MIN(i-1,1)
+!            jm1 = MIN(j-1,1)
+!
+!            latdot(i,j) = ( latcrs(im1,jj)  + latcrs(ii,jj) +   &
+!                            latcrs(im1,jm1) + latcrs(ii,jm1) ) * 0.25
+!
+!            londot(i,j) = ( loncrs(im1,jj)  + loncrs(ii,jj) +   &
+!                            loncrs(im1,jm1) + loncrs(ii,jm1) ) * 0.25
+!
+!            mapdot(i,j) = mapfac_ps (latdot(i,j), met_tru1)
+!
+!          ENDDO
+!        ENDDO
+!
+!        IF ( .NOT. gotfaces ) THEN  ! get lat, lon, map-scale factor on faces
+!
+!          DO j = 1, met_ny
+!            DO i = 1, met_nx
+!
+!              ! Use linear interpolation here for latitude and longitude.
+!              ! Because CMAQ will never use outermost row and column from WRF
+!              ! due to location of CMAQ boundaries, inexact values in the
+!              ! outermost row and column will not matter.
+!
+!              ii = MIN(i,nxm)
+!              jj = MIN(j,nym)
+!
+!              im1 = MIN(i-1,1)
+!              jm1 = MIN(j-1,1)
+!
+!              latu(i,j) = ( latcrs(im1,jj) + latcrs(ii,jj) ) * 0.5
+!              lonu(i,j) = ( loncrs(im1,jj) + loncrs(ii,jj) ) * 0.5
+!              mapu(i,j) = mapfac_ps (latu(i,j), met_tru1)
+!
+!              latv(i,j) = ( latcrs(ii,jm1) + latcrs(ii,jj) ) * 0.5
+!              lonv(i,j) = ( loncrs(ii,jm1) + loncrs(ii,jj) ) * 0.5
+!              mapv(i,j) = mapfac_ps (latv(i,j), met_tru1)
+!
+!            ENDDO
+!          ENDDO
+!
+!        ENDIF
+!
+!
+!      CASE (3)  ! Mercator
+!
+!        xoff = 0.0  ! dot-point grid: no offset from dot-point center value
+!        yoff = 0.0  ! dot-point grid: no offset from dot-point center value
+!
+!        DO j = 1, met_ny
+!          DO i = 1, met_nx
+!
+!            xxin = met_xxctr -  &
+!                   ( met_rictr_dot - (FLOAT(i) + xoff) ) * met_resoln
+!
+!            yyin = met_yyctr -  &
+!                   ( met_rjctr_dot - (FLOAT(j) + yoff) ) * met_resoln
+!
+!            CALL xy2ll_merc (xxin, yyin, met_proj_clon,  &
+!                             latdot(i,j), londot(i,j))
+!
+!            mapdot(i,j) = mapfac_merc (latdot(i,j))
+!
+!          ENDDO
+!        ENDDO
+!
+!        IF ( .NOT. gotfaces ) THEN  ! get lat, lon, map-scale factor on faces
+!
+!          xoff = 0.0  ! U-face: no offset in X from dot-point center value
+!          yoff = 0.5  ! U-face: 0.5-cell offset in Y from dot-point center value
+!
+!          DO j = 1, met_ny  ! use all Y to fill array; last row outside domain
+!            DO i = 1, met_nx
+!
+!              xxin = met_xxctr -  &
+!                     ( met_rictr_dot - (FLOAT(i) + xoff) ) * met_resoln
+!
+!              yyin = met_yyctr -  &
+!                     ( met_rjctr_dot - (FLOAT(j) + yoff) ) * met_resoln
+!
+!              CALL xy2ll_merc (xxin, yyin, met_proj_clon,  &
+!                               latu(i,j), lonu(i,j))
+!
+!              mapu(i,j) = mapfac_merc (latu(i,j))
+!
+!            ENDDO
+!          ENDDO
+!
+!          xoff = 0.5  ! V-face: 0.5-cell offset in X from dot-point center value
+!          yoff = 0.0  ! V-face: no offset in Y from dot-point center value
+!
+!          DO j = 1, met_ny
+!            DO i = 1, met_nx  ! use all X to fill array; last col outside domain
+!
+!              xxin = met_xxctr -  &
+!                     ( met_rictr_dot - (FLOAT(i) + xoff) ) * met_resoln
+!
+!              yyin = met_yyctr -  &
+!                     ( met_rjctr_dot - (FLOAT(j) + yoff) ) * met_resoln
+!
+!              CALL xy2ll_merc (xxin, yyin, met_proj_clon,  &
+!                               latv(i,j), lonv(i,j))
+!
+!              mapv(i,j) = mapfac_merc (latv(i,j))
+!
+!            ENDDO
+!          ENDDO
+!
+!        ENDIF
+!
+!     END SELECT
+
+!  Just copied Mercator Projection for Gaussian for now
         xoff = 0.0  ! dot-point grid: no offset from dot-point center value
         yoff = 0.0  ! dot-point grid: no offset from dot-point center value
 
@@ -2244,134 +2454,10 @@ SUBROUTINE rdfv3 (mcip_now)
             yyin = met_yyctr -  &
                    ( met_rjctr_dot - (FLOAT(j) + yoff) ) * met_resoln
 
-            CALL xy2ll_lam (xxin, yyin, met_tru1, met_tru2, met_proj_clon,  &
-                            met_ref_lat, latdot(i,j), londot(i,j))
-
-            mapdot(i,j) = mapfac_lam (latdot(i,j), met_tru1, met_tru2)
-
-          ENDDO
-        ENDDO
-
-        IF ( .NOT. gotfaces ) THEN  ! get lat, lon, map-scale factor on faces
-
-          xoff = 0.0  ! U-face: no offset in X from dot-point center value
-          yoff = 0.5  ! U-face: 0.5-cell offset in Y from dot-point center value
-
-          DO j = 1, met_ny  ! use all Y to fill array; last row outside domain
-            DO i = 1, met_nx
-
-              xxin = met_xxctr -  &
-                     ( met_rictr_dot - (FLOAT(i) + xoff) ) * met_resoln
-
-              yyin = met_yyctr -  &
-                     ( met_rjctr_dot - (FLOAT(j) + yoff) ) * met_resoln
-
-              CALL xy2ll_lam (xxin, yyin, met_tru1, met_tru2, met_proj_clon,  &
-                              met_ref_lat, latu(i,j), lonu(i,j))
-
-              mapu(i,j) = mapfac_lam (latu(i,j), met_tru1, met_tru2)
-
-            ENDDO
-          ENDDO
-
-          xoff = 0.5  ! V-face: 0.5-cell offset in X from dot-point center value
-          yoff = 0.0  ! V-face: no offset in Y from dot-point center value
-
-          DO j = 1, met_ny
-            DO i = 1, met_nx  ! use all X to fill array; last col outside domain
-
-              xxin = met_xxctr -  &
-                     ( met_rictr_dot - (FLOAT(i) + xoff) ) * met_resoln
-
-              yyin = met_yyctr -  &
-                     ( met_rjctr_dot - (FLOAT(j) + yoff) ) * met_resoln
-
-              CALL xy2ll_lam (xxin, yyin, met_tru1, met_tru2, met_proj_clon,  &
-                              met_ref_lat, latv(i,j), lonv(i,j))
-
-              mapv(i,j) = mapfac_lam (latv(i,j), met_tru1, met_tru2)
-
-            ENDDO
-          ENDDO
-
-        ENDIF
-
-
-      CASE (2)  ! polar stereographic
-
-        DO j = 1, met_ny
-          DO i = 1, met_nx
-
-            ! Use four-point interpolation here for latitude and longitude.
-            ! Because CMAQ will never use outermost row and column from WRF
-            ! due to location of CMAQ boundaries, inexact values in the
-            ! outermost row and column will not matter.
-
-            ii = MIN(i,nxm)
-            jj = MIN(j,nym)
-
-            im1 = MIN(i-1,1)
-            jm1 = MIN(j-1,1)
-
-            latdot(i,j) = ( latcrs(im1,jj)  + latcrs(ii,jj) +   &
-                            latcrs(im1,jm1) + latcrs(ii,jm1) ) * 0.25
-
-            londot(i,j) = ( loncrs(im1,jj)  + loncrs(ii,jj) +   &
-                            loncrs(im1,jm1) + loncrs(ii,jm1) ) * 0.25
-
-            mapdot(i,j) = mapfac_ps (latdot(i,j), met_tru1)
-
-          ENDDO
-        ENDDO
-
-        IF ( .NOT. gotfaces ) THEN  ! get lat, lon, map-scale factor on faces
-
-          DO j = 1, met_ny
-            DO i = 1, met_nx
-
-              ! Use linear interpolation here for latitude and longitude.
-              ! Because CMAQ will never use outermost row and column from WRF
-              ! due to location of CMAQ boundaries, inexact values in the
-              ! outermost row and column will not matter.
-
-              ii = MIN(i,nxm)
-              jj = MIN(j,nym)
-
-              im1 = MIN(i-1,1)
-              jm1 = MIN(j-1,1)
-
-              latu(i,j) = ( latcrs(im1,jj) + latcrs(ii,jj) ) * 0.5
-              lonu(i,j) = ( loncrs(im1,jj) + loncrs(ii,jj) ) * 0.5
-              mapu(i,j) = mapfac_ps (latu(i,j), met_tru1)
-
-              latv(i,j) = ( latcrs(ii,jm1) + latcrs(ii,jj) ) * 0.5
-              lonv(i,j) = ( loncrs(ii,jm1) + loncrs(ii,jj) ) * 0.5
-              mapv(i,j) = mapfac_ps (latv(i,j), met_tru1)
-
-            ENDDO
-          ENDDO
-
-        ENDIF
-
-
-      CASE (3)  ! Mercator
-
-        xoff = 0.0  ! dot-point grid: no offset from dot-point center value
-        yoff = 0.0  ! dot-point grid: no offset from dot-point center value
-
-        DO j = 1, met_ny
-          DO i = 1, met_nx
-
-            xxin = met_xxctr -  &
-                   ( met_rictr_dot - (FLOAT(i) + xoff) ) * met_resoln
-
-            yyin = met_yyctr -  &
-                   ( met_rjctr_dot - (FLOAT(j) + yoff) ) * met_resoln
-
-            CALL xy2ll_merc (xxin, yyin, met_proj_clon,  &
+            CALL xy2ll_gau (xxin, yyin, met_proj_clon,  &
                              latdot(i,j), londot(i,j))
 
-            mapdot(i,j) = mapfac_merc (latdot(i,j))
+            mapdot(i,j) = mapfac_gau (latdot(i,j))
 
           ENDDO
         ENDDO
@@ -2390,10 +2476,10 @@ SUBROUTINE rdfv3 (mcip_now)
               yyin = met_yyctr -  &
                      ( met_rjctr_dot - (FLOAT(j) + yoff) ) * met_resoln
 
-              CALL xy2ll_merc (xxin, yyin, met_proj_clon,  &
+              CALL xy2ll_gau (xxin, yyin, met_proj_clon,  &
                                latu(i,j), lonu(i,j))
 
-              mapu(i,j) = mapfac_merc (latu(i,j))
+              mapu(i,j) = mapfac_gau (latu(i,j))
 
             ENDDO
           ENDDO
@@ -2410,25 +2496,21 @@ SUBROUTINE rdfv3 (mcip_now)
               yyin = met_yyctr -  &
                      ( met_rjctr_dot - (FLOAT(j) + yoff) ) * met_resoln
 
-              CALL xy2ll_merc (xxin, yyin, met_proj_clon,  &
+              CALL xy2ll_gau (xxin, yyin, met_proj_clon,  &
                                latv(i,j), lonv(i,j))
 
-              mapv(i,j) = mapfac_merc (latv(i,j))
+              mapv(i,j) = mapfac_gau (latv(i,j))
 
             ENDDO
           ENDDO
 
-        ENDIF
-
-
-    END SELECT
+       ENDIF
 
   ENDIF
-
 !-------------------------------------------------------------------------------
 ! If this is the first time in this routine, then determine season.
 !-------------------------------------------------------------------------------
-
+! But if global 
   IF ( first ) THEN
 
     ! These seasons are used in MM5 and WRF for land-use lookup tables.
@@ -2452,7 +2534,7 @@ SUBROUTINE rdfv3 (mcip_now)
         met_season = 2   ! winter
       ENDIF
     ENDIF
-
+        print*, 'met_season = ', met_season
 !-------------------------------------------------------------------------------
 ! If roughness length was not available in output, fill it from lookup tables.
 ! If the urban model was used in WRF, replace roughness length with urban-

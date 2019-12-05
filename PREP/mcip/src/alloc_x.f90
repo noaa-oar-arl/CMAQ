@@ -299,7 +299,7 @@ SUBROUTINE alloc_x
 ! Variables for WRF only.
 !-------------------------------------------------------------------------------
 
-  IF ( met_model == 2 ) THEN  ! WRF
+  IF ( met_model == 2 .OR. met_model == 3 ) THEN  ! WRF or FV3 right now
     ALLOCATE ( xmu   (ncols_x, nrows_x)           )
     ALLOCATE ( xgeof (ncols_x, nrows_x, 0:metlay) )
   ENDIF

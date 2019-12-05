@@ -348,8 +348,9 @@ SUBROUTINE setgriddefs
 
   ncg_x = 1 + INT( ncols + 2 * nthik - 1 )
   ncg_y = 1 + INT( nrows + 2 * nthik - 1 )
+
 !-------------------------------------------------------------------------------
-! GDTYP_GD:
+! GDTYP_GD:  MCIP Assumes Input Met =  Output CMAQ  GRIDTYP (need interpolation scheme)
 ! The map projection types in I/O API are:
 !   1: LATGRD for lat-lon coordinates
 !   2: LAMGRD for Lambert coordinates
@@ -369,8 +370,8 @@ SUBROUTINE setgriddefs
     gdtyp_gd = polgrd3
   ELSE IF ( met_mapproj == 3 ) THEN  ! equatorial Mercator
     gdtyp_gd = eqmgrd3
-   ELSE IF ( met_mapproj == 4 ) THEN  ! Gaussian (FV3) currently set to lat-lon...wrong??
-    gdtyp_gd = latgrd3
+   ELSE IF ( met_mapproj == 4 ) THEN  ! Gaussian (FV3) currently set to Mercator, wrong.
+    gdtyp_gd = mergrd3
   ELSE
     WRITE (*,f9275) TRIM(pname), met_mapproj
     CALL graceful_stop (pname)

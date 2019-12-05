@@ -133,6 +133,8 @@ MODULE metvars
   REAL,          ALLOCATABLE   :: rs_mos     ( : , : , : )
   REAL,          ALLOCATABLE   :: rstom      ( : , : )
   REAL,          ALLOCATABLE   :: seaice     ( : , : )
+  REAL,          ALLOCATABLE   :: phalf      ( : )
+  REAL,          ALLOCATABLE   :: pfull      ( : )
   REAL,          ALLOCATABLE   :: sigmaf     ( : )
   REAL,          ALLOCATABLE   :: sigmah     ( : )
   REAL,          ALLOCATABLE   :: b_k        ( : )

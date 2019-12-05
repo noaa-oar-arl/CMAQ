@@ -96,8 +96,16 @@ SUBROUTINE alloc_met
   ALLOCATE ( mapdot   (met_nx, met_ny) )
   ALLOCATE ( mapu     (met_nx, met_ny) )
   ALLOCATE ( mapv     (met_nx, met_ny) )
+  IF ( met_model == 2 ) THEN  ! WRF 
+  ALLOCATE ( sigmaf                   (met_nz+1) )
+  ALLOCATE ( sigmah                   (met_nz) )
+  ENDIF
+  IF ( met_model == 3 ) THEN  ! FV3
   ALLOCATE ( sigmaf                   (met_nz) )
   ALLOCATE ( sigmah                   (met_nz+1) )
+  ALLOCATE ( pfull                    (met_nz) )
+  ALLOCATE ( phalf                    (met_nz+1) )
+  ENDIF
   ALLOCATE ( b_k                      (met_nz+1) ) 
   ALLOCATE ( terrain  (met_nx, met_ny) )
   ALLOCATE ( znt      (met_nx, met_ny) )
@@ -114,13 +122,25 @@ SUBROUTINE alloc_met
     ALLOCATE ( coriolis (met_nx, met_ny) )
   ENDIF
 
-  IF ( met_hybrid >= 0 ) THEN
+  IF ( met_model == 2 ) THEN  ! WRF
+   IF ( met_hybrid >= 0 ) THEN
+    ALLOCATE ( c1f (met_nz+1) )
+    ALLOCATE ( c1h (met_nz)   )
+    ALLOCATE ( c2f (met_nz+1) )
+    ALLOCATE ( c2h (met_nz)   )
+   ENDIF
+  ENDIF
+  
+
+  IF ( met_model == 3 ) THEN  ! FV3
+   IF ( met_hybrid >= 0 ) THEN
     ALLOCATE ( c1f (met_nz) )
     ALLOCATE ( c1h (met_nz+1)   )
     ALLOCATE ( c2f (met_nz) )
     ALLOCATE ( c2h (met_nz+1)   )
+   ENDIF
   ENDIF
-
+  
   IF ( met_ns > 0 ) THEN
     ALLOCATE ( dzs (met_ns) )
   ENDIF
@@ -213,7 +233,7 @@ SUBROUTINE alloc_met
     ALLOCATE ( soim3d (met_nx, met_ny, met_ns) )
     ALLOCATE ( soit3d (met_nx, met_ny, met_ns) )
   ENDIF
-
+  
   IF ( iftke ) THEN  ! turbulent kinetic energy available
     IF ( iftkef ) THEN  ! TKE on full-levels
       ALLOCATE ( tke   (met_nx, met_ny, met_nz+1) )

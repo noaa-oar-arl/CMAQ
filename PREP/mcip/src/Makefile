@@ -130,6 +130,7 @@ OBJS =\
  locate.o \
  mapfac_lam.o \
  mapfac_merc.o \
+ mapfac_gau.o \
  mapfac_ps.o \
  metgrid2ctm.o \
  metvars2ctm.o \
@@ -156,13 +157,15 @@ OBJS =\
  statflds.o \
  vertarys.o \
  vertnhy_wrf.o \
+ vertnhy_fv3.o \
  vstamp.o \
  vtemp.o \
  wind.o \
  wrfemopts.o \
  wrgdesc.o \
  xy2ll_lam.o \
- xy2ll_merc.o
+ xy2ll_merc.o \
+ xy2ll_gau.o
 
 all:
 	@$(MAKE) $(MODULES)

@@ -482,7 +482,7 @@ SUBROUTINE metvars2ctm
 
   IF ( ifwr ) THEN
     xwr  (:,:)    = wr (sc:ec,sr:er)
-    IF ( met_model == 2 ) THEN  ! WRF: divide by water density
+    IF ( met_model == 2 .OR. met_model == 3 ) THEN  ! WRF or FV3: divide by water density
       xwr(:,:) = xwr(:,:) * 0.001  ! kg/m2 -> m
     ENDIF
   ELSE
@@ -588,7 +588,7 @@ SUBROUTINE metvars2ctm
   sr = y0
   er = y0 + nrows_x
 
-  IF ( met_model == 2 ) THEN  ! WRF: UA and VA on C-grid (face points)
+  IF ( met_model == 2 .OR. met_model == 3 ) THEN  ! WRF or FV3: UA and VA on C-grid (face points)
 
     xuu_d(:,1,        :) = ua(sc:ec,sr,:)
     xuu_d(:,2:nrows_x,:) = 0.5 * (ua(sc:ec,sr:er-2,:) + ua(sc:ec,sr+1:er-1,:))
@@ -612,7 +612,7 @@ SUBROUTINE metvars2ctm
   sr = y0
   er = y0 + nrows_x - 1
 
-  IF ( met_model == 2 ) THEN  ! WRF
+  IF ( met_model == 2 )  THEN  ! WRF
 
     xpresm(:,:,:) = pb (sc:ec,sr:er,:) + pp(sc:ec,sr:er,:)
     xmu   (:,:)   = mub(sc:ec,sr:er)   + mu(sc:ec,sr:er)
@@ -657,9 +657,55 @@ SUBROUTINE metvars2ctm
 
   ENDIF
 
+  IF ( met_model == 3 )  THEN  ! FV3
+!WRF, the interface levels are defined as full, and layers are in half.
+!FV3, layers are in full and interface levels are in half    
+!FV3 pressure levels are 1-D
+     DO k = 1, metlay
+      DO c = 1, ncols_x
+        DO r = 1, nrows_x
+         xpresm(c,r,k) = pfull (k)
+        ENDDO
+      ENDDO
+     ENDDO
+   
+! FV3 does not have mu or mub, i.e., xmu, total dry air mass in column (Pa)
+!    xmu   (:,:)   = mub(sc:ec,sr:er)   + mu(sc:ec,sr:er)
+    xmu   (:,:)   = 100000.0 ! Test constant value
+
+!Not needed in FV3 because vv already on scalar full levels?
+!Skipped vertnhy_fv3 below
+!    xgeof (:,:,:) = phb(sc:ec,sr:er,:) + ph(sc:ec,sr:er,:)
+
+    xprsfc(:,:) = psa(sc:ec,sr:er)  ! FV3 contains 2D surface pressure
+    print*, 'max prsfc = ', MAXVAL(xprsfc)
+    
+!WRF, the interface levels are defined as full, and layers are in half. 
+!FV3, layers are in full and interface levels are in half
+!FV3 pressure levels are 1-D
+     
+    DO k = 1, metlay
+      DO c = 1, ncols_x
+        DO r = 1, nrows_x
+         xpresf(c,r,k) = phalf (k)
+        ENDDO
+      ENDDO
+     ENDDO
+
+    IF ( lpv > 0 .OR. ifmolpx ) THEN  ! will need theta
+      xtheta(:,:,:) = theta(sc:ec,sr:er,:)
+    ENDIF
+
+    IF ( ifcld3d ) THEN  ! passing through 3D cloud fraction
+      xcfrac3d(:,:,:) = cldfra(sc:ec,sr:er,:)
+    ENDIF
+
+  ENDIF
+
+
 !------------------------------------------------------------------------------
 ! Compute density.
-! IF using WRF output and if canopy wetness is in the output, convert from
+! IF using WRF or FV3 output and if canopy wetness is in the output, convert from
 ! kg m^-2 to m by dividing by density.
 !------------------------------------------------------------------------------
 
@@ -704,6 +750,48 @@ SUBROUTINE metvars2ctm
 
   ENDIF
 
+IF ( met_model == 3) THEN  ! FV3
+
+    DO k = 1, metlay
+      kp1 = MIN(k+1,metlay)
+
+      DO c = 1, ncols_x
+        DO r = 1, nrows_x
+
+          ! Use formula for "alt" (total inverse density, alpha) from WRF's
+          ! module_initialize_real.F, and replace potential temperature with
+          ! temperature using Poisson's equation.  Density is 1./alt.  Note
+          ! that this computed density matches well (to 6 or so decimal places)
+          ! with WRF's prognostic density, expressed as 1./(alb+al); alb and al
+          ! are not in the default WRF Registry as output to the history file
+          ! (as of v2.0.3.1).  It only matches to 3 decimal places with 1./alt
+          ! when alt is output in the WRF history file.
+          ! FV3 the pressure levels are 1D.
+
+          xdensam(c,r,k) = ( xpresm(c,r,k) / ( rdwrf * xtempm(c,r,k) *  &
+                             (1.0 + rvwrf*xwvapor(c,r,k)/rdwrf) ) )
+
+          tf = 0.5 * (xtempm (c,r,k) + xtempm (c,r,kp1))
+          qf = 0.5 * (xwvapor(c,r,k) + xwvapor(c,r,kp1))
+
+          xdensaf(c,r,k) = ( xpresf(c,r,k) / ( rdwrf * tf *  &
+                             (1.0 + rvwrf*qf/rdwrf) ) )
+
+        ENDDO
+      ENDDO
+    ENDDO
+
+    IF ( ( ift2m ) .AND. ( MAXVAL(xtemp2) > smallnum ) ) THEN  ! T2 = 0 at init
+      xdensaf(:,:,0) = ( xpresf(:,:,0) / ( rdwrf * xtemp2(:,:) *      &
+                         (1.0 + rvwrf*xwvapor(:,:,1)/rdwrf) ) )
+    ELSE
+      xdensaf(:,:,0) = ( xpresf(:,:,0) / ( rdwrf * xtempm(:,:,1) *  &
+                         (1.0 + rvwrf*xwvapor(:,:,1)/rdwrf) ) )
+    ENDIF
+    xdenss(:,:) = xdensaf(:,:,0)
+
+  ENDIF
+
   xdenswm(:,:,:) = xdensam(:,:,:) * xwvapor(:,:,:) / ( 1.0 + xwvapor(:,:,:) )
 
 !-------------------------------------------------------------------------------
@@ -711,7 +799,7 @@ SUBROUTINE metvars2ctm
 ! and layer heights.
 !-------------------------------------------------------------------------------
 
-  IF ( met_model == 2 ) THEN
+  IF ( met_model == 2 .OR. met_model == 3 ) THEN ! WRF or FV3, wrong. Need own FV3 calc.
 
     IF ( met_hybrid >= 0 ) THEN
       DO k = 0, metlay
@@ -754,11 +842,16 @@ SUBROUTINE metvars2ctm
     CALL vertnhy_wrf
   ENDIF
 
+!  IF ( met_model == 3 ) THEN  ! Does FV3 need this, vv already on full/scalar??
+!    CALL vertnhy_fv3
+!  ENDIF
+
+
 !-------------------------------------------------------------------------------
 ! Calculate depths of soil layers.
 !-------------------------------------------------------------------------------
 
-  IF ( met_model == 2 ) THEN  ! WRF-ARW
+  IF ( met_model == 2 .OR. met_model == 3 ) THEN  ! WRF-ARW or FV3
     IF ( met_ns > 0 ) THEN
       DO k = 1, met_ns
         xzsoil(k) = 0.0 - (SUM(dzs(1:k)))  ! m

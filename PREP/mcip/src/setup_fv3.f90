@@ -691,7 +691,8 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !        CASE ( "MOD" )  ! Modified IGBP MODIS NOAH 33-category system
 !          nummetlu     = 33
 
-! FV3 only  has MODIS 20-category:  Harcoded Ice, water, urban, lake         
+! FV3 only  has MODIS 20-category ('MOD'):  Harcoded Ice, water, urban, lake         
+          met_lu_src = 'MOD'
           met_lu_water = 17
           met_lu_ice   = 15
           met_lu_urban = 13

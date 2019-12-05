@@ -756,7 +756,7 @@ SUBROUTINE ctmproc
         ENDIF
 
         IF ( ifcld3d ) THEN
-          c_wwind%bdy(idx,lvl) = xcfrac3d(c,r,lvl)
+          c_cfrac_3d%bdy(idx,lvl) = xcfrac3d(c,r,lvl)
         ENDIF
 
         IF ( ifkfradextras ) THEN

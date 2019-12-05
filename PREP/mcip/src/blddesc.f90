@@ -81,6 +81,7 @@ SUBROUTINE blddesc
   fdesc( 7)  = 'INPUT METEOROLOGY DATA FROM ' // TRIM(text) // ' ' // TRIM(met_release)
   fdesc( 8)  = 'INPUT RUN INITIALIZED:  ' // TRIM(met_startdate)
 
+!For WRF Only
   IF ( ( met_model == 2 ) .AND. ( met_iversion == 2 ) ) THEN
     CALL wrfemopts (txt_cupa, txt_microphys, txt_lwrad, txt_swrad,  &
                     txt_pbl, txt_sflay, txt_lsm, txt_urban, txt_shcu, txt_lu)

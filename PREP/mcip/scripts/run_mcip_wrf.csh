@@ -122,9 +122,9 @@
 
 #source $CMAQ_HOME/config_cmaq.csh
 
-set APPL       = Test_FV3
-set CoordName  = FV3_RPO           # 16-character maximum
-set GridName   = FV3_CONUS         # 16-character maximum
+set APPL       = Test_WRF
+set CoordName  = WRF_RPO           # 16-character maximum
+set GridName   = WRF_CONUS         # 16-character maximum
 
 set DataPath   = /gpfs/hps2/ptmp/Patrick.C.Campbell
 set InMetDir   = $DataPath/fv3gfs_v16_test
@@ -154,8 +154,8 @@ set WorkDir    = $OutDir
 #   to the valid times set below (i.e., mcip_start and mcip_end).
 #-----------------------------------------------------------------------
 
-set InMetFiles = ( $InMetDir/gfs.t00z.masterf006.nc $InMetDir/gfs.t00z.masterf012.nc)
-#set InMetFiles = ( $InMetDir/wrfout_d01_2018-01-10_00:00:00  $InMetDir/wrfout_d01_2018-01-10_01:00:00 ) 
+#set InMetFiles = ( $InMetDir/gfs.t00z.masterf006.nc $InMetDir/gfs.t00z.masterf012.nc)
+set InMetFiles = ( $InMetDir/wrfout_d01_2018-01-10_00:00:00  $InMetDir/wrfout_d01_2018-01-10_01:00:00 $InMetDir/wrfout_d01_2018-01-10_02:00:00 $InMetDir/wrfout_d01_2018-01-10_03:00:00) 
 
 
 set IfGeo      = "F"
@@ -164,8 +164,8 @@ set InGeoFile  = $InGeoDir/geo_em_d01.nc
 #-----------------------------------------------------------------------
 # Set input meteorological model (2 = WRF or 3 = FV3).
 #
-#set InMetModel = 2
-set InMetModel = 3
+set InMetModel = 2
+#set InMetModel = 3
 #-----------------------------------------------------------------------
 
 # Define input native FV3 grid resolution, dx = dy (m).
@@ -197,10 +197,10 @@ set LUVBOUT = 1
 #   INTVL:       Frequency of output [minutes]
 #-----------------------------------------------------------------------
 
-set MCIP_START = 2018-01-10-06:00:00.0000  # [UTC]
-set MCIP_END   = 2018-01-10-12:00:00.0000  # [UTC]
+set MCIP_START = 2018-01-10-01:00:00.0000  # [UTC]
+set MCIP_END   = 2018-01-10-02:00:00.0000  # [UTC]
 
-set INTVL      = 360 # [min]
+set INTVL      = 60 # [min]
 
 #-----------------------------------------------------------------------
 # Choose output format.
@@ -242,8 +242,8 @@ set BTRIM = -1
 #           lateral boundaries).
 #-----------------------------------------------------------------------
 
-set X0    =  13
-set Y0    =  94
+set X0    =  1
+set Y0    =  1
 set NCOLS =  89
 set NROWS = 104
 

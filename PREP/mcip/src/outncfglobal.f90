@@ -62,6 +62,8 @@ SUBROUTINE outncfglobal (cdfid_in, fl)
   var = "INPUT_MODEL"
   IF ( met_model == 2 ) THEN
     cstr = "WRF ARW " // TRIM(met_release)
+  ELSE IF ( met_model == 3 ) THEN
+    cstr = "FV3 " // TRIM(met_release)
   ELSE
     cstr = " "
   ENDIF
