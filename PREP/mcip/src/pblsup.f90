@@ -162,7 +162,7 @@ SUBROUTINE pblsup
 
     ! Compute 10-m wind speed and direction on scalar points.
 
-    IF ( met_model == 2 ) THEN  ! WRF: use native flux-point winds
+    IF ( met_model == 2 .OR. met_model == 3) THEN  ! WRF or FV3: use native flux-point winds
 
       DO c = 1, ncols_x
         cp1 = c + 1
@@ -198,7 +198,7 @@ SUBROUTINE pblsup
 
         ! Compute wind speed profile on scalar points.
 
-        IF ( met_model == 2 ) THEN  ! WRF: use native flux-point winds
+        IF ( met_model == 2 .OR. met_model == 3) THEN  ! WRF or FV3: use native flux-point winds
 
           DO k = 1, metlay
 
@@ -281,7 +281,6 @@ SUBROUTINE pblsup
         ! calculated using similarity theory in sfclayer, and 10-m wind
         ! direction is calculated from layer-1 wind components (i.e., no
         ! directional shear assumed between layer-1 and surface).
-
         CALL wind (ulev1, vlev1, xwspd10(c,r), xwdir10(c,r),  &
                    xlonc(c,r), met_proj_clon, met_cone_fac)
 

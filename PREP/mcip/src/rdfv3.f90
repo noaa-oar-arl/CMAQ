@@ -960,14 +960,24 @@ SUBROUTINE rdfv3 (mcip_now)
 
   
   CALL get_var_1d_real_cdf (cdfid, 'phalf', phalf, it, rcode)
-  IF ( rcode /= nf90_noerr ) THEN
+  IF ( rcode == nf90_noerr ) THEN
+  phalf = phalf * 100.0 !FV3 Convert mb (hPa) to Pa
+  ELSE
     WRITE (*,f9400) TRIM(pname), 'phalf', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
 
   CALL get_var_1d_real_cdf (cdfid, 'pfull', pfull, it, rcode)
-  IF ( rcode /= nf90_noerr ) THEN
+  IF ( rcode == nf90_noerr ) THEN
+  pfull = pfull * 100.0 !FV3 Convert mb (hPa) to Pa
+  ELSE
     WRITE (*,f9400) TRIM(pname), 'pfull', TRIM(nf90_strerror(rcode))
+    CALL graceful_stop (pname)
+  ENDIF
+
+  CALL get_var_3d_real_cdf (cdfid, 'delz', delz, it, rcode)
+  IF ( rcode /= nf90_noerr ) THEN
+    WRITE (*,f9400) TRIM(pname), 'delz', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
 
@@ -1183,6 +1193,7 @@ SUBROUTINE rdfv3 (mcip_now)
     CALL graceful_stop (pname)
   ENDIF
 
+!FV3 does not contain map factors
 !  CALL get_var_2d_real_cdf (cdfid, 'MAPFAC_M', dum2d, it, rcode)
 !  IF ( rcode == nf90_noerr ) THEN
 !    mapcrs(1:nxm,1:nym) = dum2d(:,:)
@@ -1211,6 +1222,11 @@ SUBROUTINE rdfv3 (mcip_now)
 !  ELSE
 !    gotfaces = .FALSE.
 !  ENDIF
+
+!  Just set main mapfactor to 1.0 now, need to calculate for Gaussian (area cells?)
+   mapcrs(1:nxm,1:nym) = 1.0
+   mapcrs(met_nx,:) = mapcrs(nxm,:)
+   mapcrs(:,met_ny) = mapcrs(:,nym)
 
 !Assume at surface the FV3 geopotential height (gpm) = geometric height (m)
   CALL get_var_2d_real_cdf (cdfid, 'orog', dum2d, it, rcode)
@@ -1397,7 +1413,8 @@ SUBROUTINE rdfv3 (mcip_now)
     WRITE (*,f9400) TRIM(pname), 'lon', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
-
+    print*, 'min lon = ', MINVAL(loncrs)
+    print*, 'max lon = ', MAXVAL(loncrs)
 !  CALL get_var_2d_real_cdf (cdfid, 'XLONG_U', dum2d_u, it, rcode)
 !  IF ( rcode == nf90_noerr ) THEN
 !    lonu(:,1:nym)  = dum2d_u(:,:)

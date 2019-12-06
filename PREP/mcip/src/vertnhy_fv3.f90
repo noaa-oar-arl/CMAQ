@@ -133,7 +133,7 @@ SUBROUTINE vertnhy_fv3
         xwhat(col,row,lvl) = ji * ( (mogn * ufcrs * dphidx) +  &
                                     (mogn * vfcrs * dphidy) +  &
                                     xwwind(col,row,lvl) )
-
+        
       ENDDO
     ENDDO
   ENDDO

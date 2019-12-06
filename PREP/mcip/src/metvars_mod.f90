@@ -73,6 +73,7 @@ MODULE metvars
   REAL,          ALLOCATABLE   :: cldfra_sh  ( : , : , : )
   REAL,          ALLOCATABLE   :: coriolis   ( : , : )
   REAL,          ALLOCATABLE   :: csand_px   ( : , : )
+  REAL,          ALLOCATABLE   :: delz       ( : , : , : )
   REAL,          ALLOCATABLE   :: dzs        ( : )
   REAL,          ALLOCATABLE   :: fmsand_px  ( : , : )
   REAL,          ALLOCATABLE   :: frc_urb    ( : , : )

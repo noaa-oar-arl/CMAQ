@@ -230,11 +230,12 @@ SUBROUTINE resistcalc
           WRITE (*,f9000) TRIM(pname), TRIM(xlusrc)
           CALL graceful_stop (pname)
         ENDIF
-
+!          print*, 'f2 (resistance) = ', f2
+!          print*, 'rstmin (resistance) = ', rstmin
 !-------------------------------------------------------------------------------
 ! Calculate aerodynamic resistance XRADYN.
 !-------------------------------------------------------------------------------
-
+!        print*, 'z1ol (resistance) = ', z1ol
         IF ( z1ol >= 0.0 ) THEN 
 
           IF ( z1ol > 1.0 ) THEN
@@ -250,14 +251,14 @@ SUBROUTINE resistcalc
           ENDIF
 
         ELSE
-
+        
           psih = 2.0 * ALOG( (1.0 + SQRT(1.0 - gamah*z1ol)) /  &
                              (1.0 + SQRT(1.0 - gamah*zntol)) )
 
         ENDIF
-
+!         print*, 'psih (resistance) = ', psih
         xradyn(c,r) = pro * ( alogz1z0 - psih ) / ( vkar * xustar(c,r) )
-
+!         print*, 'max xradyn (resistance) = ', MAXVAL(xradyn)
 !-------------------------------------------------------------------------------
 ! Calculate stomatal resistance XRSTOM.
 !-------------------------------------------------------------------------------

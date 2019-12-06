@@ -138,6 +138,7 @@ SUBROUTINE metvars2ctm
 !                        improve dust simulation in CCTM.  Added optional
 !                        variables from KF convective scheme with radiative
 !                        feedbacks.  (T. Spero)
+!           06 Dec 2019  Modified for FV3GFS Capability. (P. C. Campbell)
 !-------------------------------------------------------------------------------
 
   USE mcipparm
@@ -669,17 +670,10 @@ SUBROUTINE metvars2ctm
       ENDDO
      ENDDO
    
-! FV3 does not have mu or mub, i.e., xmu, total dry air mass in column (Pa)
-!    xmu   (:,:)   = mub(sc:ec,sr:er)   + mu(sc:ec,sr:er)
-    xmu   (:,:)   = 100000.0 ! Test constant value
-
-!Not needed in FV3 because vv already on scalar full levels?
-!Skipped vertnhy_fv3 below
-!    xgeof (:,:,:) = phb(sc:ec,sr:er,:) + ph(sc:ec,sr:er,:)
-
     xprsfc(:,:) = psa(sc:ec,sr:er)  ! FV3 contains 2D surface pressure
-    print*, 'max prsfc = ', MAXVAL(xprsfc)
-    
+    xmu   (:,:) = xprsfc(:,:) - met_ptop !FV3 does not have MU, so calculate (Pa)  
+    xgeof (:,:,:) = (1.0/giwrf) * delz(:,:,:) !FV3 does not have geopotential, so calculate (m2 s-2) 
+
 !WRF, the interface levels are defined as full, and layers are in half. 
 !FV3, layers are in full and interface levels are in half
 !FV3 pressure levels are 1-D
@@ -734,11 +728,10 @@ SUBROUTINE metvars2ctm
 
           xdensaf(c,r,k) = ( xpresf(c,r,k) / ( rdwrf * tf *  &
                              (1.0 + rvwrf*qf/rdwrf) ) )
-
         ENDDO
       ENDDO
     ENDDO
-
+    
     IF ( ( ift2m ) .AND. ( MAXVAL(xtemp2) > smallnum ) ) THEN  ! T2 = 0 at init
       xdensaf(:,:,0) = ( xpresf(:,:,0) / ( rdwrf * xtemp2(:,:) *      &
                          (1.0 + rvwrf*xwvapor(:,:,1)/rdwrf) ) )
@@ -771,15 +764,32 @@ IF ( met_model == 3) THEN  ! FV3
           xdensam(c,r,k) = ( xpresm(c,r,k) / ( rdwrf * xtempm(c,r,k) *  &
                              (1.0 + rvwrf*xwvapor(c,r,k)/rdwrf) ) )
 
+!          print*, 'rdwrf = ', rdwrf
+!          print*, 'rdwrf = ', rvwrf
+!          print*, 'xpresm(c,r,k) = ', xpresm(c,r,k)
+!          print*, 'xtempm(c,r,k) = ', xtempm(c,r,k)
+!          print*, 'xwvapor(c,r,k) = ', xwvapor(c,r,k)
+!          print*, 'xdensam(c,r,k) = ', xdensam(c,r,k)
+
+
           tf = 0.5 * (xtempm (c,r,k) + xtempm (c,r,kp1))
           qf = 0.5 * (xwvapor(c,r,k) + xwvapor(c,r,kp1))
 
+!          print*, 'tf = ', tf
+!          print*, 'qf = ', qf
+
           xdensaf(c,r,k) = ( xpresf(c,r,k) / ( rdwrf * tf *  &
                              (1.0 + rvwrf*qf/rdwrf) ) )
-
+!          print*, 'xdensaf(c,r,k) = ', xdensaf(c,r,k)
         ENDDO
       ENDDO
     ENDDO
+ 
+
+ !         print*,'xdensam bottom = ',  xdensam(:,:,metlay)
+ !         print*,'xdensam top = ',  xdensam(:,:,1)
+ !         print*,'xdensaf bottom = ',  xdensaf(:,:,metlay)
+ !         print*,'xdensaf top = ',  xdensaf(:,:,1)
 
     IF ( ( ift2m ) .AND. ( MAXVAL(xtemp2) > smallnum ) ) THEN  ! T2 = 0 at init
       xdensaf(:,:,0) = ( xpresf(:,:,0) / ( rdwrf * xtemp2(:,:) *      &
@@ -799,7 +809,7 @@ IF ( met_model == 3) THEN  ! FV3
 ! and layer heights.
 !-------------------------------------------------------------------------------
 
-  IF ( met_model == 2 .OR. met_model == 3 ) THEN ! WRF or FV3, wrong. Need own FV3 calc.
+  IF ( met_model == 2 ) THEN ! WRF
 
     IF ( met_hybrid >= 0 ) THEN
       DO k = 0, metlay
@@ -826,6 +836,43 @@ IF ( met_model == 3) THEN  ! FV3
 
   ENDIF
 
+  IF ( met_model == 3 ) THEN ! FV3, needs work to correct!
+
+    IF ( met_hybrid >= 0 ) THEN
+      DO k = 0, metlay
+        ! Adjust mu (a.k.a., ps - ptop) for hybrid coordinate.
+        ! Calculate Jacobian from WRF relation:
+        !   J*g = - d(phi)/d(eta) = - d(g z)/d(eta) = mu alpha = mu/rho
+        xmuhyb(:,:)     = c1f(k+1) * xmu(:,:) + c2f(k+1)
+        x3jacobf(:,:,k) = giwrf  * xmuhyb(:,:) / xdensaf(:,:,k)
+ 
+        IF ( k == 0 ) CYCLE
+        xmuhyb(:,:)     = c1h(k) * xmu(:,:) + c2h(k)
+        x3jacobm(:,:,k) = giwrf  * xmuhyb(:,:) / xdensam(:,:,k)
+      ENDDO
+    ELSE
+      DO k = 0, metlay
+        ! Calculate Jacobian from WRF relation:
+        !   J*g = - d(phi)/d(eta) = - d(g z)/d(eta) = mu alpha = mu/rho
+        x3jacobf(:,:,k) = giwrf * xmu(:,:) / xdensaf(:,:,k)
+        IF ( k == 0 ) CYCLE
+        x3jacobm(:,:,k) = giwrf * xmu(:,:) / xdensam(:,:,k)
+      ENDDO
+    ENDIF
+    
+!    print*, x3jacobm
+
+    CALL layht  (xx3face, xx3midl, x3jacobf, x3jacobm, x3htf, x3htm)
+          
+!          print*,'x3jacobm bottom = ',  x3jacobm(:,:,metlay)
+!          print*,'x3jacobm top = ',  x3jacobm(:,:,1)
+!          print*,'x3jacobf bottom = ',  x3jacobf(:,:,metlay)
+!          print*,'x3jacobf top = ',  x3jacobf(:,:,1)
+
+          
+
+  ENDIF
+
 !-------------------------------------------------------------------------------
 ! Calculate height differences.
 !-------------------------------------------------------------------------------
@@ -842,9 +889,9 @@ IF ( met_model == 3) THEN  ! FV3
     CALL vertnhy_wrf
   ENDIF
 
-!  IF ( met_model == 3 ) THEN  ! Does FV3 need this, vv already on full/scalar??
-!    CALL vertnhy_fv3
-!  ENDIF
+  IF ( met_model == 3 ) THEN !FV3, same as WRF?
+    CALL vertnhy_fv3
+  ENDIF
 
 
 !-------------------------------------------------------------------------------

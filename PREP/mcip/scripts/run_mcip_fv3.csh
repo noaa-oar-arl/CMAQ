@@ -168,9 +168,24 @@ set InGeoFile  = $InGeoDir/geo_em_d01.nc
 set InMetModel = 3
 #-----------------------------------------------------------------------
 
-# Define input native FV3 grid resolution, dx = dy (m).
+# FV3 Define input native FV3 grid resolution, dx = dy (m).
 set DX_IN    = 13000
 set DY_IN    = 13000
+
+
+#FV3 user define the met_cen_lat, which also determines hemisphere season.
+#>=0.0 Northern Hemisphere
+#MET_CEN_LAT_IN = 0.0
+#For global FV3 user define the met_cen_lon
+#MET_CEN_LON_IN = 0.0
+#For global FV3 user define the latitude of coord origin
+#MET_P_ALP_D_IN = 0.0
+#For global FV3 user define the longitude of coord origin
+#MET_P_GAM_D_IN = -180.0
+
+
+#FV3 Set explicitly the soil layer thicknesses DZS (must = n_soil_layers)
+#set DZS_IN = (0.1 0.3 0.6 1)
 
 #-----------------------------------------------------------------------
 # Set user control options.
@@ -242,10 +257,10 @@ set BTRIM = -1
 #           lateral boundaries).
 #-----------------------------------------------------------------------
 
-set X0    =  13
-set Y0    =  94
-set NCOLS =  89
-set NROWS = 104
+set X0    =  1
+set Y0    =  1
+set NCOLS =  500
+set NROWS =  500
 
 
 #-----------------------------------------------------------------------

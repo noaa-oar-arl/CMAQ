@@ -105,8 +105,9 @@ SUBROUTINE alloc_met
   ALLOCATE ( sigmah                   (met_nz+1) )
   ALLOCATE ( pfull                    (met_nz) )
   ALLOCATE ( phalf                    (met_nz+1) )
+  ALLOCATE ( delz                     (met_nx, met_ny,met_nz) )
+  ALLOCATE ( b_k                      (met_nz+1) )
   ENDIF
-  ALLOCATE ( b_k                      (met_nz+1) ) 
   ALLOCATE ( terrain  (met_nx, met_ny) )
   ALLOCATE ( znt      (met_nx, met_ny) )
 
