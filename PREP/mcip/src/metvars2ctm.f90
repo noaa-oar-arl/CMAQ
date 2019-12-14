@@ -324,11 +324,19 @@ SUBROUTINE metvars2ctm
 !-------------------------------------------------------------------------------
 ! Put time-variant cross-point arrays on MCIP_X grid.
 !-------------------------------------------------------------------------------
-
+!  IF ( met_model == 2 ) THEN  !WRF
   sc = x0
   ec = x0 + ncols_x - 1
   sr = y0
   er = y0 + nrows_x - 1
+!  ENDIF
+
+!  IF ( met_model == 3 ) THEN  !FV3
+!  ec = x0
+!  sc = x0 + ncols_x - 1
+!  er = y0
+!  sr = y0 + nrows_x - 1
+!  ENDIF
 
   xtempg (:,:) = groundt (sc:ec,sr:er)
   IF ( met_model == 2 .AND. met_cumulus == 0 ) THEN  ! no cumulus scheme
@@ -583,11 +591,20 @@ SUBROUTINE metvars2ctm
 ! Put time-variant dot-point arrays on MCIP_X grid.  XUU_D and XVV_D are on
 ! B-grid (dot points).  XUU_S and XVV_T are on C-grid (face points).
 !-------------------------------------------------------------------------------
-
+!  IF ( met_model == 2 ) THEN  !WRF
   sc = x0
   ec = x0 + ncols_x
   sr = y0
   er = y0 + nrows_x
+!  ENDIF
+
+!  IF ( met_model == 3 ) THEN  !FV3
+!  ec = x0
+!  sc = x0 + ncols_x
+!  er = y0
+!  sr = y0 + nrows_x
+!  ENDIF
+
 
   IF ( met_model == 2 .OR. met_model == 3 ) THEN  ! WRF or FV3: UA and VA on C-grid (face points)
 
@@ -607,11 +624,21 @@ SUBROUTINE metvars2ctm
 ! Compute pressure and potential temperature (if necessary).  Put cloud
 ! fraction on transfer grid, if available.
 !------------------------------------------------------------------------------
-
+!  IF ( met_model == 2 ) THEN  !WRF
   sc = x0
   ec = x0 + ncols_x - 1
   sr = y0
   er = y0 + nrows_x - 1
+!  ENDIF
+
+!  IF ( met_model == 3 ) THEN  !FV3
+!  ec = x0
+!  sc = x0 + ncols_x - 1
+!  er = y0
+!  sr = y0 + nrows_x - 1
+!  ENDIF
+
+
 
   IF ( met_model == 2 )  THEN  ! WRF
 

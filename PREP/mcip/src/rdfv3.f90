@@ -1223,10 +1223,7 @@ SUBROUTINE rdfv3 (mcip_now)
 !    gotfaces = .FALSE.
 !  ENDIF
 
-!  Just set main mapfactor to 1.0 now, need to calculate for Gaussian (area cells?)
-   mapcrs(1:nxm,1:nym) = 1.0
-   mapcrs(met_nx,:) = mapcrs(nxm,:)
-   mapcrs(:,met_ny) = mapcrs(:,nym)
+!  Calculate mapfactor using latitude below for Gaussian
 
 !Assume at surface the FV3 geopotential height (gpm) = geometric height (m)
   CALL get_var_2d_real_cdf (cdfid, 'orog', dum2d, it, rcode)
@@ -2222,13 +2219,15 @@ SUBROUTINE rdfv3 (mcip_now)
     c1h(k) = (b_k(k) - b_k(k-1)) / (sigmah(k) - sigmah(k-1))
     c2h(k) = (1.0-c1h(k)) * (100000.0 - met_ptop)
     END DO
+! Hard coded surface layer c2h right now...needs fix.
+    c2h(met_nz+1) = c2h(met_nz)    
 
     print*, 'met_ptop = ', met_ptop
     print*, 'sigmaf = ', sigmaf
     print*, 'sigmah = ', sigmah
     print*, 'c1f = ', c1f
-    print*, 'c1h = ', c1h
     print*, 'c2f = ', c2f
+    print*, 'c1h = ', c1h
     print*, 'c2h = ', c2h
 
   ENDIF
@@ -2475,9 +2474,12 @@ SUBROUTINE rdfv3 (mcip_now)
                              latdot(i,j), londot(i,j))
 
             mapdot(i,j) = mapfac_gau (latdot(i,j))
-
           ENDDO
         ENDDO
+            ! Just set mapcrs to mapdot for now??
+            mapcrs = mapdot
+            print*, 'min mapcrs = ', MINVAL(mapcrs)
+            print*, 'max mapcrs = ', MAXVAL(mapcrs)
 
         IF ( .NOT. gotfaces ) THEN  ! get lat, lon, map-scale factor on faces
 
@@ -2497,10 +2499,10 @@ SUBROUTINE rdfv3 (mcip_now)
                                latu(i,j), lonu(i,j))
 
               mapu(i,j) = mapfac_gau (latu(i,j))
-
             ENDDO
           ENDDO
-
+              print*, 'min mapu = ', MINVAL(mapu)
+              print*, 'max mapu = ', MAXVAL(mapu)
           xoff = 0.5  ! V-face: 0.5-cell offset in X from dot-point center value
           yoff = 0.0  ! V-face: no offset in Y from dot-point center value
 
@@ -2517,10 +2519,10 @@ SUBROUTINE rdfv3 (mcip_now)
                                latv(i,j), lonv(i,j))
 
               mapv(i,j) = mapfac_gau (latv(i,j))
-
             ENDDO
           ENDDO
-
+              print*, 'min mapv = ', MINVAL(mapv)
+              print*, 'max mapv = ', MAXVAL(mapv)
        ENDIF
 
   ENDIF

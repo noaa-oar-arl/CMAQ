@@ -257,8 +257,8 @@ set BTRIM = -1
 #           lateral boundaries).
 #-----------------------------------------------------------------------
 
-set X0    =  1
-set Y0    =  1
+set X0    =  2000
+set Y0    =  100
 set NCOLS =  500
 set NROWS =  500
 
