@@ -456,15 +456,15 @@ SUBROUTINE ctmproc
        
        IF ( met_model == 3 ) THEN  !FV3
         IF ( ( x3jfmin > xmissing ) .AND. ( xmapmin > xmissing ) ) THEN
-          c_jacobf%fld(col,row,lvl) = x3jacobf(c,r,nlays-lvl) / xmapc2(c,r)
+          c_jacobf%fld(col,row,lvl) = x3jacobf(c,r,nlays-lvl+1) / xmapc2(c,r)
         ENDIF
-
+        
         IF ( ( x3jmmin > xmissing ) .AND. ( xmapmin > xmissing ) ) THEN
-          c_jacobm%fld(col,row,lvl) = x3jacobm(c,r,nlays-lvl) / xmapc2(c,r)
+          c_jacobm%fld(col,row,lvl) = x3jacobm(c,r,nlays-lvl+1) / xmapc2(c,r)
         ENDIF
 
         IF ( ( xdnamin > xmissing ) .AND. ( x3jmmin > xmissing ) ) THEN
-          c_densa_j%fld(col,row,lvl) = xrhojm(c,r,nlays-lvl) / xmapc2(c,r)
+          c_densa_j%fld(col,row,lvl) = xrhojm(c,r,nlays-lvl+1) / xmapc2(c,r)
         ENDIF
        ENDIF
 
@@ -480,13 +480,12 @@ SUBROUTINE ctmproc
        ENDIF
   
        IF ( met_model == 3 ) THEN  !FV3
-        print*, 'nlays = ', nlays
         c_ta%fld(col,row,lvl)   = xtempm(c,r,nlays-lvl+1)
-        c_qv%fld(col,row,lvl)   = xwvapor(c,r,nlays-lvl)
-        c_pres%fld(col,row,lvl) = xpresm(c,r,nlays-lvl)
-        c_dens%fld(col,row,lvl) = xdensam(c,r,nlays-lvl)
-        c_zh%fld(col,row,lvl)   = x3htm(c,r,nlays-lvl)
-        c_zf%fld(col,row,lvl)   = x3htf(c,r,nlays-lvl)
+        c_qv%fld(col,row,lvl)   = xwvapor(c,r,nlays-lvl+1)
+        c_pres%fld(col,row,lvl) = xpresm(c,r,nlays-lvl+1)
+        c_dens%fld(col,row,lvl) = xdensam(c,r,nlays-lvl+1)
+        c_zh%fld(col,row,lvl)   = x3htm(c,r,nlays-lvl+1)
+        c_zf%fld(col,row,lvl)   = x3htf(c,r,nlays-lvl+1)
        ENDIF
 
         ! Moisture fields.
@@ -506,13 +505,13 @@ SUBROUTINE ctmproc
 
        IF ( met_model == 3 ) THEN  !FV3
         IF ( nqspecies >= 2 ) THEN
-          c_qc%fld(col,row,lvl) = xcldwtr(c,r,nlays-lvl)
-          c_qr%fld(col,row,lvl) = xranwtr(c,r,nlays-lvl)
+          c_qc%fld(col,row,lvl) = xcldwtr(c,r,nlays-lvl+1)
+          c_qr%fld(col,row,lvl) = xranwtr(c,r,nlays-lvl+1)
           IF ( nqspecies >= 4 ) THEN
-            c_qi%fld(col,row,lvl) = xqice (c,r,nlays-lvl)
-            c_qs%fld(col,row,lvl) = xqsnow(c,r,nlays-lvl)
+            c_qi%fld(col,row,lvl) = xqice (c,r,nlays-lvl+1)
+            c_qs%fld(col,row,lvl) = xqsnow(c,r,nlays-lvl+1)
             IF ( nqspecies == 5 ) THEN
-              c_qg%fld(col,row,lvl) = xqgraup(c,r,nlays-lvl)
+              c_qg%fld(col,row,lvl) = xqgraup(c,r,nlays-lvl+1)
             ENDIF
           ENDIF
         ENDIF
@@ -545,26 +544,26 @@ SUBROUTINE ctmproc
 
        IF ( met_model == 3 ) THEN  !FV3
         IF ( iftke ) THEN
-          c_tke%fld(col,row,lvl) = xtke(c,r,nlays-lvl)
+          c_tke%fld(col,row,lvl) = xtke(c,r,nlays-lvl+1)
         ENDIF
 
         IF ( lpv > 0 ) THEN
-          c_pv%fld(col,row,lvl) = xpvc(c,r,nlays-lvl)
+          c_pv%fld(col,row,lvl) = xpvc(c,r,nlays-lvl+1)
         ENDIF
 
         IF ( lwout > 0 ) THEN
-          c_wwind%fld(col,row,lvl) = xwwind(c,r,nlays-lvl)
+          c_wwind%fld(col,row,lvl) = xwwind(c,r,nlays-lvl+1)
         ENDIF
 
         IF ( ifcld3d ) THEN
-          c_cfrac_3d%fld(col,row,lvl) = xcfrac3d(c,r,nlays-lvl)
+          c_cfrac_3d%fld(col,row,lvl) = xcfrac3d(c,r,nlays-lvl+1)
         ENDIF
 
         IF ( ifkfradextras ) THEN
-          c_qc_cu%fld(col,row,lvl)     = xqc_cu(c,r,nlays-lvl)
-          c_qi_cu%fld(col,row,lvl)     = xqi_cu(c,r,nlays-lvl)
-          c_cldfra_dp%fld(col,row,lvl) = xcldfrad(c,r,nlays-lvl)
-          c_cldfra_sh%fld(col,row,lvl) = xcldfras(c,r,nlays-lvl)
+          c_qc_cu%fld(col,row,lvl)     = xqc_cu(c,r,nlays-lvl+1)
+          c_qi_cu%fld(col,row,lvl)     = xqi_cu(c,r,nlays-lvl+1)
+          c_cldfra_dp%fld(col,row,lvl) = xcldfrad(c,r,nlays-lvl+1)
+          c_cldfra_sh%fld(col,row,lvl) = xcldfras(c,r,nlays-lvl+1)
         ENDIF
        ENDIF
 
@@ -597,14 +596,19 @@ SUBROUTINE ctmproc
                                 + wght_top(lvl) * c_densa_j%fld(col,row,lvl+1) )
          ENDIF
          IF ( met_model == 3 ) THEN  !FV3
-          c_what_jd%fld(col,row,lvl) = xwhat(c,r,nlays-lvl) *                        &
-                                ( wght_bot(nlays-lvl) * c_densa_j%fld(col,row,nlays-lvl)   &
-                                + wght_top(nlays-lvl) * c_densa_j%fld(col,row,nlays-lvl+1) )
+          c_what_jd%fld(col,row,lvl) = xwhat(c,r,nlays-lvl+1) *                        &
+                                ( wght_bot(nlays-lvl+1) * c_densa_j%fld(col,row,nlays-lvl+1)   &
+                                + wght_top(nlays-lvl+1) * c_densa_j%fld(col,row,nlays-lvl+2) )
          ENDIF
 
         ENDDO
-
-        c_what_jd%fld(col,row,nlays) = 0.0
+         c_what_jd%fld(col,row,nlays) = 0.0
+        
+        IF ( met_model == 3 ) THEN  !FV3
+         c_what_jd%fld(col,row,1) = xwhat(c,r,nlays-1) *                        &
+                                ( wght_bot(nlays-1) * c_densa_j%fld(col,row,nlays-1)   &
+                                + wght_top(nlays-1) * c_densa_j%fld(col,row,nlays) )
+        ENDIF
 
       ENDDO
     ENDDO
@@ -612,7 +616,7 @@ SUBROUTINE ctmproc
   ENDIF
 
 !-------------------------------------------------------------------------------
-! Fill boundaries for time-varying 3d fields at cell centers.
+! Fill boundaries for time-varying 3d fields at cell centers.+1
 !-------------------------------------------------------------------------------
 
   idx = 0

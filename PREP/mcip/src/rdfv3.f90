@@ -2220,7 +2220,7 @@ SUBROUTINE rdfv3 (mcip_now)
     c2h(k) = (1.0-c1h(k)) * (100000.0 - met_ptop)
     END DO
 ! Hard coded surface layer c2h right now...needs fix.
-    c2h(met_nz+1) = c2h(met_nz)    
+!    c2h(met_nz+1) = c2h(met_nz)    
 
     print*, 'met_ptop = ', met_ptop
     print*, 'sigmaf = ', sigmaf
@@ -2240,6 +2240,7 @@ SUBROUTINE rdfv3 (mcip_now)
 !    CALL graceful_stop (pname)
 !  ENDIF
 
+!Harcoded FV3GFSv16 Noah 4-layers soil thicknesses right now...
   dzs = (/0.1, 0.3, 0.6, 1/)
 
   rcode = nf90_close (cdfid)
