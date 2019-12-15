@@ -30,6 +30,7 @@ SUBROUTINE gridproc
   USE mcipparm
   USE xvars
   USE ctmvars
+  USE metinfo
 
   IMPLICIT NONE
 
@@ -47,9 +48,15 @@ SUBROUTINE gridproc
 !-------------------------------------------------------------------------------
 
   xmapmin = MINVAL(xmapc)  ! XMAPMIN also used for XMAPD
-
+ 
   DO row = 1, nrows
-    r = row + nthik
+    IF ( met_model == 2 ) THEN  !WRF
+     r = row + nthik
+    ENDIF
+    IF ( met_model == 3 ) THEN  !FV3
+     r = row + nthik
+     r = (nrows - r + nthik) + (nthik+nthik) 
+    ENDIF
     DO col = 1, ncols
       c = col + nthik
             
@@ -82,7 +89,13 @@ SUBROUTINE gridproc
   IF ( iflufrc ) THEN  ! fractional land use data are available
 
     DO row = 1, nrows
-      r = row + nthik
+      IF ( met_model == 2 ) THEN  !WRF
+       r = row + nthik
+      ENDIF
+      IF ( met_model == 3 ) THEN  !FV3
+       r = row + nthik
+       r = (nrows - r + nthik) + (nthik+nthik)
+      ENDIF
       DO col = 1, ncols
         c = col + nthik
         DO lvl = 1, nummetlu
@@ -103,8 +116,8 @@ SUBROUTINE gridproc
 
   ! Southern boundary moving west to east from column 1 (in output grid) to
   ! column NCOLS+NTHIK.
-
   DO r = 1, nthik
+
     DO c = 1 + nthik, ncols_x
 
       idx = idx + 1
@@ -234,7 +247,13 @@ SUBROUTINE gridproc
   xmapmin = MINVAL(xmapd)   ! XMAPMIN also used for XMAPC
 
   DO row = 1, nrows+1
-    r = row + nthik
+    IF ( met_model == 2 ) THEN  !WRF
+     r = row + nthik
+    ENDIF
+    IF ( met_model == 3 ) THEN  !FV3
+     r = row + nthik
+     r = (nrows - r + nthik) + (nthik+nthik)
+    ENDIF
     DO col = 1, ncols+1
       c = col + nthik
 
