@@ -267,6 +267,8 @@ SUBROUTINE outcm3io (sdate, stime)
 
   ftype3d = bndary3
 
+  nlays3d = nlays+1
+  
   IF ( first ) THEN
     print*, 'metbdy3d = ', metbdy3d
     print*, 'fsunkn3 = ', fsunkn3

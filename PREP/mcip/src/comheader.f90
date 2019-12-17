@@ -67,9 +67,11 @@ SUBROUTINE comheader (sdate, stime)
 
   ! Layer defined in standard met. coordinate.
 
-  vglvs3d(:)         = 0.0  ! initialized to ensure monotonicity
+  vglvs3d(1:nlays+1)         = 0.0  ! initialized to ensure monotonicity
+  print*, 'SIZE vglvs3d(:) = ', SIZE(vglvs3d(:))
   vglvs3d(1:nlays+1) = vglvs_gd(1:nlays+1)
- 
+  print*, 'vglvs3d(1:nlays+1) = ' , vglvs3d(1:nlays+1)
+  print*, 'vglvs3d = ' , vglvs3d
   ! Initialize FDESC3D and UPDESC3D array.
 
   fdesc3d(1:mxdesc3) = ' '
