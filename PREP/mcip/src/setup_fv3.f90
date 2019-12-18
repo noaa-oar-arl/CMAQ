@@ -355,7 +355,8 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   ELSE
 !    Curiously the pfull levels already have one less than phalf
 !    met_nz = ival - 1
-     met_nz = ival
+!     met_nz = ival
+     met_nz = MIN(maxlays,ival) !If met layers > max layers, collapse to subset of max layers 
   ENDIF
 
 
@@ -369,6 +370,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !-------------------------------------------------------------------------------
 
   nlays = met_nz
+  
   CALL get_var_1d_real_cdf (cdfid, 'phalf', phalf_lays(1:nlays+1), 1, rcode)
   IF ( rcode /= nf90_noerr ) THEN
     WRITE (*,f9400) TRIM(pname), 'phalf', TRIM(nf90_strerror(rcode))
@@ -1102,8 +1104,9 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 
   IF ( needlayers ) THEN
     !FV3 is top down, but CMAQ levels are bottom up, reverse pressure array order:
-!    ctmlays = (phalf_lays(nlays+1:1:-1) - phalf_lays(1)) / (MAXVAL(phalf_lays) - phalf_lays(1))
-!    ctmlays = (phalf_lays - phalf_lays(1)) / (MAXVAL(phalf_lays) - phalf_lays(1))
+!    ctmlays = (pfull_lays(nlays+1:1:-1) - pfull_lays(1)) / (MAXVAL(pfull_lays) - pfull_lays(1))
+    !Flip again to top down to be consistent with other FV3 vertical grid.
+!    ctmlays = ctmlays(nlays+1:1:-1)
      ctmlays = (pfull_lays - pfull_lays(1)) / (MAXVAL(pfull_lays) - pfull_lays(1))
   ENDIF
 !-------------------------------------------------------------------------------

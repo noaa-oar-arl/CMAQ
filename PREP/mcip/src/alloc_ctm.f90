@@ -103,7 +103,7 @@ SUBROUTINE alloc_ctm
 ! Allocate grid arrays for COORD.
 !-------------------------------------------------------------------------------
 
-  ALLOCATE ( vglvs_gd  ( nlays+1 ) )
+  ALLOCATE ( vglvs_gd  ( nlays) )
   ALLOCATE ( x3face_gd ( 0:nlays ) )
 
 !-------------------------------------------------------------------------------

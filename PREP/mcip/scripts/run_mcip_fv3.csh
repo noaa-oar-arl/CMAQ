@@ -272,7 +272,7 @@ set NROWS =  500
 # explicitly specifying, set CTMLAYS = -1.0.
 #-----------------------------------------------------------------------
 
-#set CTMLAYS = "-1.0"
+set CTMLAYS = "-1.0"
 
 #Set 35 from PreMAQ NLAYS=35
 #set CTMLAYS=" 1.000000, 0.995253, 0.990479, 0.985679, 0.980781, \
@@ -450,6 +450,7 @@ cat >> $WorkDir/namelist.${PROG} << !
   intvl      =  $INTVL
   coordnam   = "$CoordName"
   grdnam     = "$GridName"
+  ctmlays    =  $CTMLAYS
   btrim      =  $BTRIM
   lprt_col   =  $LPRT_COL
   lprt_row   =  $LPRT_ROW

@@ -53,6 +53,7 @@ SUBROUTINE chkfv3hdr (fl, cdfid)
   USE files
   USE metinfo
   USE netcdf
+  USE mcipparm
 
   IMPLICIT NONE
 
@@ -147,7 +148,8 @@ SUBROUTINE chkfv3hdr (fl, cdfid)
 
   rcode = nf90_inquire_dimension (cdfid, dimid, len=ival)
   IF ( rcode == nf90_noerr ) THEN
-    IF ( ival /= met_nz ) THEN
+     IF ( MIN(maxlays,ival) /= met_nz ) THEN
+!    IF ( ival /= met_nz ) THEN
 !    IF ( ival-1 /= met_nz ) THEN
       WRITE (*,f9000) TRIM(pname), 'BOTTOM-TOP_GRID_DIMENSION'
       WRITE (*,f9100) TRIM(fl1), met_nz, TRIM(fl), ival-1

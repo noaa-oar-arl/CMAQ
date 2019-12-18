@@ -107,11 +107,6 @@ SUBROUTINE outcm3io (sdate, stime)
   tstep3d = grstep
 
   IF ( first ) THEN
-    print*, 'metcro2d = ', metcro2d
-    print*, 'fsunkn3 = ', fsunkn3
-    print*, 'pname = ', pname
-    print*, 'open3 = ', open3 (metcro2d, fsunkn3, pname)
-
     IF ( .NOT. open3 (metcro2d, fsunkn3, pname) ) THEN
       WRITE (*,f9000) TRIM(pname), TRIM(metcro2d)
       CALL graceful_stop (pname)
@@ -193,6 +188,13 @@ SUBROUTINE outcm3io (sdate, stime)
   nthik3d = nthik
   tstep3d = grstep
 
+  print*, 'metcro3d = ', metbdy3d
+  print*, 'fsunkn3 = ', fsunkn3
+  print*, 'pname = ', pname
+  print*, 'open3 = ', open3 (metcro3d, fsunkn3, pname)
+  print*, 'size nlays3d metcro3d = ', nlays3d
+  print*, 'size vglvs3d metcro3d = ', SIZE(vglvs3d)
+  print*, 'vglvs3d metcro3d = ', (vglvs3d)
   IF ( first ) THEN
     IF ( .NOT. open3 (metcro3d, fsunkn3, pname) ) THEN
       WRITE (*,f9000) TRIM(pname), TRIM(metcro3d)
@@ -266,21 +268,27 @@ SUBROUTINE outcm3io (sdate, stime)
 !-------------------------------------------------------------------------------
 
   ftype3d = bndary3
-
-  nlays3d = nlays+1
   
   IF ( first ) THEN
     print*, 'metbdy3d = ', metbdy3d
     print*, 'fsunkn3 = ', fsunkn3
     print*, 'pname = ', pname
     print*, 'open3 = ', open3 (metbdy3d, fsunkn3, pname)
+    print*, 'size nlays3d metbdy3d = ', nlays3d
+    print*, 'size vglvs3d metbdy3d = ', SIZE(vglvs3d)
+    print*, 'vglvs3d metbdy3d = ', (vglvs3d)
+    print*, 'vglvs3d(98) metbdy3d = ', (vglvs3d(98))
+    print*, 'vglvs3d(99) metbdy3d = ', (vglvs3d(99))
+    print*, 'vglvs3d(100) metbdy3d = ', (vglvs3d(100))
+    print*, 'vglvs3d(101) metbdy3d = ', (vglvs3d(101))
+
     IF ( .NOT. open3 (metbdy3d, fsunkn3, pname) ) THEN
       WRITE (*,f9000) TRIM(pname), TRIM(metbdy3d)
       CALL graceful_stop (pname)
     ENDIF
   ENDIF
   IF ( .NOT. desc3 (metbdy3d) ) THEN
-    CALL m3err ('METCRO', sdate, stime,  &
+    CALL m3err ('METBDY', sdate, stime,  &
                 'Could not read DESC of ' // metbdy3d // ' file', .TRUE.)
   ENDIF
 
