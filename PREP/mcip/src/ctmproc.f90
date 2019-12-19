@@ -598,7 +598,7 @@ SUBROUTINE ctmproc
          IF ( met_model == 3 ) THEN  !FV3
           c_what_jd%fld(col,row,lvl) = xwhat(c,r,nlays-lvl+1) *                        &
                                 ( wght_bot(nlays-lvl+1) * c_densa_j%fld(col,row,nlays-lvl+1)   &
-                                + wght_top(nlays-lvl+1) * c_densa_j%fld(col,row,nlays-lvl+2) )
+                                + wght_top(nlays-lvl+1) * c_densa_j%fld(col,row,nlays-lvl+1) )
          ENDIF
 
         ENDDO
@@ -772,7 +772,7 @@ SUBROUTINE ctmproc
          IF ( met_model == 3 ) THEN  !FV3
           c_what_jd%bdy(idx,lvl) = xwhat(c,r,nlays-lvl+1) *                           &
                                    ( wght_bot(nlays-lvl+1) * c_densa_j%bdy(idx,nlays-lvl+1)   &
-                                   + wght_top(nlays-lvl+1) * c_densa_j%bdy(idx,nlays-lvl+2) )
+                                   + wght_top(nlays-lvl+1) * c_densa_j%bdy(idx,nlays-lvl+1) )
          ENDIF
         ENDDO
 
@@ -941,7 +941,7 @@ SUBROUTINE ctmproc
          IF ( met_model == 3 ) THEN  !FV3
           c_what_jd%bdy(idx,lvl) = xwhat(c,nrows_x-r+nthik,nlays-lvl+1) *                           &
                                    ( wght_bot(nlays-lvl+1) * c_densa_j%bdy(idx,nlays-lvl+1)   &
-                                   + wght_top(nlays-lvl+1) * c_densa_j%bdy(idx,nlays-lvl+2) )
+                                   + wght_top(nlays-lvl+1) * c_densa_j%bdy(idx,nlays-lvl+1) )
          ENDIF
         ENDDO
 
@@ -1114,7 +1114,7 @@ SUBROUTINE ctmproc
          IF ( met_model == 3 ) THEN  !FV3
           c_what_jd%bdy(idx,lvl) = xwhat(c,r,nlays-lvl+1) *                          &
                                    ( wght_bot(nlays-lvl+1) * c_densa_j%bdy(idx,nlays-lvl+1)  &
-                                   + wght_top(nlays-lvl+1) * c_densa_j%bdy(idx,nlays-lvl+2) )
+                                   + wght_top(nlays-lvl+1) * c_densa_j%bdy(idx,nlays-lvl+1) )
          ENDIF
         ENDDO
 
@@ -1282,7 +1282,7 @@ SUBROUTINE ctmproc
          IF ( met_model == 3 ) THEN  !FV3
           c_what_jd%bdy(idx,lvl) = xwhat(c,nrows_x-r+nthik,nlays-lvl+1) *                         &
                                  ( wght_bot(nlays-lvl+1) * c_densa_j%bdy(idx,nlays-lvl+1)   &
-                                 + wght_top(nlays-lvl+1) * c_densa_j%bdy(idx,nlays-lvl+2) )
+                                 + wght_top(nlays-lvl+1) * c_densa_j%bdy(idx,nlays-lvl+1) )
          ENDIF
         ENDDO
 

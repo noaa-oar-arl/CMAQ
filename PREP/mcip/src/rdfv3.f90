@@ -2206,14 +2206,15 @@ SUBROUTINE rdfv3 (mcip_now)
     ENDIF
     print*, 'b_k = ', b_k
 
-! FV3 is top down, so first array value at top ~ (100000.0 - met_ptop) 
-    
+! FV3 is top down, so first array value at top c2h  ~ (100000.0 - met_ptop) 
+    c1f(:) = 0.0 !Initialize
     c2f(1) = (100000.0 - met_ptop)
     DO k = 2, met_nz 
     c1f(k) = (b_k(k) - b_k(k-1)) / (sigmaf(k) - sigmaf(k-1))
     c2f(k) = (1.0-c1f(k)) * (100000.0 - met_ptop) 
     END DO
 
+    c1h(:) = 0.0 !Initialize
     c2h(1) = (100000.0 - met_ptop)
     DO k = 2, met_nz+1
     c1h(k) = (b_k(k) - b_k(k-1)) / (sigmah(k) - sigmah(k-1))

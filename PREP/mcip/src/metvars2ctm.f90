@@ -398,6 +398,12 @@ SUBROUTINE metvars2ctm
 
           ilu = landuse(ii,jj)
 
+          IF ( met_model ==3 ) THEN !FV3
+         IF (ilu == 0) THEN  !MODIS Water is set to 0 in FV3
+          ilu = met_lu_water
+         ENDIF
+        ENDIF
+
           IF ( met_lu_src(1:3) == "USG" ) THEN       ! USGS 24- or 33-cat. l.u.
             IF ( met_season == 1 ) THEN         ! summer
               xlai (c,r) = laiusgs(ilu)
@@ -562,14 +568,28 @@ SUBROUTINE metvars2ctm
     xcldfrad(:,:,:)  = cldfra_dp(sc:ec,sr:er,:)
     xcldfras(:,:,:)  = cldfra_sh(sc:ec,sr:er,:)
   ENDIF
-
-  xwwind (:,:,0:) = wa(sc:ec,sr:er,1:)
-
-  IF ( ( iftke ) .AND. ( .NOT. iftkef ) ) THEN  ! TKE on half-layers
-    xtke   (:,:, :) = tke(sc:ec,sr:er, :)
-  ELSE IF ( ( iftke ) .AND. ( iftkef ) ) THEN   ! TKE on full-levels
-    xtke   (:,:,0:) = tke(sc:ec,sr:er,1:)
+  
+  IF ( met_model == 2 ) THEN  !WRF
+    xwwind (:,:,0:) = wa(sc:ec,sr:er,1:)
   ENDIF
+
+  IF ( met_model == 3 ) THEN  !FV3
+    xwwind (:,:,1:) = wa(sc:ec,sr:er,1:)
+  ENDIF
+
+  IF ( met_model == 2 ) THEN  !WRF
+   IF ( ( iftke ) .AND. ( .NOT. iftkef ) ) THEN  ! TKE on half-layers
+    xtke   (:,:, :) = tke(sc:ec,sr:er, :)
+   ELSE IF ( ( iftke ) .AND. ( iftkef ) ) THEN   ! TKE on full-levels
+    xtke   (:,:,0:) = tke(sc:ec,sr:er,1:)
+   ENDIF
+  ENDIF
+
+  IF ( met_model == 3 ) THEN  !FV3
+    ! TKE on half-layers
+    xtke   (:,:, :) = tke(sc:ec,sr:er, :)
+  ENDIF
+
 
   ! Ensure that very small (and sometimes negative!) values from WRF moisture
   ! fields are not used.  Here, EPSILONQ is the same minimum value as is set
@@ -699,7 +719,7 @@ SUBROUTINE metvars2ctm
    
     xprsfc(:,:) = psa(sc:ec,sr:er)  ! FV3 contains 2D surface pressure
     xmu   (:,:) = xprsfc(:,:) - met_ptop !FV3 does not have MU, so calculate (Pa)  
-    xgeof (:,:,:) = (1.0/giwrf) * delz(:,:,:) !FV3 does not have geopotential, so calculate (m2 s-2) 
+    xgeof (:,:,1:) = (1.0/giwrf) * delz(:,:,1:) !FV3 does not have geopotential, so calculate (m2 s-2) 
 
 !WRF, the interface levels are defined as full, and layers are in half. 
 !FV3, layers are in full and interface levels are in half
@@ -714,11 +734,11 @@ SUBROUTINE metvars2ctm
      ENDDO
 
     IF ( lpv > 0 .OR. ifmolpx ) THEN  ! will need theta
-      xtheta(:,:,:) = theta(sc:ec,sr:er,:)
+      xtheta(:,:,1:) = theta(sc:ec,sr:er,1:)
     ENDIF
 
     IF ( ifcld3d ) THEN  ! passing through 3D cloud fraction
-      xcfrac3d(:,:,:) = cldfra(sc:ec,sr:er,:)
+      xcfrac3d(:,:,1:) = cldfra(sc:ec,sr:er,1:)
     ENDIF
 
   ENDIF
@@ -866,23 +886,24 @@ IF ( met_model == 3) THEN  ! FV3
   IF ( met_model == 3 ) THEN ! FV3, needs work to correct!
 
     IF ( met_hybrid >= 0 ) THEN
-      DO k = 0, metlay
+      DO k = 1, metlay
         ! Adjust mu (a.k.a., ps - ptop) for hybrid coordinate.
         ! Calculate Jacobian from WRF relation:
         !   J*g = - d(phi)/d(eta) = - d(g z)/d(eta) = mu alpha = mu/rho
-        xmuhyb(:,:)     = c1f(k+1) * xmu(:,:) + c2f(k+1)
+        xmuhyb(:,:)     = c1f(k) * xmu(:,:) + c2f(k)
         x3jacobf(:,:,k) = giwrf  * xmuhyb(:,:) / xdensaf(:,:,k)
- 
-        IF ( k == 0 ) CYCLE
+        print*, 'MAXVAL x3jacobf = ', MAXVAL(x3jacobf) 
+!        IF ( k == 0 ) CYCLE
         xmuhyb(:,:)     = c1h(k) * xmu(:,:) + c2h(k)
         x3jacobm(:,:,k) = giwrf  * xmuhyb(:,:) / xdensam(:,:,k)
+        print*, 'MAXVAL x3jacobm = ', MAXVAL(x3jacobm)
       ENDDO
     ELSE
-      DO k = 0, metlay
+      DO k = 1, metlay
         ! Calculate Jacobian from WRF relation:
         !   J*g = - d(phi)/d(eta) = - d(g z)/d(eta) = mu alpha = mu/rho
         x3jacobf(:,:,k) = giwrf * xmu(:,:) / xdensaf(:,:,k)
-        IF ( k == 0 ) CYCLE
+!        IF ( k == 0 ) CYCLE
         x3jacobm(:,:,k) = giwrf * xmu(:,:) / xdensam(:,:,k)
       ENDDO
     ENDIF
@@ -896,7 +917,8 @@ IF ( met_model == 3) THEN  ! FV3
 !          print*,'x3jacobf bottom = ',  x3jacobf(:,:,metlay)
 !          print*,'x3jacobf top = ',  x3jacobf(:,:,1)
 
-          
+    print*, 'MAXVAL x3htf (ZF) = ', MAXVAL(x3htf)
+    print*, 'MAXVAL x3htm (ZH) = ', MAXVAL(x3htm)
 
   ENDIF
 
