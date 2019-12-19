@@ -264,7 +264,9 @@ MODULE mcipparm
   INTEGER :: inmetmodel      ! user input: 2 = WRF
                              !             3 = FV3
 
-  INTEGER :: dx_in, dy_in    ! user input  input meteorological model resolution
+  INTEGER :: dx_in, dy_in    ! user input  meteorological model resolution
+
+  INTEGER :: met_cen_lat_in, met_cen_lon_in    ! user input reference center latitude and longitude
  
   INTEGER :: lpv             ! user input: 0 = Do not compute or output PV
                              !             1 = Compute and output PV

@@ -28,6 +28,7 @@ SUBROUTINE vertarys (ctmlays)
 !           07 Sep 2011  Updated disclaimer.  (T. Otte)
 !-------------------------------------------------------------------------------
 
+  USE metinfo
   USE mcipparm
   USE xvars
   USE coord
@@ -51,7 +52,14 @@ SUBROUTINE vertarys (ctmlays)
 ! The list of vertical coordinate surface values in the VGLVUN_GD units
 ! Layer k extends from VGLVS3D( k ) to VGLVS3D( k+1 ).
 !-------------------------------------------------------------------------------
-  vglvs_gd(1:nlays+1) = ctmlays(1:nlays+1)
+  IF ( met_model == 2 ) THEN !WRF
+   vglvs_gd(1:nlays+1) = ctmlays(1:nlays+1)
+  ENDIF
+
+  IF ( met_model == 3 ) THEN !FV3
+   vglvs_gd(1:nlays) = ctmlays(1:nlays)
+  ENDIF
+
 !-------------------------------------------------------------------------------
 ! X3FACE_GD( 0: NLAYS ):
 ! The list of vertical coordinate surface values in the VGLVUN_GD units 
@@ -60,10 +68,17 @@ SUBROUTINE vertarys (ctmlays)
 
   lbnd = LBOUND(x3face_gd,1)
 
+ IF ( met_model == 2 ) THEN !WRF 
   DO k = 0, nlays
     x3face_gd(lbnd+k) = 1.0 - vglvs_gd(k+1)
   ENDDO
+ ENDIF
 
+  IF ( met_model == 3 ) THEN !FV3
+   DO k = 1, nlays
+    x3face_gd(lbnd+k) = 1.0 - vglvs_gd(k)
+   ENDDO
+  ENDIF
 !-------------------------------------------------------------------------------
 ! Echo user-specified grid description info to log file.
 !-------------------------------------------------------------------------------

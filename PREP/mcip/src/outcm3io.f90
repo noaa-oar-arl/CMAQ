@@ -30,6 +30,7 @@ SUBROUTINE outcm3io (sdate, stime)
 !                        fields.  (T. Spero)
 !-------------------------------------------------------------------------------
 
+  USE metinfo
   USE mcipparm
   USE ctmvars
   USE coord
@@ -187,14 +188,13 @@ SUBROUTINE outcm3io (sdate, stime)
   nrows3d = nrows
   nthik3d = nthik
   tstep3d = grstep
+  print*, 'vglvs3d metcro3d pre 1.0 = ', vglvs3d
+  ! FV3 to ensure monotonicity check near surface when Open3 and CHKDESC
+!  IF ( met_model == 3 ) THEN     
+!    vglvs3d(nlays+1)=1.0
+!  ENDIF
+  print*, 'vglvs3d metcro3d post 1.0 = ', vglvs3d
 
-  print*, 'metcro3d = ', metbdy3d
-  print*, 'fsunkn3 = ', fsunkn3
-  print*, 'pname = ', pname
-  print*, 'open3 = ', open3 (metcro3d, fsunkn3, pname)
-  print*, 'size nlays3d metcro3d = ', nlays3d
-  print*, 'size vglvs3d metcro3d = ', SIZE(vglvs3d)
-  print*, 'vglvs3d metcro3d = ', (vglvs3d)
   IF ( first ) THEN
     IF ( .NOT. open3 (metcro3d, fsunkn3, pname) ) THEN
       WRITE (*,f9000) TRIM(pname), TRIM(metcro3d)
@@ -268,20 +268,12 @@ SUBROUTINE outcm3io (sdate, stime)
 !-------------------------------------------------------------------------------
 
   ftype3d = bndary3
-  
-  IF ( first ) THEN
-    print*, 'metbdy3d = ', metbdy3d
-    print*, 'fsunkn3 = ', fsunkn3
-    print*, 'pname = ', pname
-    print*, 'open3 = ', open3 (metbdy3d, fsunkn3, pname)
-    print*, 'size nlays3d metbdy3d = ', nlays3d
-    print*, 'size vglvs3d metbdy3d = ', SIZE(vglvs3d)
-    print*, 'vglvs3d metbdy3d = ', (vglvs3d)
-    print*, 'vglvs3d(98) metbdy3d = ', (vglvs3d(98))
-    print*, 'vglvs3d(99) metbdy3d = ', (vglvs3d(99))
-    print*, 'vglvs3d(100) metbdy3d = ', (vglvs3d(100))
-    print*, 'vglvs3d(101) metbdy3d = ', (vglvs3d(101))
+  ! FV3 to ensure monotonicity check near surface when Open3 and CHKDESC
+!  IF ( met_model == 3 ) THEN     
+!    vglvs3d(nlays+1)=1.0
+!   ENDIF
 
+  IF ( first ) THEN
     IF ( .NOT. open3 (metbdy3d, fsunkn3, pname) ) THEN
       WRITE (*,f9000) TRIM(pname), TRIM(metbdy3d)
       CALL graceful_stop (pname)
@@ -351,7 +343,7 @@ SUBROUTINE outcm3io (sdate, stime)
 !-------------------------------------------------------------------------------
 ! Write MET_DOT_3D.
 !-------------------------------------------------------------------------------
-
+  
   DO n = 1, nfld3dxyzt_d
 
     vtype3d(n) = m3real
@@ -382,6 +374,10 @@ SUBROUTINE outcm3io (sdate, stime)
   nvars3d = nfld3dxyzt_d
   nlays3d = nlays
   tstep3d = grstep
+  ! FV3 to ensure monotonicity check near surface when Open3 and CHKDESC
+!  IF ( met_model == 3 ) THEN     
+!    vglvs3d(nlays+1)=1.0
+!   ENDIF
 
   IF ( first ) THEN
     IF ( .NOT. open3 (metdot3d, fsunkn3, pname) ) THEN
@@ -438,6 +434,10 @@ SUBROUTINE outcm3io (sdate, stime)
     nrows3d = nrows
     nthik3d = nthik
     tstep3d = grstep
+    ! FV3 to ensure monotonicity check near surface when Open3 and CHKDESC
+!    IF ( met_model == 3 ) THEN     
+!    vglvs3d(nlays+1)=1.0
+!    ENDIF
 
     IF ( first ) THEN
       IF ( .NOT. open3 (soicro, fsunkn3, pname) ) THEN
@@ -496,6 +496,10 @@ SUBROUTINE outcm3io (sdate, stime)
     nrows3d = nrows
     nthik3d = nthik
     tstep3d = grstep
+    ! FV3 to ensure monotonicity check near surface when Open3 and CHKDESC
+!    IF ( met_model == 3 ) THEN     ! FV3
+!    vglvs3d(nlays+1)=1.0
+!    ENDIF
 
     IF ( first ) THEN
       IF ( .NOT. open3 (mosaiccro, fsunkn3, pname) ) THEN

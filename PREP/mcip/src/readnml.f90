@@ -107,7 +107,8 @@ SUBROUTINE readnml (ctmlays)
 
   NAMELIST /filenames/   file_gd, file_mm, file_geo, ioform
 
-  NAMELIST /userdefs/    inmetmodel, dx_in, dy_in, lpv, lwout, luvbout,     &
+  NAMELIST /userdefs/    inmetmodel, dx_in, dy_in, met_cen_lat_in, met_cen_lon_in, &
+                         lpv, lwout, luvbout,     &
                          eradm, mcip_start, mcip_end, intvl,  &
                          coordnam, grdnam, ctmlays,           &
                          btrim, lprt_col, lprt_row,           &

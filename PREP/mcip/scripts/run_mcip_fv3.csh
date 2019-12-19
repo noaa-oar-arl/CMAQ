@@ -173,16 +173,10 @@ set DX_IN    = 13000
 set DY_IN    = 13000
 
 
-#FV3 user define the met_cen_lat, which also determines hemisphere season.
-#>=0.0 Northern Hemisphere
-#MET_CEN_LAT_IN = 0.0
-#For global FV3 user define the met_cen_lon
-#MET_CEN_LON_IN = 0.0
-#For global FV3 user define the latitude of coord origin
-#MET_P_ALP_D_IN = 0.0
-#For global FV3 user define the longitude of coord origin
-#MET_P_GAM_D_IN = -180.0
-
+#FV3 user define the met_cen_lat and met_cen_lon, which also determines hemisphere season.
+#met_cen_lat >= 0.0 for Northern Hemisphere
+set MET_CEN_LAT_IN = 0.0
+set MET_CEN_LON_IN = 0.0
 
 #FV3 Set explicitly the soil layer thicknesses DZS (must = n_soil_layers)
 #set DZS_IN = (0.1 0.3 0.6 1)
@@ -442,6 +436,8 @@ cat >> $WorkDir/namelist.${PROG} << !
   inmetmodel =  $InMetModel
   dx_in      =  $DX_IN
   dy_in      =  $DY_IN
+  met_cen_lat_in =  $MET_CEN_LAT_IN
+  met_cen_lon_in =  $MET_CEN_LON_IN
   lpv        =  $LPV
   lwout      =  $LWOUT
   luvbout    =  $LUVBOUT

@@ -67,23 +67,17 @@ SUBROUTINE comheader (sdate, stime)
   vgtop3d = vgtop_gd
 
   ! Layer defined in standard met. coordinate.
+  IF ( met_model == 2 ) THEN !WRF
    vglvs3d(1:nlays+1) = 0.0  ! initialized to ensure monotonicity
    vglvs3d(1:nlays+1) = vglvs_gd(1:nlays+1)
+  ENDIF
 
-   print*, 'vglvs3d comheader = ', vglvs3d
-!   vglvs3d(nlays+1)=1.0
-!   print*, 'vglvs3d comheader = ', vglvs3d
-!  ENDIF
-!  IF ( met_model == 3 ) THEN     ! FV3
-!   print*, 'size vglvs3d comheader before init = ', SIZE(vglvs3d)
-!   vglvs3d(1:nlays-1) = 0.0  ! initialized to ensure monotonicity
-!   vglvs3d(1:nlays-1) = vglvs_gd(1:nlays-1)
-!   vglvs3d = 0.0  ! initialized to ensure monotonicity
-!   vglvs3d = vglvs_gd
-!   print*, 'size vglvs3d comheader after init = ', SIZE(vglvs3d)
-!  ENDIF
-  ! Initialize FDESC3D and UPDESC3D array.
-
+  IF ( met_model == 3 ) THEN !FV3
+   vglvs3d(1:nlays) = 0.0  ! initialized to ensure monotonicity
+   vglvs3d(1:nlays) = vglvs_gd(1:nlays)
+  ENDIF
+ 
+! Initialize FDESC3D and UPDESC3D array.
   fdesc3d(1:mxdesc3) = ' '
   updsc3d(1:mxdesc3) = ' '
 

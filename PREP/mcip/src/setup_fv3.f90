@@ -179,8 +179,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   REAL,               INTENT(OUT)   :: ctmlays     ( maxlays )
   REAL                              :: phalf_lays  ( maxlays )
   REAL                              :: pfull_lays  ( maxlays )
-  CHARACTER(LEN=19)                 :: date_init
-  CHARACTER(LEN=19)                 :: date_start
+  CHARACTER(LEN=32)                 :: date_init
   INTEGER                           :: dimid
   INTEGER                           :: dimids     ( nf90_max_var_dims )
   REAL,               ALLOCATABLE   :: dum1d      ( : )
@@ -353,10 +352,13 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
                     TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ELSE
-!    Curiously the pfull levels already have one less than phalf
 !    met_nz = ival - 1
 !     met_nz = ival
-     met_nz = MIN(maxlays,ival) !If met layers > max layers, collapse to subset of max layers 
+    IF ( needlayers ) THEN
+     met_nz = MIN(maxlays,ival) !If met layers > max layers, collapse to subset of max layers    ELSE
+     met_nz = SIZE(ctmlays)
+    ENDIF
+
   ENDIF
 
 
@@ -368,7 +370,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !-------------------------------------------------------------------------------
 ! Read FV3 Pressure layers.
 !-------------------------------------------------------------------------------
-
+! Set NLAYS
   nlays = met_nz
   
   CALL get_var_1d_real_cdf (cdfid, 'phalf', phalf_lays(1:nlays+1), 1, rcode)
@@ -535,8 +537,8 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
       met_cone_fac = 0.0                      ! cone factor
       met_ref_lat  = -999.0                   ! not used
       
-       met_cen_lat  = 0.0 
-       met_cen_lon  = 0.0                                       
+       met_cen_lat  = met_cen_lat_in          ! set from namelist
+       met_cen_lon  = met_cen_lon_in          ! set from namelist                  
 !      met_cen_lat  = 89.9103191600434         ! Hardcoded for now GFSv16 Gaussian...
 !      met_cen_lon  = 359.882792740194         ! Hardcoded for now GFSv16 Gaussian...
 !      met_cen_lat  = 45.0         ! Hardcoded for now GFSv16 Gaussian...

@@ -112,7 +112,7 @@ SUBROUTINE getluse
 
   USE lucats
   USE metvars
-  USE metinfo, nx => met_nx, ny => met_ny
+  USE metinfo, met_model => met_model, nx => met_nx, ny => met_ny
   USE xvars
   USE mcipparm
 
@@ -238,9 +238,16 @@ SUBROUTINE getluse
         lu = landuse(ii,jj)
 
         xluse (col,row,:)  = 0.0
+    
+        IF ( met_model ==3 ) THEN !FV3
+         IF (lu == 0) THEN  !MODIS Water is set to 0 in FV3
+          lu = met_lu_water
+         ENDIF
+        ENDIF
+       
         xluse (col,row,lu) = 1.0
         xdluse(col,row)    = lu
-
+ 
       ENDDO
     ENDDO
 

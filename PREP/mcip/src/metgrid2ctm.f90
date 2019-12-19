@@ -94,9 +94,17 @@ SUBROUTINE metgrid2ctm
 
   xx3face(lbndface:maxface) = x3workf(lbndsigf:ubndsigf)
 
-  DO jw = 1, SIZE(sigmah)
-    xx3midl(jw) = 0.5 * ( xx3face(jw-1) + xx3face(jw) )
-  ENDDO
+  IF ( met_model == 2 ) THEN  !WRF
+   DO jw = 1, SIZE(sigmah)
+     xx3midl(jw) = 0.5 * ( xx3face(jw-1) + xx3face(jw) )
+   ENDDO
+  ENDIF
+  
+  IF ( met_model == 3 ) THEN  !FV3
+   DO jw = 1, SIZE(sigmah)-1
+     xx3midl(jw) = 0.5 * ( xx3face(jw-1) + xx3face(jw) )
+   ENDDO
+  ENDIF
 
   DEALLOCATE ( x3workf )
 

@@ -60,7 +60,6 @@ SUBROUTINE chkfv3hdr (fl, cdfid)
   INTEGER,            INTENT(IN)    :: cdfid
   CHARACTER(LEN=80)                 :: cval
   CHARACTER(LEN=8)                  :: cval8
-  CHARACTER(LEN=19)                 :: date_init
   INTEGER                           :: dimid
   CHARACTER(LEN=256), INTENT(IN)    :: fl
   CHARACTER(LEN=256)                :: fl1
@@ -152,7 +151,7 @@ SUBROUTINE chkfv3hdr (fl, cdfid)
 !    IF ( ival /= met_nz ) THEN
 !    IF ( ival-1 /= met_nz ) THEN
       WRITE (*,f9000) TRIM(pname), 'BOTTOM-TOP_GRID_DIMENSION'
-      WRITE (*,f9100) TRIM(fl1), met_nz, TRIM(fl), ival-1
+      WRITE (*,f9100) TRIM(fl1), met_nz, TRIM(fl), MIN(maxlays,ival)
       CALL graceful_stop (pname)
     ENDIF
   ELSE
