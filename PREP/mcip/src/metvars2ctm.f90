@@ -892,11 +892,9 @@ IF ( met_model == 3) THEN  ! FV3
         !   J*g = - d(phi)/d(eta) = - d(g z)/d(eta) = mu alpha = mu/rho
         xmuhyb(:,:)     = c1f(k) * xmu(:,:) + c2f(k)
         x3jacobf(:,:,k) = giwrf  * xmuhyb(:,:) / xdensaf(:,:,k)
-        print*, 'MAXVAL x3jacobf = ', MAXVAL(x3jacobf) 
 !        IF ( k == 0 ) CYCLE
         xmuhyb(:,:)     = c1h(k) * xmu(:,:) + c2h(k)
         x3jacobm(:,:,k) = giwrf  * xmuhyb(:,:) / xdensam(:,:,k)
-        print*, 'MAXVAL x3jacobm = ', MAXVAL(x3jacobm)
       ENDDO
     ELSE
       DO k = 1, metlay
@@ -908,17 +906,22 @@ IF ( met_model == 3) THEN  ! FV3
       ENDDO
     ENDIF
     
-!    print*, x3jacobm
+    print*, 'x3jacobf min = ', MINVAL(x3jacobf)
+    print*, 'x3jacobf max = ', MAXVAL(x3jacobf)
+    print*, 'x3jacobm min = ', MINVAL(x3jacobm)
+    print*, 'x3jacobm max = ', MAXVAL(x3jacobm)
 
     CALL layht  (xx3face, xx3midl, x3jacobf, x3jacobm, x3htf, x3htm)
           
-!          print*,'x3jacobm bottom = ',  x3jacobm(:,:,metlay)
-!          print*,'x3jacobm top = ',  x3jacobm(:,:,1)
-!          print*,'x3jacobf bottom = ',  x3jacobf(:,:,metlay)
-!          print*,'x3jacobf top = ',  x3jacobf(:,:,1)
+!    print*,'x3jacobm bottom = ',  x3jacobm(:,:,metlay)
+!    print*,'x3jacobm top = ',  x3jacobm(:,:,1)
+!    print*,'x3jacobf bottom = ',  x3jacobf(:,:,metlay)
+!    print*,'x3jacobf top = ',  x3jacobf(:,:,1)
 
-    print*, 'MAXVAL x3htf (ZF) = ', MAXVAL(x3htf)
-    print*, 'MAXVAL x3htm (ZH) = ', MAXVAL(x3htm)
+    print*, 'x3htf (ZF) min = ', MINVAL(x3htf)
+    print*, 'x3htf (ZF) max = ', MAXVAL(x3htf)
+    print*, 'x3htm (ZH) min = ', MINVAL(x3htm)
+    print*, 'x3htm (ZH) max = ', MAXVAL(x3htm)
 
   ENDIF
 

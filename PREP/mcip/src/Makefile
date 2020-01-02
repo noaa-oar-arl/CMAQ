@@ -56,7 +56,7 @@ IOAPI_ROOT = /gpfs/hps3/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.1.8/lib/
 ###FFLAGS  = -g -O0 -check all -C -traceback -FR -I$(NETCDF)/include  \
 ###          -I$(IOAPI_ROOT)/Linux2_x86_64ifort
 #FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/Linux2_x86_64ifort
-FFLAGS  = -FR -O3 -traceback -check bounds -I$(NETCDF)/include -I$(IOAPI_ROOT)/sorc/aqm_ioapi_v31/Linux3_x86_64intel
+FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT)/sorc/aqm_ioapi_v31/Linux3_x86_64intel
 LIBS    = -L$(IOAPI_ROOT) -laqm_ioapi \
           -L$(NETCDF)/lib -lnetcdf -lnetcdff \
 #          -L$(NETCDF_FORTRAN) -lnetcdff
