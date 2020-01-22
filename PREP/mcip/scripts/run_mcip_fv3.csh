@@ -161,6 +161,14 @@ set InMetFiles = ( $InMetDir/gfs.t00z.masterf006.nc $InMetDir/gfs.t00z.masterf01
 set IfGeo      = "F"
 set InGeoFile  = $InGeoDir/geo_em_d01.nc
 
+
+
+#-----------------------------------------------------------------------
+# If its desired to use MPI, parallel netCDF I/O (e.g., speed up FV3 I/O)
+# Note: If true, must compile MCIP with NetCDF parallel version using HDF5 library, e.g.,  netcdf-hdf5parallel
+set IfMPI      = "T"
+#-----------------------------------------------------------------------
+
 #-----------------------------------------------------------------------
 # Set input meteorological model (2 = WRF or 3 = FV3).
 #
