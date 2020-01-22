@@ -107,7 +107,7 @@ SUBROUTINE readnml (ctmlays)
 
   NAMELIST /filenames/   file_gd, file_mm, file_geo, ioform
 
-  NAMELIST /userdefs/    inmetmodel, dx_in, dy_in, met_cen_lat_in, met_cen_lon_in, &
+  NAMELIST /userdefs/    ifmpi, inmetmodel, dx_in, dy_in, met_cen_lat_in, met_cen_lon_in, &
                          lpv, lwout, luvbout,     &
                          eradm, mcip_start, mcip_end, intvl,  &
                          coordnam, grdnam, ctmlays,           &
@@ -214,6 +214,11 @@ SUBROUTINE readnml (ctmlays)
   file_gd     = "GRIDDESC"
   file_mm(:)  = " "
   file_geo    = " "
+
+!-------------------------------------------------------------------------------
+! Set default value for user-selected model (2 = WRF, 3 = FV3).
+  ifmpi = .TRUE.
+!-------------------------------------------------------------------------------
 
 !-------------------------------------------------------------------------------
 ! Set default value for user-selected model (2 = WRF, 3 = FV3).

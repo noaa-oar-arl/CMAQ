@@ -178,6 +178,7 @@ SUBROUTINE rdfv3 (mcip_now)
 !                        variables from KF convective scheme with radiative
 !                        feedbacks.  (T. Spero)
 !           21 Nov 2019  Modified for FV3GFS Capability. (P. C. Campbell)
+!           22 Jan 2020  Modified for MPI Capability. (P. C. Campbell)
 !-------------------------------------------------------------------------------
 
   USE date_pack
@@ -187,6 +188,7 @@ SUBROUTINE rdfv3 (mcip_now)
   USE mcipparm
   USE netcdf_io
   USE netcdf
+  USE mpi 
 
   IMPLICIT NONE
 
@@ -432,6 +434,22 @@ SUBROUTINE rdfv3 (mcip_now)
     & /, 1x, '***   WILL DEFINE FROM OTHER FIELDS LATER', &
     & /, 1x, 70('*'))"
 
+
+! MPI stuff if necessary: number of processors, rank of this processor, and error
+! code.
+  INTEGER :: p, my_rank, ierr
+
+!-------------------------------------------------------------------------------
+! Initialize MPI, learn local rank and total number of processors.
+  IF ( ifmpi ) THEN
+   CALL MPI_Init(ierr)
+   print*, 'ierr = ', ierr
+   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
+   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
+   print*, p, my_rank
+  ENDIF
+!------------------------------------------------------------------------------
+
 !-------------------------------------------------------------------------------
 ! Define additional staggered grid dimensions.
 !-------------------------------------------------------------------------------
@@ -633,7 +651,6 @@ SUBROUTINE rdfv3 (mcip_now)
     CALL geth_newdate (mcip_previous, mcip_now, intvl*(-60))
 
     fl = file_mm(m1count)
-
     rcode = nf90_open (fl, nf90_nowrite, cdfid)
     IF ( rcode /= nf90_noerr ) THEN
       WRITE (*,f9900) TRIM(pname)
@@ -770,6 +787,13 @@ SUBROUTINE rdfv3 (mcip_now)
 !-------------------------------------------------------------------------------
 ! Find time index (IT) for MCIP_NOW in WRF output file.
 !-------------------------------------------------------------------------------
+   print*, 'test ifmpi part...', ifmpi
+  IF ( .NOT. ifmpi ) THEN
+    print*, 'test ifmpi=false'
+  ELSE
+    print*, 'test ifmpi=true'
+  ENDIF
+
 
   fl = file_mm(mmcount)
   rcode = nf90_open (fl, nf90_nowrite, cdfid)
@@ -1311,7 +1335,7 @@ SUBROUTINE rdfv3 (mcip_now)
 !    raincon(:,:) = MAX(0.0, raincon(:,:))
 !    rainnon(:,:) = MAX(0.0, rainnon(:,:))
 !  
-!  ELSE  ! incremental precip taken directly from FV3 (avoid IF block)
+!  ELSE  ! incremental ave precip taken directly from FV3 (avoid IF block)
 
     CALL get_var_2d_real_cdf (cdfid, 'cprat_ave', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
@@ -2658,5 +2682,10 @@ SUBROUTINE rdfv3 (mcip_now)
 ! DEALLOCATE ( dum3d_u )  ! commented out to avoid memory fragmentation
 ! DEALLOCATE ( dum3d_v )  ! commented out to avoid memory fragmentation
 ! DEALLOCATE ( dum3d_w )  ! commented out to avoid memory fragmentation
- 
+
+  IF ( ifmpi ) THEN
+! MPI library must be shut down.
+   CALL MPI_Finalize(ierr) 
+  ENDIF
+
 END SUBROUTINE rdfv3

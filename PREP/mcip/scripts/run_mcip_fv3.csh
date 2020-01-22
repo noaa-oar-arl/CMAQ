@@ -157,20 +157,22 @@ set WorkDir    = $OutDir
 set InMetFiles = ( $InMetDir/gfs.t00z.masterf006.nc $InMetDir/gfs.t00z.masterf012.nc)
 #set InMetFiles = ( $InMetDir/wrfout_d01_2018-01-10_00:00:00  $InMetDir/wrfout_d01_2018-01-10_01:00:00 ) 
 
+#For FV3, also need separate surface input pfiles
+#set InMetFilesSfc = ( $InMetDir/gfs.t00z.sfcf000.nc $InMetDir/gfs.t00z.sfcf001.nc $InMetDir/gfs.t00z.sfcf002.nc) 
+
 
 set IfGeo      = "F"
 set InGeoFile  = $InGeoDir/geo_em_d01.nc
 
-
-
 #-----------------------------------------------------------------------
 # If its desired to use MPI, parallel netCDF I/O (e.g., speed up FV3 I/O)
 # Note: If true, must compile MCIP with NetCDF parallel version using HDF5 library, e.g.,  netcdf-hdf5parallel
+# and add mpich include in Makefile (Default = TRUE)   
 set IfMPI      = "T"
 #-----------------------------------------------------------------------
 
 #-----------------------------------------------------------------------
-# Set input meteorological model (2 = WRF or 3 = FV3).
+# Set input meteorological model (2 = WRF or 3 = FV3). (Default = 2)
 #
 #set InMetModel = 2
 set InMetModel = 3
@@ -453,6 +455,7 @@ cat >> $WorkDir/namelist.${PROG} << !
  $Marker
 
  &USERDEFS
+  ifmpi      =  $IfMPI
   inmetmodel =  $InMetModel
   dx_in      =  $DX_IN
   dy_in      =  $DY_IN
@@ -535,7 +538,12 @@ if ( -f $OutDir/mcip_bdy.nc  ) rm -f $OutDir/mcip_bdy.nc
 # Execute MCIP.
 #-----------------------------------------------------------------------
 
+if ( $IfMPI == "T" ) then
+#aprun -n24 -N2 $ProgDir/${PROG}.exe
+mpirun.lsf $ProgDir/${PROG}.exe
+else
 $ProgDir/${PROG}.exe
+endif 
 
 if ( $status == 0 ) then
   rm fort.*

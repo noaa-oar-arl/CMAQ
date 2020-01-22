@@ -47,6 +47,7 @@ MODEL = mcip.exe
 
 #...Intel Fortran
 FC      = ifort
+
 #NETCDF = /usr/local/apps/netcdf-4.6.3/intel-18.0
 
 #...Serial netCDF I/O
@@ -60,13 +61,17 @@ NETCDF =  /opt/cray/netcdf-hdf5parallel/4.4.1.1/INTEL/150
 
 #IOAPI_ROOT = /gpfs/hps3/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.1.8/lib/
 IOAPI_ROOT = /gpfs/hps/nco/ops/nwprod/cmaq.v5.1.4/lib/
+MPI_ROOT = /opt/cray/mpt/7.2.0/gni/mpich2-intel/140
 
 ###FFLAGS  = -g -O0 -check all -C -traceback -FR -I$(NETCDF)/include  \
 ###          -I$(IOAPI_ROOT)/Linux2_x86_64ifort
 #FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/Linux2_x86_64ifort
 
+#...Serial
 #FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT)/include
-FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/include
+#FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/include 
+#...Parallel
+FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/include -I$(MPI_ROOT)/include
 
 LIBS    = -L$(IOAPI_ROOT) -laqm_ioapi \
           -L$(NETCDF)/lib -lnetcdf -lnetcdff \

@@ -261,6 +261,8 @@ MODULE mcipparm
 !-------------------------------------------------------------------------------
 ! Run Options.
 !-------------------------------------------------------------------------------
+  LOGICAL :: ifmpi           ! "TRUE" to use parallel netCDF I/O
+
   INTEGER :: inmetmodel      ! user input: 2 = WRF
                              !             3 = FV3
 
