@@ -16,7 +16,7 @@
 !  subject to their copyright restrictions.                                    !
 !------------------------------------------------------------------------------!
 
-SUBROUTINE setup_fv3 (cdfid, ctmlays)
+SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 
 !-------------------------------------------------------------------------------
 ! Name:     Set Up the FV3 Domain Attributes
@@ -173,8 +173,8 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 
   IMPLICIT NONE
 
-  INTEGER     ,       INTENT(IN)    :: cdfid
-  INTEGER                           :: cdfid2
+  INTEGER     ,       INTENT(IN)    :: cdfid, cdfid2
+!  INTEGER                           :: cdfid2
   INTEGER                           :: cdfidg
   REAL,               INTENT(OUT)   :: ctmlays     ( maxlays )
   REAL                              :: phalf_lays  ( maxlays )
@@ -210,7 +210,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   INTEGER                           :: nxm
   INTEGER                           :: nym
   CHARACTER(LEN=16),  PARAMETER     :: pname      = 'SETUP_FV3'
-  INTEGER                           :: rcode
+  INTEGER                           :: rcode, rcode2
   REAL                              :: rval
   REAL,  ALLOCATABLE                :: times      ( : )
   INTEGER                           :: varid
@@ -576,12 +576,13 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !    CALL graceful_stop (pname)
 !  ENDIF
 
-   rcode = nf90_get_att (cdfid, nf90_global, 'nsoil', met_ns)
-   IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'value for soil layers', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-   ENDIF
+!   rcode = nf90_get_att (cdfid, nf90_global, 'nsoil', met_ns)
+!   IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'value for soil layers', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!   ENDIF
 
+    met_ns=4  ! ytang
 
   ! Determine if NOAH Mosaic was run and created the correct output fields.
   ! Note that this code is temporarily modified later in this subroutine to
@@ -628,7 +629,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 
   ! Define number of land use categories.
 
-  rcode = nf90_inq_varid (cdfid, 'vtype', varid)
+  rcode = nf90_inq_varid (cdfid2, 'vtype', varid)
   IF ( rcode /= nf90_noerr ) THEN
     WRITE (*,f9400) TRIM(pname), 'Land Use Type',  &
                     TRIM(nf90_strerror(rcode))
@@ -638,7 +639,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
   nxm = met_nx - 1
   nym = met_ny - 1
   ALLOCATE ( dum2d_i ( nxm, nym ) )
-  rcode = nf90_get_var (cdfid, varid, dum2d_i)
+  rcode = nf90_get_var (cdfid2, varid, dum2d_i)
   nummetlu=MAXVAL(dum2d_i)
   DEALLOCATE (dum2d_i)
   ENDIF
@@ -1290,7 +1291,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 !-------------------------------------------------------------------------------
   !Leave check in FV3 MCIP version in case fractional land use becomes available,
   ! and it does not stop model if not available
-  rcode = nf90_inq_varid (cdfid, 'LANDUSEF', varid)
+  rcode2 = nf90_inq_varid (cdfid2, 'LANDUSEF', varid)
   IF ( rcode == nf90_noerr ) THEN
     iflufrc    = .TRUE.   ! fractional land use is available
     ifluwrfout = .TRUE.   ! fractional land use is located in FV3 history file
@@ -1351,14 +1352,14 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 ! and set the flags appropriately.
 !-------------------------------------------------------------------------------
 
-  rcode = nf90_inq_varid (cdfid, 'tmp2m', varid)
+  rcode = nf90_inq_varid (cdfid2, 'tmp2m', varid)
   IF ( rcode == nf90_noerr ) THEN
     ift2m = .TRUE.  ! 2-m temperature is in the file
   ELSE
     ift2m = .FALSE. ! 2-m temperature is not in the file
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'spfh2m', varid)
+  rcode = nf90_inq_varid (cdfid2, 'spfh2m', varid)
   IF ( rcode == nf90_noerr ) THEN
     IF ( met_pbl == 1 ) THEN  ! YSU PBL scheme
       ifq2m = .FALSE. ! do not use Q2 from YSU PBL; occasional winter negatives
@@ -1369,14 +1370,14 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     ifq2m = .FALSE. ! 2-m mixing ratio is not in the file
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'ugrd10m', varid)
+  rcode = nf90_inq_varid (cdfid2, 'ugrd10m', varid)
   IF ( rcode == nf90_noerr ) THEN
     ifu10m = .TRUE.  ! 10-m u-component wind is in the file
   ELSE
     ifu10m = .FALSE. ! 10-m u-component wind is not in the file
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'vgrd10m', varid)
+  rcode = nf90_inq_varid (cdfid2, 'vgrd10m', varid)
   IF ( rcode == nf90_noerr ) THEN
     ifv10m = .TRUE.  ! 10-m v-component wind is in the file
   ELSE
@@ -1407,14 +1408,14 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
 ! the flags appropriately.
 !-------------------------------------------------------------------------------
 
-  rcode = nf90_inq_varid (cdfid, 'LAI', varid)  !not in FV3GFSv16
+  rcode = nf90_inq_varid (cdfid2, 'LAI', varid)  !not in FV3GFSv16
   IF ( rcode == nf90_noerr ) THEN
     iflai = .TRUE.  ! leaf area index is in the file
   ELSE
     iflai = .FALSE. ! leaf area index is not in the file
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'RMOL', varid) !not in FV3GFSv16
+  rcode = nf90_inq_varid (cdfid2, 'RMOL', varid) !not in FV3GFSv16
   IF ( rcode == nf90_noerr ) THEN
     ifmol = .TRUE.  ! (inverse) Monin-Obukhov length is in the file
   ELSE
@@ -1440,14 +1441,14 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     ifpxwrf41 = .FALSE.
 !  ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'acond', varid) 
+  rcode = nf90_inq_varid (cdfid2, 'acond', varid) 
   IF ( rcode == nf90_noerr ) THEN
     ifra = .TRUE.  ! aerodynamic resistance is in the file
   ELSE
     ifra = .FALSE. ! aerodynamic resistance is not in the file
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'RS', varid)  !not in FV3GFSv16??
+  rcode = nf90_inq_varid (cdfid2, 'RS', varid)  !not in FV3GFSv16??
   IF ( rcode == nf90_noerr ) THEN
     ifrs = .TRUE.  ! stomatal resistance is in the file
   ELSE
@@ -1460,35 +1461,35 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     ifresist = .FALSE.
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'veg', varid) 
+  rcode = nf90_inq_varid (cdfid2, 'veg', varid) 
   IF ( rcode == nf90_noerr ) THEN
     ifveg = .TRUE.  ! vegetation fraction is in the file
   ELSE
     ifveg = .FALSE. ! vegetation fraction is not in the file
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'cnwat', varid) 
+  rcode = nf90_inq_varid (cdfid2, 'cnwat', varid) 
   IF ( rcode == nf90_noerr ) THEN
     ifwr = .TRUE.  ! canopy wetness is in the file
   ELSE
     ifwr = .FALSE. ! canopy wetness is not in the file
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'soill1', varid) 
+  rcode = nf90_inq_varid (cdfid2, 'soill1', varid) 
   IF ( rcode == nf90_noerr ) THEN
     ifsmois = .TRUE.  ! soil moisture is in the file
   ELSE
     ifsmois = .FALSE. ! soil moisture is not in the file
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'soilt1', varid)
+  rcode = nf90_inq_varid (cdfid2, 'soilt1', varid)
   IF ( rcode == nf90_noerr ) THEN
     iftslb = .TRUE.  ! soil temperature is in the file
   ELSE
     iftslb = .FALSE. ! soil temperature is not in the file
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'sotyp', varid)
+  rcode = nf90_inq_varid (cdfid2, 'sotyp', varid)
   IF ( rcode == nf90_noerr ) THEN
     ifisltyp = .TRUE.  ! soil type is in the file
   ELSE
@@ -1501,7 +1502,7 @@ SUBROUTINE setup_fv3 (cdfid, ctmlays)
     ifsoil = .FALSE.
   ENDIF
 
-  rcode = nf90_inq_varid (cdfid, 'sfcr', varid)
+  rcode = nf90_inq_varid (cdfid2, 'sfcr', varid)
   IF ( rcode == nf90_noerr ) THEN
     ifznt = .TRUE.  ! roughness length is in the file
   ELSE

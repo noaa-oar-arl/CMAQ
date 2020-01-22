@@ -65,7 +65,7 @@ MODULE files
   INTEGER,            PARAMETER     :: max_mm     = 367
 
   CHARACTER(LEN=256)                :: file_gd
-  CHARACTER(LEN=256)                :: file_mm    ( max_mm )
+  CHARACTER(LEN=256)                :: file_mm ( max_mm ), file_sfc ( max_mm )
   CHARACTER(LEN=256), PARAMETER     :: file_nml   = 'namelist.mcip'
   CHARACTER(LEN=256)                :: file_geo
 

@@ -57,12 +57,12 @@ SUBROUTINE setup (ctmlays)
 
   IMPLICIT NONE
 
-  INTEGER                           :: cdfid
+  INTEGER                           :: cdfid, cdfid2
   REAL,               INTENT(INOUT) :: ctmlays   ( maxlays )
   CHARACTER(LEN=19)                 :: gridtype
   INTEGER                           :: istat
   CHARACTER(LEN=16),  PARAMETER     :: pname     = 'SETUP'
-  INTEGER                           :: rcode
+  INTEGER                           :: rcode, rcode2
   CHARACTER(LEN=80)                 :: wrfversion
 
 !-------------------------------------------------------------------------------
@@ -108,7 +108,8 @@ SUBROUTINE setup (ctmlays)
 !-------------------------------------------------------------------------------
   met_model=inmetmodel
   rcode = nf90_open (file_mm(1), nf90_nowrite, cdfid)
-  IF ( rcode == nf90_noerr ) THEN  ! successfully opened NetCDF file; assume WRF or FV3
+  rcode2 = nf90_open (file_sfc(1), nf90_nowrite, cdfid2)
+  IF ( rcode == nf90_noerr .and. rcode2 == nf90_noerr ) THEN  ! successfully opened NetCDF file; assume WRF or FV3
 
     !---------------------------------------------------------------------------
     ! If WRF, determine whether or not the Advanced Research WRF, ARW, formerly
@@ -166,7 +167,7 @@ SUBROUTINE setup (ctmlays)
     ENDIF
 
     IF ( ( fv3_version == "FV3GFS" ) .AND. ( gridtype(1:8) == "gaussian" ) ) THEN
-      CALL setup_fv3 (cdfid, ctmlays)
+      CALL setup_fv3 (cdfid, cdfid2, ctmlays)
     ELSE
       WRITE (*,f9200) TRIM(pname), fv3_version, gridtype
       CALL graceful_stop (pname)
