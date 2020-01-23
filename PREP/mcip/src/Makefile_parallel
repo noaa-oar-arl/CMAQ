@@ -61,6 +61,7 @@ NETCDF =  /opt/cray/netcdf-hdf5parallel/4.4.1.1/INTEL/150
 
 #IOAPI_ROOT = /gpfs/hps3/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.1.8/lib/
 IOAPI_ROOT = /gpfs/hps/nco/ops/nwprod/cmaq.v5.1.4/lib/
+
 MPI_ROOT = /opt/cray/mpt/7.2.0/gni/mpich2-intel/140
 
 ###FFLAGS  = -g -O0 -check all -C -traceback -FR -I$(NETCDF)/include  \

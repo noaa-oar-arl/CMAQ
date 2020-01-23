@@ -541,8 +541,8 @@ if ( -f $OutDir/mcip_bdy.nc  ) rm -f $OutDir/mcip_bdy.nc
 #-----------------------------------------------------------------------
 
 if ( $IfMPI == "T" ) then
-#aprun -n24 -N2 $ProgDir/${PROG}.exe
-mpirun.lsf $ProgDir/${PROG}.exe
+$ProgDir/${PROG}.exe
+#mpirun.lsf $ProgDir/${PROG}.exe
 else
 $ProgDir/${PROG}.exe
 endif 

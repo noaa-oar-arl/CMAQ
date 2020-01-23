@@ -791,14 +791,6 @@ SUBROUTINE rdfv3 (mcip_now)
 !-------------------------------------------------------------------------------
 ! Find time index (IT) for MCIP_NOW in WRF output file.
 !-------------------------------------------------------------------------------
-   print*, 'test ifmpi part...', ifmpi
-  IF ( .NOT. ifmpi ) THEN
-    print*, 'test ifmpi=false'
-  ELSE
-    print*, 'test ifmpi=true'
-  ENDIF
-
-
   fl = file_mm(mmcount)
   rcode = nf90_open (fl, nf90_nowrite, cdfid)
   rcode2 = nf90_open (file_sfc(mmcount), nf90_nowrite, cdfid2)
@@ -2696,9 +2688,13 @@ SUBROUTINE rdfv3 (mcip_now)
 ! DEALLOCATE ( dum3d_v )  ! commented out to avoid memory fragmentation
 ! DEALLOCATE ( dum3d_w )  ! commented out to avoid memory fragmentation
 
+!-------------------------------------------------------------------------------
+! MPI Stuff
+!-------------------------------------------------------------------------------
   IF ( ifmpi ) THEN
-! MPI library must be shut down.
+!   MPI library must be shut down.
    CALL MPI_Finalize(ierr) 
   ENDIF
+!-------------------------------------------------------------------------------
 
 END SUBROUTINE rdfv3
