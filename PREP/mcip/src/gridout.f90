@@ -26,6 +26,7 @@ SUBROUTINE gridout (sdate, stime)
 !-------------------------------------------------------------------------------
 
   USE mcipparm, ONLY: ioform
+  USE metinfo, ONLY: met_model
 
   IMPLICIT NONE
 
@@ -47,7 +48,7 @@ SUBROUTINE gridout (sdate, stime)
 ! Write GRIDDESC file.
 !-------------------------------------------------------------------------------
 
-  CALL wrgdesc
+  if(met_model.ne.3) CALL wrgdesc
 
 !-------------------------------------------------------------------------------
 ! Print sample output to log file.

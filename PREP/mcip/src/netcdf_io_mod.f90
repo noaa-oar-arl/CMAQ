@@ -141,10 +141,14 @@ SUBROUTINE get_var_2d_real_cdf (cdfid, var, dum2d, it, rcode)
   ny = SIZE(dum2d,2)
 
   rcode = nf90_inq_varid (cdfid, var, id_data)
-  IF ( rcode /= nf90_noerr ) RETURN
-
+  IF ( rcode /= nf90_noerr ) then
+   print*,'can not find variable ',trim(var)
+   RETURN
+  endif
   rcode = nf90_get_var (cdfid, id_data, dum2d, start=(/1,1,it/),  &
                         count=(/nx,ny,1/))
+  IF ( rcode /= nf90_noerr ) print*,'read error for ',trim(var),&
+   ' id_data,it,nx,ny=',id_data,it,nx,ny
 
 END SUBROUTINE get_var_2d_real_cdf
 

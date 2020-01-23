@@ -105,7 +105,7 @@ SUBROUTINE readnml (ctmlays)
   INTEGER                           :: nrowsin
   CHARACTER(LEN=16),  PARAMETER     :: pname      = 'READNML'
 
-  NAMELIST /filenames/   file_gd, file_mm, file_geo, ioform
+  NAMELIST /filenames/   file_gd, file_mm, file_sfc, file_geo, ioform
 
   NAMELIST /userdefs/    ifmpi, inmetmodel, dx_in, dy_in, met_cen_lat_in, met_cen_lon_in, &
                          lpv, lwout, luvbout,     &
@@ -214,7 +214,7 @@ SUBROUTINE readnml (ctmlays)
   file_gd     = "GRIDDESC"
   file_mm(:)  = " "
   file_geo    = " "
-
+  file_sfc(:)  = " "
 !-------------------------------------------------------------------------------
 ! Set default value for user-selected model (2 = WRF, 3 = FV3).
   ifmpi = .TRUE.
@@ -356,6 +356,7 @@ SUBROUTINE readnml (ctmlays)
 
   DO n = 1, SIZE(file_mm)
     file_mm(n) = TRIM( ADJUSTL( file_mm(n) ) )
+    file_sfc(n)= TRIM( ADJUSTL( file_sfc(n) ) )
   ENDDO
 
   file_geo = TRIM( ADJUSTL(file_geo) )

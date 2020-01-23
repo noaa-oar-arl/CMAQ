@@ -192,7 +192,7 @@ SUBROUTINE rdfv3 (mcip_now)
 
   IMPLICIT NONE
 
-  INTEGER, SAVE                     :: cdfid
+  INTEGER, SAVE                     :: cdfid, cdfid2
   INTEGER                           :: cdfidg
   INTEGER                           :: dimids     ( nf90_max_var_dims )
   REAL,    SAVE,      ALLOCATABLE   :: dum2d      ( : , : )
@@ -254,7 +254,7 @@ SUBROUTINE rdfv3 (mcip_now)
   INTEGER                           :: nym
   INTEGER                           :: nzp
   CHARACTER(LEN=16),  PARAMETER     :: pname      = 'RDFV3'
-  INTEGER                           :: rcode
+  INTEGER                           :: rcode, rcode2
   REAL,               PARAMETER     :: rdovcp     = 2.0 / 7.0
   REAL,               PARAMETER     :: smallnum   = 1.0e-7
   CHARACTER(LEN=19)                 :: startseas
@@ -652,7 +652,9 @@ SUBROUTINE rdfv3 (mcip_now)
 
     fl = file_mm(m1count)
     rcode = nf90_open (fl, nf90_nowrite, cdfid)
-    IF ( rcode /= nf90_noerr ) THEN
+    rcode2=nf90_open (file_sfc(m1count), nf90_nowrite, cdfid2)
+    
+    IF ( (rcode /= nf90_noerr) .or. (rcode2 /= nf90_noerr)) THEN
       WRITE (*,f9900) TRIM(pname)
       CALL graceful_stop (pname)
     ENDIF
@@ -730,7 +732,7 @@ SUBROUTINE rdfv3 (mcip_now)
       ENDIF
     ENDDO findprev
 
-    CALL get_var_2d_real_cdf (cdfid, 'cprat_ave', dum2d, itm1, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'cprat_ave', dum2d, itm1, rcode)
     IF ( rcode == nf90_noerr ) THEN
       rcold(1:nxm,1:nym) = dum2d(:,:)
       rcold(met_nx,:) = rcold(nxm,:)
@@ -738,6 +740,7 @@ SUBROUTINE rdfv3 (mcip_now)
       WHERE ( rcold < smallnum )
         rcold = 0.0
       ENDWHERE
+      WRITE (*,f6000) 'cprate_ave    ', rcold(lprt_metx, lprt_mety), 'kg/m**2/s'
     ELSE
       WRITE (*,f9400) TRIM(pname), 'cprat_ave', TRIM(nf90_strerror(rcode))
       CALL graceful_stop (pname)
@@ -745,7 +748,7 @@ SUBROUTINE rdfv3 (mcip_now)
     print*, rcode
 
 
-    CALL get_var_2d_real_cdf (cdfid, 'prate_ave', dum2d, itm1, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'prate_ave', dum2d, itm1, rcode)
     IF ( rcode == nf90_noerr ) THEN
       rnold(1:nxm,1:nym) = dum2d(:,:)
       rnold(met_nx,:) = rnold(nxm,:)
@@ -753,6 +756,7 @@ SUBROUTINE rdfv3 (mcip_now)
       WHERE ( rnold < smallnum )
         rnold = 0.0
       ENDWHERE
+      WRITE (*,f6000) 'prate_ave   ', rnold(lprt_metx, lprt_mety), 'kg/m**2/s'
     ELSE
       WRITE (*,f9400) TRIM(pname), 'prate_ave', TRIM(nf90_strerror(rcode))
       CALL graceful_stop (pname)
@@ -797,7 +801,8 @@ SUBROUTINE rdfv3 (mcip_now)
 
   fl = file_mm(mmcount)
   rcode = nf90_open (fl, nf90_nowrite, cdfid)
-  IF ( rcode /= nf90_noerr ) THEN
+  rcode2 = nf90_open (file_sfc(mmcount), nf90_nowrite, cdfid2)
+  IF ( (rcode /= nf90_noerr).or.(rcode2/= nf90_noerr) ) THEN
     WRITE (*,f9900) TRIM(pname)
     CALL graceful_stop (pname)
   ENDIF
@@ -1135,7 +1140,7 @@ SUBROUTINE rdfv3 (mcip_now)
     ENDIF
   ENDIF
 
-!  CALL get_var_2d_real_cdf (cdfid, 'MU', dum2d, it, rcode)
+!  CALL get_var_2d_real_cdf (cdfid2, 'MU', dum2d, it, rcode)
 !  IF ( rcode == nf90_noerr ) THEN
 !    mu(1:nxm,1:nym) = dum2d(:,:)
 !    mu(met_nx,:) = mu(nxm,:)
@@ -1146,7 +1151,7 @@ SUBROUTINE rdfv3 (mcip_now)
 !    CALL graceful_stop (pname)
 !  ENDIF
 !
-!  CALL get_var_2d_real_cdf (cdfid, 'MUB', dum2d, it, rcode)
+!  CALL get_var_2d_real_cdf (cdfid2, 'MUB', dum2d, it, rcode)
 !  IF ( rcode == nf90_noerr ) THEN
 !    mub(1:nxm,1:nym) = dum2d(:,:)
 !    mub(met_nx,:) = mub(nxm,:)
@@ -1158,7 +1163,14 @@ SUBROUTINE rdfv3 (mcip_now)
 !  ENDIF
 
   IF ( ift2m ) THEN
-    CALL get_var_2d_real_cdf (cdfid, 'tmp2m', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'tmp2m', dum2d, it, rcode)
+!    rcode = nf90_inq_varid (cdfid2,'tmp2m', id_data)
+!    IF ( rcode.ne.nf90_noerr ) then
+!     print*,'can not find tmp2m in file ',cdfid2
+!     CALL graceful_stop (pname)
+!    endif
+!    rcode = nf90_get_var (cdfid2, id_data, dum2d, start=(/1,1,1/),  &
+!                        count=(/nxm,nym,1/)) 
     IF ( rcode == nf90_noerr ) THEN
       t2(1:nxm,1:nym) = dum2d(:,:)
       t2(met_nx,:) = t2(nxm,:)
@@ -1171,7 +1183,7 @@ SUBROUTINE rdfv3 (mcip_now)
   ENDIF
 
   IF ( ifq2m ) THEN
-    CALL get_var_2d_real_cdf (cdfid, 'spfh2m', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'spfh2m', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       q2(1:nxm,1:nym) = dum2d(:,:)
       q2(met_nx,:) = t2(nxm,:)
@@ -1184,7 +1196,7 @@ SUBROUTINE rdfv3 (mcip_now)
   ENDIF
 
   IF ( ifw10m ) THEN
-    CALL get_var_2d_real_cdf (cdfid, 'ugrd10m', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'ugrd10m', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       u10(1:nxm,1:nym) = dum2d(:,:)
       u10(met_nx,:) = u10(nxm,:)
@@ -1194,7 +1206,7 @@ SUBROUTINE rdfv3 (mcip_now)
       WRITE (*,f9400) TRIM(pname), 'ugrd10m', TRIM(nf90_strerror(rcode))
       CALL graceful_stop (pname)
     ENDIF
-    CALL get_var_2d_real_cdf (cdfid, 'vgrd10m', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'vgrd10m', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       v10(1:nxm,1:nym) = dum2d(:,:)
       v10(met_nx,:) = v10(nxm,:)
@@ -1206,7 +1218,7 @@ SUBROUTINE rdfv3 (mcip_now)
     ENDIF
   ENDIF
 
-  CALL get_var_2d_real_cdf (cdfid, 'pressfc', dum2d, it, rcode)
+  CALL get_var_2d_real_cdf (cdfid2, 'pressfc', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
     psa(1:nxm,1:nym) = dum2d(:,:)
     psa(met_nx,:) = psa(nxm,:)
@@ -1218,7 +1230,7 @@ SUBROUTINE rdfv3 (mcip_now)
   ENDIF
 
 !FV3 does not contain map factors
-!  CALL get_var_2d_real_cdf (cdfid, 'MAPFAC_M', dum2d, it, rcode)
+!  CALL get_var_2d_real_cdf (cdfid2, 'MAPFAC_M', dum2d, it, rcode)
 !  IF ( rcode == nf90_noerr ) THEN
 !    mapcrs(1:nxm,1:nym) = dum2d(:,:)
 !    mapcrs(met_nx,:) = mapcrs(nxm,:)
@@ -1229,7 +1241,7 @@ SUBROUTINE rdfv3 (mcip_now)
 !    CALL graceful_stop (pname)
 !  ENDIF
 !
-!  CALL get_var_2d_real_cdf (cdfid, 'MAPFAC_U', dum2d_u, it, rcode)
+!  CALL get_var_2d_real_cdf (cdfid2, 'MAPFAC_U', dum2d_u, it, rcode)
 !  IF ( rcode == nf90_noerr ) THEN
 !    mapu(:,1:nym)  = dum2d_u(:,:)
 !    mapu(:,met_ny) = mapu(:,nym)
@@ -1238,7 +1250,7 @@ SUBROUTINE rdfv3 (mcip_now)
 !    gotfaces = .FALSE.
 !  ENDIF
 !
-!  CALL get_var_2d_real_cdf (cdfid, 'MAPFAC_V', dum2d_v, it, rcode)
+!  CALL get_var_2d_real_cdf (cdfid2, 'MAPFAC_V', dum2d_v, it, rcode)
 !  IF ( rcode == nf90_noerr ) THEN
 !    mapv(1:nxm,:)  = dum2d_v(:,:)
 !    mapv(met_nx,:) = mapv(nxm,:)
@@ -1250,7 +1262,7 @@ SUBROUTINE rdfv3 (mcip_now)
 !  Calculate mapfactor using latitude below for Gaussian
 
 !Assume at surface the FV3 geopotential height (gpm) = geometric height (m)
-  CALL get_var_2d_real_cdf (cdfid, 'orog', dum2d, it, rcode)
+  CALL get_var_2d_real_cdf (cdfid2, 'orog', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
     terrain(1:nxm,1:nym) = dum2d(:,:)
     terrain(met_nx,:) = terrain(nxm,:)
@@ -1264,7 +1276,7 @@ SUBROUTINE rdfv3 (mcip_now)
    !  FV3 only contains incremental precip
 !  IF ( met_pcp_incr == 0 ) THEN  ! compute incremental precip in MCIP
 !
-!    CALL get_var_2d_real_cdf (cdfid, 'RAINC', dum2d, it, rcode)
+!    CALL get_var_2d_real_cdf (cdfid2, 'RAINC', dum2d, it, rcode)
 !    IF ( rcode == nf90_noerr ) THEN
 !      WHERE ( dum2d < smallnum )
 !        dum2d = 0.0
@@ -1279,7 +1291,7 @@ SUBROUTINE rdfv3 (mcip_now)
 !      CALL graceful_stop (pname)
 !    ENDIF
 !
-!    CALL get_var_2d_real_cdf (cdfid, 'RAINNC', dum2d, it, rcode)
+!    CALL get_var_2d_real_cdf (cdfid2, 'RAINNC', dum2d, it, rcode)
 !    IF ( rcode == nf90_noerr ) THEN
 !      WHERE ( dum2d < smallnum )
 !        dum2d = 0.0
@@ -1337,7 +1349,7 @@ SUBROUTINE rdfv3 (mcip_now)
 !  
 !  ELSE  ! incremental ave precip taken directly from FV3 (avoid IF block)
 
-    CALL get_var_2d_real_cdf (cdfid, 'cprat_ave', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'cprat_ave', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       WHERE ( dum2d < smallnum )
         dum2d = 0.0
@@ -1352,7 +1364,7 @@ SUBROUTINE rdfv3 (mcip_now)
       CALL graceful_stop (pname)
     ENDIF
 
-    CALL get_var_2d_real_cdf (cdfid, 'prate_ave', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'prate_ave', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       WHERE ( dum2d < smallnum )
         dum2d = 0.0
@@ -1369,7 +1381,7 @@ SUBROUTINE rdfv3 (mcip_now)
 
 !  ENDIF  ! incremental precip
 
-  CALL get_var_2d_real_cdf (cdfid, 'dswrf', dum2d, it, rcode)
+  CALL get_var_2d_real_cdf (cdfid2, 'dswrf', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
     rgrnd(1:nxm,1:nym) = dum2d(:,:)
     rgrnd(met_nx,:) = rgrnd(nxm,:)
@@ -1380,7 +1392,7 @@ SUBROUTINE rdfv3 (mcip_now)
     CALL graceful_stop (pname)
   ENDIF
 
-  CALL get_var_2d_real_cdf (cdfid, 'dlwrf', dum2d, it, rcode)
+  CALL get_var_2d_real_cdf (cdfid2, 'dlwrf', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
     glw(1:nxm,1:nym) = dum2d(:,:)
     glw(met_nx,:) = glw(nxm,:)
@@ -1391,7 +1403,7 @@ SUBROUTINE rdfv3 (mcip_now)
     CALL graceful_stop (pname)
   ENDIF
 
-  CALL get_var_2d_real_cdf (cdfid, 'lat', dum2d, it, rcode)
+  CALL get_var_2d_real_cdf (cdfid2, 'lat', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
     latcrs(1:nxm,1:nym) = dum2d(:,:)
     latcrs(met_nx,:) = latcrs(nxm,:)
@@ -1406,7 +1418,7 @@ SUBROUTINE rdfv3 (mcip_now)
    !FV3 does not contain the lat/lon of cell faces
    gotfaces = .FALSE.
    
-!  CALL get_var_2d_real_cdf (cdfid, 'XLAT_U', dum2d_u, it, rcode)
+!  CALL get_var_2d_real_cdf (cdfid2, 'XLAT_U', dum2d_u, it, rcode)
 !  IF ( rcode == nf90_noerr ) THEN
 !    latu(:,1:nym)  = dum2d_u(:,:)
 !    latu(:,met_ny) = latu(:,nym)
@@ -1415,7 +1427,7 @@ SUBROUTINE rdfv3 (mcip_now)
 !    gotfaces = .FALSE.
 !  ENDIF
 
-!  CALL get_var_2d_real_cdf (cdfid, 'XLAT_V', dum2d_v, it, rcode)
+!  CALL get_var_2d_real_cdf (cdfid2, 'XLAT_V', dum2d_v, it, rcode)
 !  IF ( rcode == nf90_noerr ) THEN
 !    latv(1:nxm,:)  = dum2d_v(:,:)
 !    latv(met_nx,:) = latv(nxm,:)
@@ -1424,7 +1436,7 @@ SUBROUTINE rdfv3 (mcip_now)
 !    gotfaces = .FALSE.
 !  ENDIF
 
-  CALL get_var_2d_real_cdf (cdfid, 'lon', dum2d, it, rcode)
+  CALL get_var_2d_real_cdf (cdfid2, 'lon', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
     loncrs(1:nxm,1:nym) = dum2d(:,:)
     loncrs(met_nx,:) = loncrs(nxm,:)
@@ -1436,7 +1448,7 @@ SUBROUTINE rdfv3 (mcip_now)
   ENDIF
     print*, 'min lon = ', MINVAL(loncrs)
     print*, 'max lon = ', MAXVAL(loncrs)
-!  CALL get_var_2d_real_cdf (cdfid, 'XLONG_U', dum2d_u, it, rcode)
+!  CALL get_var_2d_real_cdf (cdfid2, 'XLONG_U', dum2d_u, it, rcode)
 !  IF ( rcode == nf90_noerr ) THEN
 !    lonu(:,1:nym)  = dum2d_u(:,:)
 !    lonu(:,met_ny) = lonu(:,nym)
@@ -1445,7 +1457,7 @@ SUBROUTINE rdfv3 (mcip_now)
 !    gotfaces = .FALSE.
 !  ENDIF
 
-!  CALL get_var_2d_real_cdf (cdfid, 'XLONG_V', dum2d_v, it, rcode)
+!  CALL get_var_2d_real_cdf (cdfid2, 'XLONG_V', dum2d_v, it, rcode)
 !  IF ( rcode == nf90_noerr ) THEN
 !    lonv(1:nxm,:)  = dum2d_v(:,:)
 !    lonv(met_nx,:) = lonv(nxm,:)
@@ -1454,7 +1466,7 @@ SUBROUTINE rdfv3 (mcip_now)
 !    gotfaces = .FALSE.
 !  ENDIF
 
-  CALL get_var_2d_real_cdf (cdfid, 'vtype', dum2d, it, rcode)
+  CALL get_var_2d_real_cdf (cdfid2, 'vtype', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
     IF ( MAXVAL(dum2d) > nummetlu ) THEN
       WRITE (*,f9500) TRIM(pname), met_lu_src, MAXVAL(dum2d)
@@ -1469,7 +1481,7 @@ SUBROUTINE rdfv3 (mcip_now)
     CALL graceful_stop (pname)
   ENDIF
 
-  CALL get_var_2d_real_cdf (cdfid, 'land', dum2d, it, rcode)
+  CALL get_var_2d_real_cdf (cdfid2, 'land', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
     landmask(1:nxm,1:nym) = dum2d(:,:)
     landmask(met_nx,:) = landmask(nxm,:)
@@ -1480,7 +1492,7 @@ SUBROUTINE rdfv3 (mcip_now)
     CALL graceful_stop (pname)
   ENDIF
 
-  CALL get_var_2d_real_cdf (cdfid, 'shtfl', dum2d, it, rcode)
+  CALL get_var_2d_real_cdf (cdfid2, 'shtfl', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
     hfx(1:nxm,1:nym) = dum2d(:,:)
     hfx(met_nx,:) = hfx(nxm,:)
@@ -1491,7 +1503,7 @@ SUBROUTINE rdfv3 (mcip_now)
     CALL graceful_stop (pname)
   ENDIF
 
-  CALL get_var_2d_real_cdf (cdfid, 'lhtfl', dum2d, it, rcode)
+  CALL get_var_2d_real_cdf (cdfid2, 'lhtfl', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
     lh(1:nxm,1:nym) = dum2d(:,:)
     lh(met_nx,:) = lh(nxm,:)
@@ -1502,7 +1514,7 @@ SUBROUTINE rdfv3 (mcip_now)
     CALL graceful_stop (pname)
   ENDIF
 
-  CALL get_var_2d_real_cdf (cdfid, 'fricv', dum2d, it, rcode)
+  CALL get_var_2d_real_cdf (cdfid2, 'fricv', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
     ust(1:nxm,1:nym) = dum2d(:,:)
     ust(met_nx,:) = ust(nxm,:)
@@ -1514,7 +1526,7 @@ SUBROUTINE rdfv3 (mcip_now)
   ENDIF
   !M-O length not in FV3GFSv16
   IF ( ifmol ) THEN
-    CALL get_var_2d_real_cdf (cdfid, 'RMOL', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'RMOL', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       mol(1:nxm,1:nym) = 1.0 / dum2d(:,:)
       mol(met_nx,:) = mol(nxm,:)
@@ -1524,7 +1536,7 @@ SUBROUTINE rdfv3 (mcip_now)
       CALL graceful_stop (pname)
     ENDIF
     IF ( met_urban_phys >= 1 ) THEN  ! UCM used; get MOL above urban canopy
-      CALL get_var_2d_real_cdf (cdfid, 'XXXC_URB', dum2d, it, rcode)
+      CALL get_var_2d_real_cdf (cdfid2, 'XXXC_URB', dum2d, it, rcode)
       IF ( rcode == nf90_noerr ) THEN  ! blend urban M-O length with RMOL
         IF ( ( met_lu_src(1:4) == 'USGS' ) .AND.  &
              ( MAXVAL(landuse)  >  24    ) ) THEN  ! 33-category USGS/NLCD
@@ -1556,7 +1568,7 @@ SUBROUTINE rdfv3 (mcip_now)
   ENDIF
 ! No P-X physics in FV3. :)
   IF ( ifmolpx ) THEN
-    CALL get_var_2d_real_cdf (cdfid, 'QFX', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'QFX', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       qfx(1:nxm,1:nym) = dum2d(:,:)
       qfx(met_nx,:) = qfx(nxm,:)
@@ -1568,7 +1580,7 @@ SUBROUTINE rdfv3 (mcip_now)
     ENDIF
   ENDIF
 
-  CALL get_var_2d_real_cdf (cdfid, 'hpbl', dum2d, it, rcode)
+  CALL get_var_2d_real_cdf (cdfid2, 'hpbl', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
     zpbl(1:nxm,1:nym) = dum2d(:,:)
     zpbl(met_nx,:) = zpbl(nxm,:)
@@ -1581,7 +1593,7 @@ SUBROUTINE rdfv3 (mcip_now)
 ! No stomatal resistance in FV3 yet.  :(
   IF ( ifresist ) THEN
 
-    CALL get_var_2d_real_cdf (cdfid, 'RA', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'RA', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       ra(1:nxm,1:nym) = dum2d(:,:)
       ra(met_nx,:) = ra(nxm,:)
@@ -1595,7 +1607,7 @@ SUBROUTINE rdfv3 (mcip_now)
       CALL graceful_stop (pname)
     ENDIF
 
-    CALL get_var_2d_real_cdf (cdfid, 'RS', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'RS', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       rstom(1:nxm,1:nym) = dum2d(:,:)
       rstom(met_nx,:) = rstom(nxm,:)
@@ -1613,7 +1625,7 @@ SUBROUTINE rdfv3 (mcip_now)
 ! No LAI in FV3 yet.  :(
   IF ( iflai ) THEN
     IF ( ifpxwrf41 ) THEN
-      CALL get_var_2d_real_cdf (cdfid, 'LAI_PX', dum2d, it, rcode)
+      CALL get_var_2d_real_cdf (cdfid2, 'LAI_PX', dum2d, it, rcode)
       IF ( rcode == nf90_noerr ) THEN
         lai_px(1:nxm,1:nym) = dum2d(:,:)
         lai_px(met_nx,:) = lai_px(nxm,:)
@@ -1624,7 +1636,7 @@ SUBROUTINE rdfv3 (mcip_now)
         CALL graceful_stop (pname)
       ENDIF
     ELSE
-      CALL get_var_2d_real_cdf (cdfid, 'LAI', dum2d, it, rcode)
+      CALL get_var_2d_real_cdf (cdfid2, 'LAI', dum2d, it, rcode)
       IF ( rcode == nf90_noerr ) THEN
         lai(1:nxm,1:nym) = dum2d(:,:)
         lai(met_nx,:) = lai(nxm,:)
@@ -1643,7 +1655,7 @@ SUBROUTINE rdfv3 (mcip_now)
   ENDIF
 
   IF ( ifwr ) THEN
-    CALL get_var_2d_real_cdf (cdfid, 'cnwat', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'cnwat', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       wr(1:nxm,1:nym) = dum2d(:,:)
       wr(met_nx,:) = wr(nxm,:)
@@ -1657,14 +1669,14 @@ SUBROUTINE rdfv3 (mcip_now)
   IF ( ifveg ) THEN
 ! No P-X physics in FV3. :)
 !    IF ( met_soil_lsm == 7 ) THEN  ! Pleim-Xiu land-surface model
-!      CALL get_var_2d_real_cdf (cdfid, 'VEGF_PX', dum2d, it, rcode)
+!      CALL get_var_2d_real_cdf (cdfid2, 'VEGF_PX', dum2d, it, rcode)
 !      IF ( rcode == nf90_noerr ) THEN
 !        veg(1:nxm,1:nym) = dum2d(:,:)
 !        veg(met_nx,:) = veg(nxm,:)
 !        veg(:,met_ny) = veg(:,nym)
 !        WRITE (*,f6000) 'VEGF_PX  ', veg(lprt_metx, lprt_mety), 'm2 m-2'
 !      ELSE
-!        CALL get_var_2d_real_cdf (cdfid, 'VEGFRA', dum2d, it, rcode)
+!        CALL get_var_2d_real_cdf (cdfid2, 'VEGFRA', dum2d, it, rcode)
 !        IF ( rcode == nf90_noerr ) THEN
 !          veg(1:nxm,1:nym) = dum2d(:,:) * 0.01
 !          veg(met_nx,:) = veg(nxm,:)
@@ -1676,7 +1688,7 @@ SUBROUTINE rdfv3 (mcip_now)
 !        ENDIF
 !      ENDIF
 !    ELSE
-      CALL get_var_2d_real_cdf (cdfid, 'veg', dum2d, it, rcode)
+      CALL get_var_2d_real_cdf (cdfid2, 'veg', dum2d, it, rcode)
       IF ( rcode == nf90_noerr ) THEN
         veg(1:nxm,1:nym) = dum2d(:,:) * 0.01
         veg(met_nx,:) = veg(nxm,:)
@@ -1691,9 +1703,9 @@ SUBROUTINE rdfv3 (mcip_now)
 
   IF ( ifsoil ) THEN
 
-    CALL get_var_2d_int_cdf (cdfid, 'sotyp', dum2d_i, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'sotyp', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
-      isltyp(1:nxm,1:nym) = dum2d_i(:,:)
+      isltyp(1:nxm,1:nym) = int(dum2d(:,:))
       isltyp(met_nx,:) = isltyp(nxm,:)
       isltyp(:,met_ny) = isltyp(:,nym)
 !!!   IF ( met_soil_lsm == 7 ) THEN  ! Pleim-Xiu used; detangle soil categories
@@ -1706,7 +1718,7 @@ SUBROUTINE rdfv3 (mcip_now)
     ENDIF
 !    Note the top two soil layers in FV3 are at 0-10 cm and 10-40 cm
 !    Will need adjustment to 0-1 cm and 1-10 cm.
-    CALL get_var_2d_real_cdf (cdfid, 'soilw1', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'soilw1', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       wg(1:nxm,1:nym) = dum2d(:,:)
       wg(met_nx,:) = wg(nxm,:)
@@ -1720,7 +1732,7 @@ SUBROUTINE rdfv3 (mcip_now)
       CALL graceful_stop (pname)
     ENDIF
 
-    CALL get_var_2d_real_cdf (cdfid, 'soilw2', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'soilw2', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       w2(1:nxm,1:nym) = dum2d(:,:)
       w2(met_nx,:) = w2(nxm,:)
@@ -1734,7 +1746,7 @@ SUBROUTINE rdfv3 (mcip_now)
       CALL graceful_stop (pname)
     ENDIF
 
-    CALL get_var_2d_real_cdf (cdfid, 'soilw3', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'soilw3', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       soim3d(1:nxm,1:nym,3) = dum2d(:,:)
       soim3d(met_nx,:,3) = soim3d(nxm,:,3)
@@ -1744,7 +1756,7 @@ SUBROUTINE rdfv3 (mcip_now)
       CALL graceful_stop (pname)
     ENDIF
  
-    CALL get_var_2d_real_cdf (cdfid, 'soilw4', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'soilw4', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       soim3d(1:nxm,1:nym,4) = dum2d(:,:)
       soim3d(met_nx,:,4) = soim3d(nxm,:,4)
@@ -1757,7 +1769,7 @@ SUBROUTINE rdfv3 (mcip_now)
 
 !    Note the top two soil layers in FV3 are at 0-10 cm and 10-40 cm
 !    Will need adjustment to 0-1 cm and 1-10 cm.
-    CALL get_var_2d_real_cdf (cdfid, 'soilt1', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'soilt1', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       soilt1(1:nxm,1:nym) = dum2d(:,:)
       soilt1(met_nx,:) = soilt1(nxm,:)
@@ -1771,7 +1783,7 @@ SUBROUTINE rdfv3 (mcip_now)
       CALL graceful_stop (pname)
     ENDIF
 
-    CALL get_var_2d_real_cdf (cdfid, 'soilt2', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'soilt2', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       soilt2(1:nxm,1:nym) = dum2d(:,:)
       soilt2(met_nx,:) = soilt2(nxm,:)
@@ -1785,7 +1797,7 @@ SUBROUTINE rdfv3 (mcip_now)
       CALL graceful_stop (pname)
     ENDIF
 
-    CALL get_var_2d_real_cdf (cdfid, 'soilt3', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'soilt3', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       soit3d(1:nxm,1:nym,3) = dum2d(:,:)
       soit3d(met_nx,:,3) = soit3d(nxm,:,3)
@@ -1795,7 +1807,7 @@ SUBROUTINE rdfv3 (mcip_now)
       CALL graceful_stop (pname)
     ENDIF
 
-    CALL get_var_2d_real_cdf (cdfid, 'soilt4', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'soilt4', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       soit3d(1:nxm,1:nym,4) = dum2d(:,:)
       soit3d(met_nx,:,4) = soit3d(nxm,:,4)
@@ -1808,7 +1820,7 @@ SUBROUTINE rdfv3 (mcip_now)
 
   ENDIF
 
-  CALL get_var_2d_real_cdf (cdfid, 'tmpsfc', dum2d, it, rcode)
+  CALL get_var_2d_real_cdf (cdfid2, 'tmpsfc', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
     groundt(1:nxm,1:nym) = dum2d(:,:)
     groundt(met_nx,:) = groundt(nxm,:)
@@ -1824,7 +1836,7 @@ SUBROUTINE rdfv3 (mcip_now)
     ENDIF
   ENDIF
 
-  CALL get_var_2d_real_cdf (cdfid, 'albdo_ave', dum2d, it, rcode)
+  CALL get_var_2d_real_cdf (cdfid2, 'albdo_ave', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
     albedo(1:nxm,1:nym) = dum2d(:,:) * 0.01
     albedo(met_nx,:) = albedo(nxm,:)
@@ -1835,6 +1847,7 @@ SUBROUTINE rdfv3 (mcip_now)
     CALL graceful_stop (pname)
   ENDIF
 ! No LU fractions in FV3 yet.  :(
+  iflufrc=.false.
   IF ( first ) THEN
     IF ( iflufrc ) THEN
       IF ( ifluwrfout ) THEN  ! land use fractions in WRF history file
@@ -1895,7 +1908,7 @@ SUBROUTINE rdfv3 (mcip_now)
     ENDIF
 ! No urban canopy in FV3 yet.  :(
     IF ( met_urban_phys >= 1 ) THEN  ! urban canopy model used
-      CALL get_var_2d_real_cdf (cdfid, 'FRC_URB2D', dum2d, it, rcode)
+      CALL get_var_2d_real_cdf (cdfid2, 'FRC_URB2D', dum2d, it, rcode)
       IF ( rcode == nf90_noerr ) THEN
         frc_urb(1:nxm,1:nym) = dum2d(:,:)
         frc_urb(met_nx,:) = frc_urb(nxm,:)
@@ -1906,7 +1919,7 @@ SUBROUTINE rdfv3 (mcip_now)
       ENDIF
     ENDIF
     IF ( lpv > 0 ) THEN
-      CALL get_var_2d_real_cdf (cdfid, 'F', dum2d, it, rcode)
+      CALL get_var_2d_real_cdf (cdfid2, 'F', dum2d, it, rcode)
       IF ( rcode == nf90_noerr ) THEN
         coriolis(1:nxm,1:nym) = dum2d(:,:)
         coriolis(met_nx,:) = coriolis(nxm,:)
@@ -1920,7 +1933,7 @@ SUBROUTINE rdfv3 (mcip_now)
   ENDIF
 
   IF ( ifznt ) THEN  ! expecting roughness length in file
-    CALL get_var_2d_real_cdf (cdfid, 'sfcr', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'sfcr', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       znt(1:nxm,1:nym) = dum2d(:,:)
       znt(met_nx,:) = znt(nxm,:)
@@ -1935,7 +1948,7 @@ SUBROUTINE rdfv3 (mcip_now)
     gotznt = .FALSE.
   ENDIF
 ! FV3 does not have snow cover flag in output, use snow cover fraction instead
-  CALL get_var_2d_real_cdf (cdfid, 'snowc_ave', dum2d, it, rcode)
+  CALL get_var_2d_real_cdf (cdfid2, 'snowc_ave', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
     snowcovr(1:nxm,1:nym) = dum2d(:,:) * 0.01
     snowcovr(met_nx,:) = snowcovr(nxm,:)
@@ -1947,7 +1960,7 @@ SUBROUTINE rdfv3 (mcip_now)
   ENDIF
 ! FV3 does not have sea ice fraction in output, use sea-ice thickness instead
 
-  CALL get_var_2d_real_cdf (cdfid, 'icetk', dum2d, it, rcode)
+  CALL get_var_2d_real_cdf (cdfid2, 'icetk', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
     seaice(1:nxm,1:nym) = dum2d(:,:)
     seaice(met_nx,:) = seaice(nxm,:)
@@ -1959,7 +1972,7 @@ SUBROUTINE rdfv3 (mcip_now)
     CALL graceful_stop (pname)
   ENDIF
 
-  CALL get_var_2d_real_cdf (cdfid, 'snod', dum2d, it, rcode)
+  CALL get_var_2d_real_cdf (cdfid2, 'snod', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
     snowh(1:nxm,1:nym) = dum2d(:,:)
     snowh(met_nx,:) = snowh(nxm,:)
@@ -1972,7 +1985,7 @@ SUBROUTINE rdfv3 (mcip_now)
 ! NO PX physics in FV3 for soil hydraulic paramters
   IF ( ifpxwrf41 ) THEN
 
-    CALL get_var_2d_real_cdf (cdfid, 'WSAT_PX', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'WSAT_PX', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       wsat_px(1:nxm,1:nym) = dum2d(:,:)
       wsat_px(met_nx,:) = wsat_px(nxm,:)
@@ -1983,7 +1996,7 @@ SUBROUTINE rdfv3 (mcip_now)
       CALL graceful_stop (pname)
     ENDIF
 
-    CALL get_var_2d_real_cdf (cdfid, 'WFC_PX', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'WFC_PX', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       wfc_px(1:nxm,1:nym) = dum2d(:,:)
       wfc_px(met_nx,:) = wfc_px(nxm,:)
@@ -1994,7 +2007,7 @@ SUBROUTINE rdfv3 (mcip_now)
       CALL graceful_stop (pname)
     ENDIF
 
-    CALL get_var_2d_real_cdf (cdfid, 'WWLT_PX', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'WWLT_PX', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       wwlt_px(1:nxm,1:nym) = dum2d(:,:)
       wwlt_px(met_nx,:) = wwlt_px(nxm,:)
@@ -2005,7 +2018,7 @@ SUBROUTINE rdfv3 (mcip_now)
       CALL graceful_stop (pname)
     ENDIF
 
-    CALL get_var_2d_real_cdf (cdfid, 'CSAND_PX', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'CSAND_PX', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       csand_px(1:nxm,1:nym) = dum2d(:,:)
       csand_px(met_nx,:) = csand_px(nxm,:)
@@ -2016,7 +2029,7 @@ SUBROUTINE rdfv3 (mcip_now)
       CALL graceful_stop (pname)
     ENDIF
 
-    CALL get_var_2d_real_cdf (cdfid, 'FMSAND_PX', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'FMSAND_PX', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       fmsand_px(1:nxm,1:nym) = dum2d(:,:)
       fmsand_px(met_nx,:) = fmsand_px(nxm,:)
@@ -2027,7 +2040,7 @@ SUBROUTINE rdfv3 (mcip_now)
       CALL graceful_stop (pname)
     ENDIF
 
-    CALL get_var_2d_real_cdf (cdfid, 'CLAY_PX', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'CLAY_PX', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       clay_px(1:nxm,1:nym) = dum2d(:,:)
       clay_px(met_nx,:) = clay_px(nxm,:)
@@ -2086,7 +2099,7 @@ SUBROUTINE rdfv3 (mcip_now)
       CALL graceful_stop (pname)
     ENDIF
 
-    CALL get_var_2d_real_cdf (cdfid, 'WSPD', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'WSPD', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       wspdsfc(1:nxm,1:nym) = dum2d(:,:)
       wspdsfc(met_nx,:) = wspdsfc(nxm,:)
@@ -2094,7 +2107,7 @@ SUBROUTINE rdfv3 (mcip_now)
       WRITE (*,f6000) 'WSPDSFC  ', wspdsfc(lprt_metx, lprt_mety), 'm s-1'
     ELSE
       ! Original version was stored in "WSPDSFC"; released WRF code uses "WSPD"
-      CALL get_var_2d_real_cdf (cdfid, 'WSPDSFC', dum2d, it, rcode)
+      CALL get_var_2d_real_cdf (cdfid2, 'WSPDSFC', dum2d, it, rcode)
       IF ( rcode == nf90_noerr ) THEN
         wspdsfc(1:nxm,1:nym) = dum2d(:,:)
         wspdsfc(met_nx,:) = wspdsfc(nxm,:)
@@ -2106,7 +2119,7 @@ SUBROUTINE rdfv3 (mcip_now)
       ENDIF
     ENDIF
 
-    CALL get_var_2d_real_cdf (cdfid, 'XLAIDYN', dum2d, it, rcode)
+    CALL get_var_2d_real_cdf (cdfid2, 'XLAIDYN', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       xlaidyn(1:nxm,1:nym) = dum2d(:,:)
       xlaidyn(met_nx,:) = xlaidyn(nxm,:)
