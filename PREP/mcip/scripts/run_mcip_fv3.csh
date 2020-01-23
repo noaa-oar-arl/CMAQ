@@ -158,7 +158,8 @@ set InMetFiles = ( $InMetDir/gfs.t00z.masterf006.nc $InMetDir/gfs.t00z.masterf01
 #set InMetFiles = ( $InMetDir/wrfout_d01_2018-01-10_00:00:00  $InMetDir/wrfout_d01_2018-01-10_01:00:00 ) 
 
 #For FV3, also need separate surface input pfiles
-#set InMetFilesSfc = ( $InMetDir/gfs.t00z.sfcf000.nc $InMetDir/gfs.t00z.sfcf001.nc $InMetDir/gfs.t00z.sfcf002.nc) 
+set InMetFiles = ( $InMetDir/gfs.t00z.atmf006.nc $InMetDir/gfs.t00z.atmf012.nc )
+set InSfcFiles = ( $InMetDir/gfs.t00z.sfcf006.nc $InMetDir/gfs.t00z.sfcf012.nc ) 
 
 
 set IfGeo      = "F"
@@ -168,7 +169,7 @@ set InGeoFile  = $InGeoDir/geo_em_d01.nc
 # If its desired to use MPI, parallel netCDF I/O (e.g., speed up FV3 I/O)
 # Note: If true, must compile MCIP with NetCDF parallel version using HDF5 library, e.g.,  netcdf-hdf5parallel
 # and add mpich include in Makefile (Default = TRUE)   
-set IfMPI      = "T"
+set IfMPI      = "F"
 #-----------------------------------------------------------------------
 
 #-----------------------------------------------------------------------
@@ -432,6 +433,7 @@ cat > $WorkDir/namelist.${PROG} << !
  &FILENAMES
   file_gd    = "$FILE_GD"
   file_mm    = "$InMetFiles[1]",
+  file_sfc   = "$InSfcFiles[1]",
 !
 
 if ( $#InMetFiles > 1 ) then
