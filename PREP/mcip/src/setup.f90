@@ -107,16 +107,25 @@ SUBROUTINE setup (ctmlays)
 ! If NetCDF format, it is probably WRF or FV3.
 !-------------------------------------------------------------------------------
   met_model=inmetmodel
-  rcode = nf90_open (file_mm(1), nf90_nowrite, cdfid)
-  rcode2 = nf90_open (file_sfc(1), nf90_nowrite, cdfid2)
-  IF ( rcode == nf90_noerr .and. rcode2 == nf90_noerr ) THEN  ! successfully opened NetCDF file; assume WRF or FV3
 
+  rcode = nf90_open (file_mm(1), nf90_nowrite, cdfid)
+  
+  IF ( met_model == 2 ) THEN !WRF
+   rcode2 = nf90_open (file_mm(1), nf90_nowrite, cdfid)
+  ENDIF
+  
+  IF ( met_model == 3 ) THEN !FV3
+   rcode2 = nf90_open (file_sfc(1), nf90_nowrite, cdfid2)
+  ENDIF
+
+  IF ( rcode == nf90_noerr .and. rcode2 == nf90_noerr ) THEN  ! successfully opened NetCDF file(s); assume WRF or FV3
+  
     !---------------------------------------------------------------------------
     ! If WRF, determine whether or not the Advanced Research WRF, ARW, formerly
     ! known as Eulerian mass, EM) version was used.
     !---------------------------------------------------------------------------
 
-   IF ( met_model == 2 ) THEN
+   IF ( met_model == 2 ) THEN !WRF
 
     rcode = nf90_get_att (cdfid, nf90_global, 'DYN_OPT', met_iversion)
     IF ( rcode /= nf90_noerr ) THEN
