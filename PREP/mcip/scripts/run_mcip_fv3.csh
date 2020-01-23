@@ -154,10 +154,10 @@ set WorkDir    = $OutDir
 #   to the valid times set below (i.e., mcip_start and mcip_end).
 #-----------------------------------------------------------------------
 
-set InMetFiles = ( $InMetDir/gfs.t00z.masterf006.nc $InMetDir/gfs.t00z.masterf012.nc)
+#WRF
 #set InMetFiles = ( $InMetDir/wrfout_d01_2018-01-10_00:00:00  $InMetDir/wrfout_d01_2018-01-10_01:00:00 ) 
 
-#For FV3, also need separate surface input pfiles
+#FV3, also need separate surface input pfiles
 set InMetFiles = ( $InMetDir/gfs.t00z.atmf006.nc $InMetDir/gfs.t00z.atmf012.nc )
 set InSfcFiles = ( $InMetDir/gfs.t00z.sfcf006.nc $InMetDir/gfs.t00z.sfcf012.nc ) 
 
@@ -169,7 +169,7 @@ set InGeoFile  = $InGeoDir/geo_em_d01.nc
 # If its desired to use MPI, parallel netCDF I/O (e.g., speed up FV3 I/O)
 # Note: If true, must compile MCIP with NetCDF parallel version using HDF5 library, e.g.,  netcdf-hdf5parallel
 # and add mpich include in Makefile (Default = TRUE)   
-set IfMPI      = "F"
+set IfMPI      = "T"
 #-----------------------------------------------------------------------
 
 #-----------------------------------------------------------------------
