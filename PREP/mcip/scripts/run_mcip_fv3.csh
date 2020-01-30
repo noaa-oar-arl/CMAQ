@@ -158,9 +158,8 @@ set WorkDir    = $OutDir
 #set InMetFiles = ( $InMetDir/wrfout_d01_2018-01-10_00:00:00  $InMetDir/wrfout_d01_2018-01-10_01:00:00 ) 
 
 #FV3, also need separate surface input pfiles
-set InMetFiles = ( $InMetDir/gfs.t00z.atmf006.nc $InMetDir/gfs.t00z.atmf012.nc )
-set InSfcFiles = ( $InMetDir/gfs.t00z.sfcf006.nc $InMetDir/gfs.t00z.sfcf012.nc ) 
-
+set InMetFiles = ( $InMetDir/gfs.t12z.atmf000.nc $InMetDir/gfs.t12z.atmf001.nc $InMetDir/gfs.t12z.atmf002.nc $InMetDir/gfs.t12z.atmf003.nc)
+set InSfcFiles = ( $InMetDir/gfs.t12z.sfcf000.nc $InMetDir/gfs.t12z.sfcf001.nc $InMetDir/gfs.t12z.sfcf002.nc $InMetDir/gfs.t12z.sfcf003.nc) 
 
 set IfGeo      = "F"
 set InGeoFile  = $InGeoDir/geo_em_d01.nc
@@ -169,7 +168,7 @@ set InGeoFile  = $InGeoDir/geo_em_d01.nc
 # If its desired to use MPI, parallel netCDF I/O (e.g., speed up FV3 I/O)
 # Note: If true, must compile MCIP with NetCDF parallel version using HDF5 library, e.g.,  netcdf-hdf5parallel
 # and add mpich include in Makefile (Default = TRUE)   
-set IfMPI      = "T"
+set IfMPI      = "F"
 #-----------------------------------------------------------------------
 
 #-----------------------------------------------------------------------
@@ -216,11 +215,10 @@ set LUVBOUT = 1
 #   MCIP_END:    Last date and time to be output  [UTC]
 #   INTVL:       Frequency of output [minutes]
 #-----------------------------------------------------------------------
+set MCIP_START = 2020-01-12-12:00:00.0000  # [UTC]
+set MCIP_END   = 2020-01-12-14:00:00.0000  # [UTC]
 
-set MCIP_START = 2018-01-10-06:00:00.0000  # [UTC]
-set MCIP_END   = 2018-01-10-12:00:00.0000  # [UTC]
-
-set INTVL      = 360 # [min]
+set INTVL      = 60 # [min]
 
 #-----------------------------------------------------------------------
 # Choose output format.
@@ -272,7 +270,7 @@ set NROWS =  500
 # Set CTM Eta-Pressure layers to interpolate to.
 # This was put back in for FV3 to explicitly define CMAQ layers.
 # This requires that the pressure (phalf) is available in FV3 met fiel.
-# There is currently a maximum of 150 layers allowed.
+# There is currently a maximum of 100 layers allowed.
 # To use all of the layers from the input meteorology without
 # explicitly specifying, set CTMLAYS = -1.0.
 #-----------------------------------------------------------------------
@@ -433,7 +431,6 @@ cat > $WorkDir/namelist.${PROG} << !
  &FILENAMES
   file_gd    = "$FILE_GD"
   file_mm    = "$InMetFiles[1]",
-  file_sfc   = "$InSfcFiles[1]",
 !
 
 if ( $#InMetFiles > 1 ) then
@@ -444,6 +441,21 @@ if ( $#InMetFiles > 1 ) then
 !
     @ nn ++
   end
+endif
+
+if ( $InMetModel == 3 ) then
+cat >> $WorkDir/namelist.${PROG} << !
+  file_sfc   = "$InSfcFiles[1]",
+!
+if ( $#InSfcFiles > 1 ) then
+  @ nn = 2
+  while ( $nn <= $#InSfcFiles )
+    cat >> $WorkDir/namelist.${PROG} << !
+               "$InSfcFiles[$nn]",
+!
+    @ nn ++
+  end
+endif
 endif
 
 if ( $IfGeo == "T" ) then
@@ -504,6 +516,15 @@ foreach fil ( $InMetFiles )
   @ NUMFIL ++
 end
 
+if ( $InMetModel == 3 ) then
+set NUMFIL = 0
+foreach fil ( $InSfcFiles )
+  @ NN = $NUMFIL + 20
+  ln -s $fil fort.$NN
+  @ NUMFIL ++
+end
+endif
+
 #-----------------------------------------------------------------------
 # Set output file names and other miscellaneous environment variables.
 #-----------------------------------------------------------------------
@@ -541,8 +562,7 @@ if ( -f $OutDir/mcip_bdy.nc  ) rm -f $OutDir/mcip_bdy.nc
 #-----------------------------------------------------------------------
 
 if ( $IfMPI == "T" ) then
-$ProgDir/${PROG}.exe
-#mpirun.lsf $ProgDir/${PROG}.exe
+aprun -n24 -N2 $ProgDir/${PROG}.exe
 else
 $ProgDir/${PROG}.exe
 endif 

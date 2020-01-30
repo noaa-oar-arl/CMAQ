@@ -355,7 +355,8 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 !    met_nz = ival - 1
 !     met_nz = ival
     IF ( needlayers ) THEN
-     met_nz = MIN(maxlays,ival) !If met layers > max layers, collapse to subset of max layers    ELSE
+     met_nz = MIN(maxlays,ival) !If met layers > max layers, collapse to subset of max layers    
+    ELSE
      met_nz = SIZE(ctmlays)
     ENDIF
 
@@ -1070,7 +1071,13 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 !    ENDIF
 !  ENDIF
 
-  met_tapfrq = (times(1))*60  ! convert hrs --> min
+   met_tapfrq = (times(1))*60  ! convert hrs --> min
+   IF ( met_model == 3 ) THEN !IF FV3 and first 000 forecast hour, assume hourly input = 60 min
+    IF (met_tapfrq == 0.0) THEN
+     met_tapfrq = 60.0 !minutes
+    ENDIF
+   ENDIF
+   
 !-------------------------------------------------------------------------------
 ! Set variables for non-hydrostatic base state.  There is no option for
 ! hydrostatic run in FV3.  The base state variables are not currently output
