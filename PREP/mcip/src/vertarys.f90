@@ -58,8 +58,9 @@ SUBROUTINE vertarys (ctmlays)
 
   IF ( met_model == 3 ) THEN !FV3
    vglvs_gd(1:nlays) = ctmlays(1:nlays)
+!   vglvs_gd(nlays+1) = 1.01
   ENDIF
-
+ 
 !-------------------------------------------------------------------------------
 ! X3FACE_GD( 0: NLAYS ):
 ! The list of vertical coordinate surface values in the VGLVUN_GD units 
@@ -76,7 +77,7 @@ SUBROUTINE vertarys (ctmlays)
 
   IF ( met_model == 3 ) THEN !FV3
    DO k = 1, nlays
-    x3face_gd(lbnd+k) = 1.0 - vglvs_gd(k)
+    x3face_gd(lbnd+k-1) = 1.0 - vglvs_gd(k)
    ENDDO
   ENDIF
 !-------------------------------------------------------------------------------
@@ -106,7 +107,7 @@ SUBROUTINE vertarys (ctmlays)
     ENDIF
   ENDIF
   
-  WRITE (*,ifmt1) 'VGLVS3D ', vglvs_gd
+  WRITE (*,ifmt1) 'VGLVS3D ', vglvs_gd(1:nlays) !Don't print last nlays+1 value
 
   WRITE (*, "(1x, 78('-'), /)")
 

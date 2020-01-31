@@ -370,8 +370,8 @@ SUBROUTINE setgriddefs
     gdtyp_gd = polgrd3
   ELSE IF ( met_mapproj == 3 ) THEN  ! equatorial Mercator
     gdtyp_gd = eqmgrd3
-   ELSE IF ( met_mapproj == 4 ) THEN  ! Gaussian (FV3) currently set to Mercator, wrong.
-    gdtyp_gd = mergrd3
+   ELSE IF ( met_mapproj == 4 ) THEN  ! Gaussian (FV3) currently set to equatorial mercator, wrong.
+    gdtyp_gd = eqmgrd3
   ELSE
     WRITE (*,f9275) TRIM(pname), met_mapproj
     CALL graceful_stop (pname)
@@ -419,6 +419,18 @@ SUBROUTINE setgriddefs
     xcent_gd = DBLE(met_proj_clon)  ! [degrees longitude]
     ycent_gd = DBLE(met_proj_clat)  ! [degrees latitude]
   ENDIF
+
+  IF ( ( met_model == 3 ) .AND. ( gdtyp_gd == lamgrd3 ) ) THEN
+    xcent_gd = DBLE(met_proj_clon)  ! [degrees longitude]
+    ycent_gd = DBLE(met_ref_lat)    ! [degrees latitude]
+  ELSE IF ( gdtyp_gd == eqmgrd3 ) THEN
+    xcent_gd = DBLE(met_proj_clon)  ! [degrees longitude]
+    ycent_gd = 0.0d0                ! [degrees latitude]
+  ELSE                              !WRF polar stereographic or FV3 Gaussian
+    xcent_gd = DBLE(met_proj_clon)  ! [degrees longitude]
+    ycent_gd = DBLE(met_proj_clat)  ! [degrees latitude]
+  ENDIF
+
 !-------------------------------------------------------------------------------
 ! (XCELL_GD, YCELL_GD):
 ! The X-direction and Y-direction cell dimensions (m) for a regular grid
@@ -506,8 +518,7 @@ SUBROUTINE setgriddefs
 !            to increments of half-delta-X if a user-defined reference
 !            latitude was specified.
 !-------------------------------------------------------------------------------
-
-  IF ( ( met_model == 2 ) .OR. ( gdtyp_gd == eqmgrd3 ) ) THEN  ! WRF or Mercator
+  IF ( ( met_model == 2 ) .OR. ( met_model == 3 ) .OR. ( gdtyp_gd == eqmgrd3 ) ) THEN  ! WRF, FV3, or Mercator
 
     xorig_ctm = met_xxctr - ( met_rictr_dot - FLOAT(x0+nthik) ) * met_resoln
     yorig_ctm = met_yyctr - ( met_rjctr_dot - FLOAT(y0+nthik) ) * met_resoln

@@ -201,7 +201,7 @@ MODULE mcipparm
   INTEGER            :: ncg_x         ! coarse grid X
   INTEGER            :: ncg_y         ! coarse grid Y
 
-  INTEGER, PARAMETER :: maxlays = 100 ! max allowed in NLAYS
+  INTEGER, PARAMETER :: maxlays = 100 ! max allowed in NLAYS (can't be > 100, IOAPI limit)
   LOGICAL            :: needlayers    ! "TRUE" if using all input met layers
                                       ! without defining in namelist
 

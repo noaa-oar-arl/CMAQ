@@ -102,8 +102,14 @@ SUBROUTINE alloc_ctm
 !-------------------------------------------------------------------------------
 ! Allocate grid arrays for COORD.
 !-------------------------------------------------------------------------------
+  IF ( met_model == 2 ) THEN !WRF
+   ALLOCATE ( vglvs_gd  ( nlays+1) )
+  ENDIF
 
-  ALLOCATE ( vglvs_gd  ( nlays) )
+  IF ( met_model == 3 ) THEN !WRF
+   ALLOCATE ( vglvs_gd  ( nlays) )
+  ENDIF
+
   ALLOCATE ( x3face_gd ( 0:nlays ) )
 
 !-------------------------------------------------------------------------------

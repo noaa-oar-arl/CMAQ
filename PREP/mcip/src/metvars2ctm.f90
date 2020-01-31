@@ -381,13 +381,18 @@ SUBROUTINE metvars2ctm
     xqfx(:,:) = qfx(sc:ec,sr:er)
   ENDIF
 
+
+ IF ( iflai) THEN 
   IF ( iflai .AND. ifpxwrf41 ) THEN
       xlai(:,:) = lai_px(sc:ec,sr:er)
   ELSE IF ( iflai  .AND. ( MAXVAL(lai) > smallnum ) ) THEN
       xlai(:,:) = lai(sc:ec,sr:er)
-  ELSE
+!  ELSE
+  ENDIF
 
-    IF ( ( met_model == 2 ) .AND. ( met_soil_lsm == 2 ) ) THEN
+ ELSE
+
+  IF ( ( met_model == 2 ) .AND. ( met_soil_lsm == 2 ) ) THEN
       xlai(:,:) = 4.0
     ELSE
 
@@ -577,17 +582,20 @@ SUBROUTINE metvars2ctm
     xwwind (:,:,1:) = wa(sc:ec,sr:er,1:)
   ENDIF
 
-  IF ( met_model == 2 ) THEN  !WRF
-   IF ( ( iftke ) .AND. ( .NOT. iftkef ) ) THEN  ! TKE on half-layers
-    xtke   (:,:, :) = tke(sc:ec,sr:er, :)
-   ELSE IF ( ( iftke ) .AND. ( iftkef ) ) THEN   ! TKE on full-levels
-    xtke   (:,:,0:) = tke(sc:ec,sr:er,1:)
+  IF ( iftke ) THEN
+   IF ( met_model == 2 ) THEN  !WRF
+    IF ( ( iftke ) .AND. ( .NOT. iftkef ) ) THEN  ! TKE on half-layers
+     xtke   (:,:, :) = tke(sc:ec,sr:er, :)
+    ELSE IF ( ( iftke ) .AND. ( iftkef ) ) THEN   ! TKE on full-levels
+     xtke   (:,:,0:) = tke(sc:ec,sr:er,1:)
+    ENDIF
    ENDIF
-  ENDIF
 
-  IF ( met_model == 3 ) THEN  !FV3
-    ! TKE on half-layers
-    xtke   (:,:, :) = tke(sc:ec,sr:er, :)
+   IF ( met_model == 3 ) THEN  !FV3
+     ! TKE on full-layers
+     xtke   (:,:, :) = tke(sc:ec,sr:er, :)
+   ENDIF
+
   ENDIF
 
 

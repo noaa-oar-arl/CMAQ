@@ -78,7 +78,8 @@ MPI_ROOT = /opt/cray/mpt/7.2.0/gni/mpich2-intel/140
 #FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/include 
 
 #...Parallel
-FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/include -I$(MPI_ROOT)/include
+#FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/include -I$(MPI_ROOT)/include
+FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT)/include -I$(MPI_ROOT)/include
 #FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(HDF5)/include -I$(IOAPI_ROOT)/include -I$(MPI_ROOT)/include 
 
 LIBS    = -L$(IOAPI_ROOT) -laqm_ioapi \

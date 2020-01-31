@@ -188,13 +188,10 @@ SUBROUTINE outcm3io (sdate, stime)
   nrows3d = nrows
   nthik3d = nthik
   tstep3d = grstep
-  print*, 'vglvs3d metcro3d pre 1.0 = ', vglvs3d
   ! FV3 to ensure monotonicity check near surface when Open3 and CHKDESC
-  IF ( met_model == 3 ) THEN     
-    vglvs3d(nlays+1)=1.0
-  ENDIF
-  print*, 'vglvs3d metcro3d post 1.0 = ', vglvs3d
-
+!  IF ( met_model == 3 ) THEN     
+!    vglvs3d(nlays+1)=1.0
+!  ENDIF
   IF ( first ) THEN
     IF ( .NOT. open3 (metcro3d, fsunkn3, pname) ) THEN
       WRITE (*,f9000) TRIM(pname), TRIM(metcro3d)
@@ -269,9 +266,9 @@ SUBROUTINE outcm3io (sdate, stime)
 
   ftype3d = bndary3
   ! FV3 to ensure monotonicity check near surface when Open3 and CHKDESC
-  IF ( met_model == 3 ) THEN     
-    vglvs3d(nlays+1)=1.0
-  ENDIF
+!  IF ( met_model == 3 ) THEN     
+!    vglvs3d(nlays+1)=1.0
+!  ENDIF
 
   IF ( first ) THEN
     IF ( .NOT. open3 (metbdy3d, fsunkn3, pname) ) THEN
@@ -375,9 +372,9 @@ SUBROUTINE outcm3io (sdate, stime)
   nlays3d = nlays
   tstep3d = grstep
   ! FV3 to ensure monotonicity check near surface when Open3 and CHKDESC
-  IF ( met_model == 3 ) THEN     
-    vglvs3d(nlays+1)=1.0
-  ENDIF
+!  IF ( met_model == 3 ) THEN     
+!    vglvs3d(nlays+1)=1.0
+!  ENDIF
 
   IF ( first ) THEN
     IF ( .NOT. open3 (metdot3d, fsunkn3, pname) ) THEN
@@ -435,9 +432,9 @@ SUBROUTINE outcm3io (sdate, stime)
     nthik3d = nthik
     tstep3d = grstep
     ! FV3 to ensure monotonicity check near surface when Open3 and CHKDESC
-    IF ( met_model == 3 ) THEN     
-     vglvs3d(nlays+1)=1.0
-    ENDIF
+!    IF ( met_model == 3 ) THEN     
+!     vglvs3d(nlays+1)=1.0
+!    ENDIF
 
     IF ( first ) THEN
       IF ( .NOT. open3 (soicro, fsunkn3, pname) ) THEN
@@ -497,9 +494,9 @@ SUBROUTINE outcm3io (sdate, stime)
     nthik3d = nthik
     tstep3d = grstep
     ! FV3 to ensure monotonicity check near surface when Open3 and CHKDESC
-    IF ( met_model == 3 ) THEN     ! FV3
-     vglvs3d(nlays+1)=1.0
-    ENDIF
+!    IF ( met_model == 3 ) THEN     ! FV3
+!     vglvs3d(nlays+1)=1.0
+!    ENDIF
 
     IF ( first ) THEN
       IF ( .NOT. open3 (mosaiccro, fsunkn3, pname) ) THEN

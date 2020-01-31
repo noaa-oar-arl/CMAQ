@@ -706,7 +706,7 @@ SUBROUTINE rdfv3 (mcip_now)
 !        CALL geth_idts (times(i), mcip_previous(1:19), idtsec)
 !      Commented geth_idts function for time difference/tolerance
 !      Assumed that the file time is same as valid previous time
-!      idtsec =  ttol_sec (300 sec tolerance)
+       idtsec = 60  !set to arbitrary 60, which is less than ttol_sec=300, and avoids tolerance check in rdfv3
        IF ( ABS(idtsec) < ttol_sec ) THEN  ! found MCIP_PREVIOUS in FV3 output
           itm1 = i
           EXIT findprev
@@ -846,7 +846,7 @@ SUBROUTINE rdfv3 (mcip_now)
 !      CALL geth_idts (times(i), mcip_now(1:19), idtsec)
 !      Commented geth_idts function to get time difference/tolerance
 !      Assumed that the file time is same as valid now time 
-!      idtsec  = ttol_sec (300 sec tolerance)
+      idtsec = 60  !set to arbitrary 60, which is less than ttol_sec=300, and avoids tolerance check in rdfv3
       IF ( ABS(idtsec) < ttol_sec ) THEN  ! found MCIP_NOW in FV3 output
         it = i
         IF ( i < n_times ) it_start = i + 1
