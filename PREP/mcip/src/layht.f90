@@ -98,6 +98,8 @@ SUBROUTINE layht (xx3face, xx3midl, xx3jcbf, xx3jcbm, xx3htf, xx3htm)
 ! extract dimension information.
 !-------------------------------------------------------------------------------
 
+   print*, '-------checking layer height (m) calcs in layht.f90----------'
+
   ! Check IMAX.
 
   imax = SIZE(xx3htf,1)
@@ -143,7 +145,9 @@ SUBROUTINE layht (xx3face, xx3midl, xx3jcbf, xx3jcbm, xx3htf, xx3htm)
 !-------------------------------------------------------------------------------
 ! Build layer height fields using Jacobian.
 !-------------------------------------------------------------------------------
-
+  print*,'lbndf = ', lbndf, 'ubndf = ', ubndf
+  print*,'lbndm = ', lbndm, 'ubndm = ', ubndm
+   
   DO i = 1, imax
     DO j = 1, jmax
 

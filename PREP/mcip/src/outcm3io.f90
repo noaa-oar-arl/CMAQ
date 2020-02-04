@@ -188,10 +188,7 @@ SUBROUTINE outcm3io (sdate, stime)
   nrows3d = nrows
   nthik3d = nthik
   tstep3d = grstep
-  ! FV3 to ensure monotonicity check near surface when Open3 and CHKDESC
-!  IF ( met_model == 3 ) THEN     
-!    vglvs3d(nlays+1)=1.0
-!  ENDIF
+  
   IF ( first ) THEN
     IF ( .NOT. open3 (metcro3d, fsunkn3, pname) ) THEN
       WRITE (*,f9000) TRIM(pname), TRIM(metcro3d)
@@ -260,16 +257,19 @@ SUBROUTINE outcm3io (sdate, stime)
     ENDDO
   ENDIF
 
+
+!-------------------------------------------------------------------------------
+! Build common header for I/O API output.
+!-------------------------------------------------------------------------------
+
+  CALL comheader (sdate, stime)
+
 !-------------------------------------------------------------------------------
 ! Write MET_BDY_3D.  Header is the same as MET_CRO_3D except for file type.
 !-------------------------------------------------------------------------------
 
   ftype3d = bndary3
-  ! FV3 to ensure monotonicity check near surface when Open3 and CHKDESC
-!  IF ( met_model == 3 ) THEN     
-!    vglvs3d(nlays+1)=1.0
-!  ENDIF
-
+  
   IF ( first ) THEN
     IF ( .NOT. open3 (metbdy3d, fsunkn3, pname) ) THEN
       WRITE (*,f9000) TRIM(pname), TRIM(metbdy3d)
@@ -337,6 +337,14 @@ SUBROUTINE outcm3io (sdate, stime)
     ENDDO
   ENDIF
 
+
+
+!-------------------------------------------------------------------------------
+! Build common header for I/O API output.
+!-------------------------------------------------------------------------------
+
+  CALL comheader (sdate, stime)
+
 !-------------------------------------------------------------------------------
 ! Write MET_DOT_3D.
 !-------------------------------------------------------------------------------
@@ -371,10 +379,6 @@ SUBROUTINE outcm3io (sdate, stime)
   nvars3d = nfld3dxyzt_d
   nlays3d = nlays
   tstep3d = grstep
-  ! FV3 to ensure monotonicity check near surface when Open3 and CHKDESC
-!  IF ( met_model == 3 ) THEN     
-!    vglvs3d(nlays+1)=1.0
-!  ENDIF
 
   IF ( first ) THEN
     IF ( .NOT. open3 (metdot3d, fsunkn3, pname) ) THEN
@@ -431,10 +435,6 @@ SUBROUTINE outcm3io (sdate, stime)
     nrows3d = nrows
     nthik3d = nthik
     tstep3d = grstep
-    ! FV3 to ensure monotonicity check near surface when Open3 and CHKDESC
-!    IF ( met_model == 3 ) THEN     
-!     vglvs3d(nlays+1)=1.0
-!    ENDIF
 
     IF ( first ) THEN
       IF ( .NOT. open3 (soicro, fsunkn3, pname) ) THEN
@@ -495,7 +495,7 @@ SUBROUTINE outcm3io (sdate, stime)
     tstep3d = grstep
     ! FV3 to ensure monotonicity check near surface when Open3 and CHKDESC
 !    IF ( met_model == 3 ) THEN     ! FV3
-!     vglvs3d(nlays+1)=1.0
+!     vglvs3d(nlays+1)=1.01
 !    ENDIF
 
     IF ( first ) THEN

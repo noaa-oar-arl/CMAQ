@@ -99,10 +99,17 @@ SUBROUTINE alloc_x
 !-------------------------------------------------------------------------------
 ! Scalars and One-Dimensional Arrays  
 !-------------------------------------------------------------------------------
+  IF ( met_model == 2 ) THEN  ! WRF
+   ALLOCATE ( xx3face ( 0:metlay ) )
+   ALLOCATE ( xx3midl (   metlay ) )
+   ALLOCATE ( xdx3    (   metlay ) )
+  ENDIF
 
-  ALLOCATE ( xx3face ( 0:metlay ) )
-  ALLOCATE ( xx3midl (   metlay ) )
-  ALLOCATE ( xdx3    (   metlay ) )
+  IF ( met_model == 3 ) THEN  ! FV3
+   ALLOCATE ( xx3face (   metlay ) )
+   ALLOCATE ( xx3midl ( 0:metlay ) )
+   ALLOCATE ( xdx3    (   metlay ) )
+  ENDIF
 
   ALLOCATE ( xludesc ( nummetlu ) )
 
@@ -216,24 +223,48 @@ SUBROUTINE alloc_x
 !-------------------------------------------------------------------------------
 ! Cross-Point 3D Arrays.
 !-------------------------------------------------------------------------------
+  IF ( met_model == 2 ) THEN  ! WRF
+   ALLOCATE ( xtempf   (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xtempm   (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xpresm   (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xdensam  (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xdenswm  (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( x3jacobf (ncols_x, nrows_x, 0:metlay) )
+   ALLOCATE ( x3jacobm (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( x3htf    (ncols_x, nrows_x, 0:metlay) )
+   ALLOCATE ( x3htm    (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xwhat    (ncols_x, nrows_x, 0:metlay) )
+   ALLOCATE ( xwvapor  (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xwwind   (ncols_x, nrows_x, 0:metlay) )
+   ALLOCATE ( xcldwtr  (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xranwtr  (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xqice    (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xqsnow   (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xqgraup  (ncols_x, nrows_x,   metlay) )
+  ENDIF
 
-  ALLOCATE ( xtempm   (ncols_x, nrows_x,   metlay) )
-  ALLOCATE ( xpresm   (ncols_x, nrows_x,   metlay) )
-  ALLOCATE ( xdensam  (ncols_x, nrows_x,   metlay) )
-  ALLOCATE ( xdenswm  (ncols_x, nrows_x,   metlay) )
-  ALLOCATE ( x3jacobf (ncols_x, nrows_x, 0:metlay) )
-  ALLOCATE ( x3jacobm (ncols_x, nrows_x,   metlay) )
-  ALLOCATE ( x3htf    (ncols_x, nrows_x, 0:metlay) )
-  ALLOCATE ( x3htm    (ncols_x, nrows_x,   metlay) )
-  ALLOCATE ( xwhat    (ncols_x, nrows_x, 0:metlay) )
-  ALLOCATE ( xwvapor  (ncols_x, nrows_x,   metlay) )
-  ALLOCATE ( xwwind   (ncols_x, nrows_x, 0:metlay) )
-  ALLOCATE ( xcldwtr  (ncols_x, nrows_x,   metlay) )
-  ALLOCATE ( xranwtr  (ncols_x, nrows_x,   metlay) )
-  ALLOCATE ( xqice    (ncols_x, nrows_x,   metlay) )
-  ALLOCATE ( xqsnow   (ncols_x, nrows_x,   metlay) )
-  ALLOCATE ( xqgraup  (ncols_x, nrows_x,   metlay) )
+  IF ( met_model == 3 ) THEN  ! FV3
+   ALLOCATE ( xtempf   (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xtempm   (ncols_x, nrows_x, 0:metlay) )
+   ALLOCATE ( xpresm   (ncols_x, nrows_x, 0:metlay) )
+   ALLOCATE ( xdensam  (ncols_x, nrows_x, 0:metlay) )
+   ALLOCATE ( xdenswm  (ncols_x, nrows_x, 0:metlay) )
+   ALLOCATE ( xdenswf  (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( x3jacobm (ncols_x, nrows_x, 0:metlay) )
+   ALLOCATE ( x3jacobf (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( x3htm    (ncols_x, nrows_x, 0:metlay) )
+   ALLOCATE ( x3htf    (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xwhat    (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xwvapor  (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xwwind   (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xcldwtr  (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xranwtr  (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xqice    (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xqsnow   (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xqgraup  (ncols_x, nrows_x,   metlay) )
+  ENDIF
 
+  IF ( met_model == 2 ) THEN  ! WRF
   IF ( iftke ) THEN
     IF ( iftkef ) THEN
       ALLOCATE ( xtke (ncols_x, nrows_x, 0:metlay) )
@@ -241,6 +272,18 @@ SUBROUTINE alloc_x
       ALLOCATE ( xtke (ncols_x, nrows_x,   metlay) )
     ENDIF
   ENDIF
+  ENDIF
+
+  IF ( met_model == 3 ) THEN  ! FV3
+  IF ( iftke ) THEN
+    IF ( iftkef ) THEN
+      ALLOCATE ( xtke (ncols_x, nrows_x,    metlay) )
+    ELSE
+      ALLOCATE ( xtke (ncols_x, nrows_x,  0:metlay) )
+    ENDIF
+  ENDIF
+  ENDIF
+
 
   IF ( lpv > 0 ) THEN
     ALLOCATE ( xpvc   (ncols_x, nrows_x, metlay) )
@@ -299,17 +342,31 @@ SUBROUTINE alloc_x
 ! Variables for WRF only.
 !-------------------------------------------------------------------------------
 
-  IF ( met_model == 2 .OR. met_model == 3 ) THEN  ! WRF or FV3 right now
+  IF ( met_model == 2 ) THEN  ! WRF
     ALLOCATE ( xmu   (ncols_x, nrows_x)           )
     ALLOCATE ( xgeof (ncols_x, nrows_x, 0:metlay) )
   ENDIF
 
+  IF ( met_model == 3 ) THEN  ! FV3
+    ALLOCATE ( xmu   (ncols_x, nrows_x)           )
+    ALLOCATE ( xgeof (ncols_x, nrows_x, metlay)   )
+  ENDIF
+
+
 !-------------------------------------------------------------------------------
 ! Internal Arrays.
 !-------------------------------------------------------------------------------
+  IF ( met_model == 2 ) THEN  ! WRF
+   ALLOCATE ( xdx3htf (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xdensaf (ncols_x, nrows_x, 0:metlay) )
+   ALLOCATE ( xpresf  (ncols_x, nrows_x, 0:metlay) )
+  ENDIF
 
-  ALLOCATE ( xdx3htf (ncols_x, nrows_x,   metlay) )
-  ALLOCATE ( xdensaf (ncols_x, nrows_x, 0:metlay) )
-  ALLOCATE ( xpresf  (ncols_x, nrows_x, 0:metlay) )
+  IF ( met_model == 3 ) THEN  ! FV3
+   ALLOCATE ( xdx3htf (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xdensaf (ncols_x, nrows_x,   metlay) )
+   ALLOCATE ( xpresf  (ncols_x, nrows_x,   metlay) )
+  ENDIF
+
 
 END SUBROUTINE alloc_x

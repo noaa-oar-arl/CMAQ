@@ -1835,8 +1835,7 @@ SUBROUTINE rdfv3 (mcip_now)
     WRITE (*,f9400) TRIM(pname), 'albdo_ave', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
-! No LU fractions in FV3 yet.  :(
-  iflufrc=.false.
+
   IF ( first ) THEN
     IF ( iflufrc ) THEN
       IF ( ifluwrfout ) THEN  ! land use fractions in WRF history file
@@ -2246,9 +2245,8 @@ SUBROUTINE rdfv3 (mcip_now)
     c1h(k) = (b_k(k) - b_k(k-1)) / (sigmah(k) - sigmah(k-1))
     c2h(k) = (1.0-c1h(k)) * (100000.0 - met_ptop)
     END DO
-! Hard coded surface layer c2h right now...needs fix.
-!    c2h(met_nz+1) = c2h(met_nz)    
 
+    print*, '-------checking sigma and hybrid coefficient calcs in rdfv3.f90----------'
     print*, 'met_ptop = ', met_ptop
     print*, 'sigmaf = ', sigmaf
     print*, 'sigmah = ', sigmah
@@ -2506,8 +2504,6 @@ SUBROUTINE rdfv3 (mcip_now)
         ENDDO
             ! Just set mapcrs to mapdot for now??
             mapcrs = mapdot
-            print*, 'min mapcrs = ', MINVAL(mapcrs)
-            print*, 'max mapcrs = ', MAXVAL(mapcrs)
 
         IF ( .NOT. gotfaces ) THEN  ! get lat, lon, map-scale factor on faces
 
@@ -2529,8 +2525,6 @@ SUBROUTINE rdfv3 (mcip_now)
               mapu(i,j) = mapfac_gau (latu(i,j))
             ENDDO
           ENDDO
-              print*, 'min mapu = ', MINVAL(mapu)
-              print*, 'max mapu = ', MAXVAL(mapu)
           xoff = 0.5  ! V-face: 0.5-cell offset in X from dot-point center value
           yoff = 0.0  ! V-face: no offset in Y from dot-point center value
 
@@ -2549,11 +2543,17 @@ SUBROUTINE rdfv3 (mcip_now)
               mapv(i,j) = mapfac_gau (latv(i,j))
             ENDDO
           ENDDO
-              print*, 'min mapv = ', MINVAL(mapv)
-              print*, 'max mapv = ', MAXVAL(mapv)
        ENDIF
 
   ENDIF
+              print*, '-------checking map factor calcs based on Mercator in rdfv3.f90----------'
+              print*, 'min mapcrs = ', MINVAL(mapcrs)
+              print*, 'max mapcrs = ', MAXVAL(mapcrs)
+              print*, 'min mapu = ', MINVAL(mapu)
+              print*, 'max mapu = ', MAXVAL(mapu)
+              print*, 'min mapv = ', MINVAL(mapv)
+              print*, 'max mapv = ', MAXVAL(mapv)
+
 !-------------------------------------------------------------------------------
 ! If this is the first time in this routine, then determine season.
 !-------------------------------------------------------------------------------

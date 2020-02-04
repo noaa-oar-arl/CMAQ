@@ -179,6 +179,7 @@ SUBROUTINE init_x
   xuu_s   (:,:,:) = fillreal  ;    xvv_d   (:,:,:) = fillreal
   xvv_t   (:,:,:) = fillreal  ;    xwhat   (:,:,:) = fillreal
   xwvapor (:,:,:) = fillreal  ;    xwwind  (:,:,:) = fillreal
+  xdenswf (:,:,:) = fillreal
 
   IF ( iftke ) THEN
     xtke  (:,:,:) = fillreal

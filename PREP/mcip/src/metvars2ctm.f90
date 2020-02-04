@@ -161,7 +161,7 @@ SUBROUTINE metvars2ctm
   INTEGER                           :: k
   INTEGER                           :: kp1
   CHARACTER(LEN=16),  PARAMETER     :: pname      = 'METVARS2CTM'
-  REAL                              :: qf
+  REAL                              :: qf,qm
   INTEGER                           :: r
   REAL,               PARAMETER     :: rdovcp     = 2.0 / 7.0  ! Rd / cP
   REAL,               PARAMETER     :: rdwrf      = 287.0  ! [J/kg/K]
@@ -169,7 +169,7 @@ SUBROUTINE metvars2ctm
   INTEGER                           :: sc
   REAL,               PARAMETER     :: smallnum   = 1.0e-7
   INTEGER                           :: sr
-  REAL                              :: tf
+  REAL                              :: tf,tm
   REAL,               EXTERNAL      :: vtemp
   REAL                              :: wgt1
   REAL                              :: wgt2
@@ -324,19 +324,10 @@ SUBROUTINE metvars2ctm
 !-------------------------------------------------------------------------------
 ! Put time-variant cross-point arrays on MCIP_X grid.
 !-------------------------------------------------------------------------------
-!  IF ( met_model == 2 ) THEN  !WRF
   sc = x0
   ec = x0 + ncols_x - 1
   sr = y0
   er = y0 + nrows_x - 1
-!  ENDIF
-
-!  IF ( met_model == 3 ) THEN  !FV3
-!  ec = x0
-!  sc = x0 + ncols_x - 1
-!  er = y0
-!  sr = y0 + nrows_x - 1
-!  ENDIF
 
   xtempg (:,:) = groundt (sc:ec,sr:er)
   IF ( met_model == 2 .AND. met_cumulus == 0 ) THEN  ! no cumulus scheme
@@ -559,7 +550,14 @@ SUBROUTINE metvars2ctm
     xcorl  (:,:)  = coriolis(sc:ec,sr:er)
   ENDIF
 
+  IF ( met_model == 2 ) THEN  !WRF
   xtempm (:,:,:)  = ta (sc:ec,sr:er,:)
+  ENDIF
+
+  IF ( met_model == 3 ) THEN  !FV3
+  xtempf (:,:,:)  = ta (sc:ec,sr:er,:)
+  ENDIF
+
   xwvapor(:,:,:)  = qva(sc:ec,sr:er,:)
   xcldwtr(:,:,:)  = qca(sc:ec,sr:er,:)
   xranwtr(:,:,:)  = qra(sc:ec,sr:er,:)
@@ -592,7 +590,7 @@ SUBROUTINE metvars2ctm
    ENDIF
 
    IF ( met_model == 3 ) THEN  !FV3
-     ! TKE on full-layers
+     ! TKE, like everything else is on full-layers
      xtke   (:,:, :) = tke(sc:ec,sr:er, :)
    ENDIF
 
@@ -619,20 +617,10 @@ SUBROUTINE metvars2ctm
 ! Put time-variant dot-point arrays on MCIP_X grid.  XUU_D and XVV_D are on
 ! B-grid (dot points).  XUU_S and XVV_T are on C-grid (face points).
 !-------------------------------------------------------------------------------
-!  IF ( met_model == 2 ) THEN  !WRF
   sc = x0
   ec = x0 + ncols_x
   sr = y0
   er = y0 + nrows_x
-!  ENDIF
-
-!  IF ( met_model == 3 ) THEN  !FV3
-!  ec = x0
-!  sc = x0 + ncols_x
-!  er = y0
-!  sr = y0 + nrows_x
-!  ENDIF
-
 
   IF ( met_model == 2 .OR. met_model == 3 ) THEN  ! WRF or FV3: UA and VA on C-grid (face points)
 
@@ -652,21 +640,10 @@ SUBROUTINE metvars2ctm
 ! Compute pressure and potential temperature (if necessary).  Put cloud
 ! fraction on transfer grid, if available.
 !------------------------------------------------------------------------------
-!  IF ( met_model == 2 ) THEN  !WRF
   sc = x0
   ec = x0 + ncols_x - 1
   sr = y0
   er = y0 + nrows_x - 1
-!  ENDIF
-
-!  IF ( met_model == 3 ) THEN  !FV3
-!  ec = x0
-!  sc = x0 + ncols_x - 1
-!  er = y0
-!  sr = y0 + nrows_x - 1
-!  ENDIF
-
-
 
   IF ( met_model == 2 )  THEN  ! WRF
 
@@ -714,43 +691,38 @@ SUBROUTINE metvars2ctm
   ENDIF
 
   IF ( met_model == 3 )  THEN  ! FV3
-!WRF, the interface levels are defined as full, and layers are in half.
 !FV3, layers are in full and interface levels are in half    
 !FV3 pressure levels are 1-D
-     DO k = 1, metlay
+     DO k = 0, metlay
       DO c = 1, ncols_x
         DO r = 1, nrows_x
-         xpresm(c,r,k) = pfull (k)
+         xpresm(c,r,k) = phalf (k+1)
         ENDDO
       ENDDO
      ENDDO
-   
-    xprsfc(:,:) = psa(sc:ec,sr:er)  ! FV3 contains 2D surface pressure
-    xmu   (:,:) = xprsfc(:,:) - met_ptop !FV3 does not have MU, so calculate (Pa)  
-    xgeof (:,:,1:) = (1.0/giwrf) * delz(:,:,1:) !FV3 does not have geopotential, so calculate (m2 s-2) 
-
-!WRF, the interface levels are defined as full, and layers are in half. 
 !FV3, layers are in full and interface levels are in half
 !FV3 pressure levels are 1-D
-     
     DO k = 1, metlay
       DO c = 1, ncols_x
         DO r = 1, nrows_x
-         xpresf(c,r,k) = phalf (k)
+         xpresf(c,r,k) = pfull (k)
         ENDDO
       ENDDO
      ENDDO
 
-    IF ( lpv > 0 .OR. ifmolpx ) THEN  ! will need theta
+    IF ( lpv > 0 .OR. ifmolpx ) THEN  ! will need theta on full levels
       xtheta(:,:,1:) = theta(sc:ec,sr:er,1:)
     ENDIF
 
-    IF ( ifcld3d ) THEN  ! passing through 3D cloud fraction
+    IF ( ifcld3d ) THEN  ! passing through 3D cloud fraction on full levels
       xcfrac3d(:,:,1:) = cldfra(sc:ec,sr:er,1:)
     ENDIF
+   
+    xprsfc(:,:) = psa(sc:ec,sr:er)  ! FV3 contains 2D surface pressure
+    xmu   (:,:) = xprsfc(:,:) - met_ptop !FV3 does not have MU, so calculate 2D MU (Pa)
+    xgeof (:,:,1:) = (1.0/giwrf) * delz(:,:,1:) !FV3 does not have geopotential, so calculate (m2 s-2)
 
   ENDIF
-
 
 !------------------------------------------------------------------------------
 ! Compute density.
@@ -794,11 +766,13 @@ SUBROUTINE metvars2ctm
       xdensaf(:,:,0) = ( xpresf(:,:,0) / ( rdwrf * xtempm(:,:,1) *  &
                          (1.0 + rvwrf*xwvapor(:,:,1)/rdwrf) ) )
     ENDIF
+
     xdenss(:,:) = xdensaf(:,:,0)
+    xdenswm(:,:,:) = xdensam(:,:,:) * xwvapor(:,:,:) / ( 1.0 + xwvapor(:,:,:) )
 
   ENDIF
 
-IF ( met_model == 3) THEN  ! FV3
+  IF ( met_model == 3) THEN  ! FV3
 
     DO k = 1, metlay
       kp1 = MIN(k+1,metlay)
@@ -816,48 +790,55 @@ IF ( met_model == 3) THEN  ! FV3
           ! when alt is output in the WRF history file.
           ! FV3 the pressure levels are 1D.
 
-          xdensam(c,r,k) = ( xpresm(c,r,k) / ( rdwrf * xtempm(c,r,k) *  &
+          xdensaf(c,r,k) = ( xpresf(c,r,k) / ( rdwrf * xtempf(c,r,k) *  &
                              (1.0 + rvwrf*xwvapor(c,r,k)/rdwrf) ) )
 
-!          print*, 'rdwrf = ', rdwrf
-!          print*, 'rdwrf = ', rvwrf
-!          print*, 'xpresm(c,r,k) = ', xpresm(c,r,k)
-!          print*, 'xtempm(c,r,k) = ', xtempm(c,r,k)
-!          print*, 'xwvapor(c,r,k) = ', xwvapor(c,r,k)
-!          print*, 'xdensam(c,r,k) = ', xdensam(c,r,k)
+          !Calculate the mid-point density from average full points
+          tm = 0.5 * (xtempf (c,r,k) + xtempf (c,r,kp1))
+          qm = 0.5 * (xwvapor(c,r,k) + xwvapor(c,r,kp1))
 
-
-          tf = 0.5 * (xtempm (c,r,k) + xtempm (c,r,kp1))
-          qf = 0.5 * (xwvapor(c,r,k) + xwvapor(c,r,kp1))
-
-!          print*, 'tf = ', tf
-!          print*, 'qf = ', qf
-
-          xdensaf(c,r,k) = ( xpresf(c,r,k) / ( rdwrf * tf *  &
-                             (1.0 + rvwrf*qf/rdwrf) ) )
-!          print*, 'xdensaf(c,r,k) = ', xdensaf(c,r,k)
+          xdensam(c,r,k) = ( xpresm(c,r,k) / ( rdwrf * tm *  &
+                             (1.0 + rvwrf*qm/rdwrf) ) )
         ENDDO
       ENDDO
+          
     ENDDO
- 
 
- !         print*,'xdensam bottom = ',  xdensam(:,:,metlay)
- !         print*,'xdensam top = ',  xdensam(:,:,1)
- !         print*,'xdensaf bottom = ',  xdensaf(:,:,metlay)
- !         print*,'xdensaf top = ',  xdensaf(:,:,1)
-
-    IF ( ( ift2m ) .AND. ( MAXVAL(xtemp2) > smallnum ) ) THEN  ! T2 = 0 at init
-      xdensaf(:,:,0) = ( xpresf(:,:,0) / ( rdwrf * xtemp2(:,:) *      &
+    IF ( ( ift2m ) .AND. ( MAXVAL(xtemp2) > smallnum ) ) THEN  ! If T2 = 0 at init, !FV3 is top down
+      print*, 'Using T2 for surface density '
+      xdensam(:,:,0) = ( xpresm(:,:,0) / ( rdwrf * xtemp2(:,:) *      &
                          (1.0 + rvwrf*xwvapor(:,:,1)/rdwrf) ) )
+      xdensaf(:,:,metlay) = ( xpresf(:,:,metlay) / ( rdwrf * xtemp2(:,:) *      &
+                         (1.0 + rvwrf*xwvapor(:,:,metlay)/rdwrf) ) )
     ELSE
-      xdensaf(:,:,0) = ( xpresf(:,:,0) / ( rdwrf * xtempm(:,:,1) *  &
-                         (1.0 + rvwrf*xwvapor(:,:,1)/rdwrf) ) )
+      xdensam(:,:,0) = ( xpresm(:,:,0) / ( rdwrf * xtempf(:,:,1) *  &
+                         (1.0 + rvwrf*xwvapor(:,:,1)/rdwrf) ) )      
+      xdensaf(:,:,metlay) = ( xpresf(:,:,metlay) / ( rdwrf * xtempf(:,:,metlay) *  &
+                         (1.0 + rvwrf*xwvapor(:,:,metlay)/rdwrf) ) )
     ENDIF
-    xdenss(:,:) = xdensaf(:,:,0)
+
+    xdenss(:,:) = xdensaf(:,:,metlay)
+    xdenswf(:,:,:) = xdensaf(:,:,:) * xwvapor(:,:,:) / ( 1.0 + xwvapor(:,:,:) )
+    xdenswm(:,:,0) = xdensam(:,:,0) * xwvapor(:,:,1) / ( 1.0 + xwvapor(:,:,1) )
+!    xdenswm(:,:,:) = xdensam(:,:,:) * xwvapor(:,:,:) / ( 1.0 + xwvapor(:,:,:) )
 
   ENDIF
 
-  xdenswm(:,:,:) = xdensam(:,:,:) * xwvapor(:,:,:) / ( 1.0 + xwvapor(:,:,:) )
+           print*, '-------checking density calcs in metvars2ctm.f90----------'
+           print*, 'xdenss min = ', MINVAL(xdenss(:,:))
+           print*, 'xdenss max = ', MAXVAL(xdenss(:,:))
+           print*, 'xdensaf min = ', MINVAL(xdensaf)
+           print*, 'xdensaf max = ', MAXVAL(xdensaf)
+           print*, 'xdensam size = ', SIZE(xdensam)
+           print*, 'xdensam min = ', MINVAL(xdensam)
+           print*, 'xdensam max = ', MAXVAL(xdensam)
+           print*, 'xwvapor size = ', SIZE(xwvapor)
+           print*, 'xwvapor min = ', MINVAL(xwvapor)
+           print*, 'xwvapor max = ', MAXVAL(xwvapor)
+           print*,'xdensam max bottom = ',  MAXVAL(xdensam(:,:,metlay))
+           print*,'xdensam min top = ',  MINVAL(xdensam(:,:,1))
+           print*,'xdensaf max bottom = ',  MAXVAL(xdensaf(:,:,metlay))
+           print*,'xdensaf min top = ',  MINVAL(xdensaf(:,:,1))
 
 !-------------------------------------------------------------------------------
 ! If input meteorology has a time-varying vertical coordinate, compute Jacobian
@@ -891,41 +872,46 @@ IF ( met_model == 3) THEN  ! FV3
 
   ENDIF
 
-  IF ( met_model == 3 ) THEN ! FV3, needs work to correct!
+  IF ( met_model == 3 ) THEN ! FV3,
 
     IF ( met_hybrid >= 0 ) THEN
-      DO k = 1, metlay
+      DO k = 0, metlay
         ! Adjust mu (a.k.a., ps - ptop) for hybrid coordinate.
         ! Calculate Jacobian from WRF relation:
         !   J*g = - d(phi)/d(eta) = - d(g z)/d(eta) = mu alpha = mu/rho
+        xmuhyb(:,:)     = c1h(k+1) * xmu(:,:) + c2h(k+1)
+        x3jacobm(:,:,k) = giwrf  * xmuhyb(:,:) / xdensam(:,:,k)
+        IF ( k == 0 ) CYCLE
         xmuhyb(:,:)     = c1f(k) * xmu(:,:) + c2f(k)
         x3jacobf(:,:,k) = giwrf  * xmuhyb(:,:) / xdensaf(:,:,k)
-!        IF ( k == 0 ) CYCLE
-        xmuhyb(:,:)     = c1h(k) * xmu(:,:) + c2h(k)
-        x3jacobm(:,:,k) = giwrf  * xmuhyb(:,:) / xdensam(:,:,k)
       ENDDO
     ELSE
-      DO k = 1, metlay
+      DO k = 0, metlay
         ! Calculate Jacobian from WRF relation:
         !   J*g = - d(phi)/d(eta) = - d(g z)/d(eta) = mu alpha = mu/rho
-        x3jacobf(:,:,k) = giwrf * xmu(:,:) / xdensaf(:,:,k)
-!        IF ( k == 0 ) CYCLE
         x3jacobm(:,:,k) = giwrf * xmu(:,:) / xdensam(:,:,k)
+        IF ( k == 0 ) CYCLE
+        x3jacobf(:,:,k) = giwrf * xmu(:,:) / xdensaf(:,:,k)
       ENDDO
     ENDIF
-    
+
+    print*, '-------checking hybrid MU (Pa) calcs in metvars2ctm.f90----------'  
+    print*, 'xmu min = ', MINVAL(xmu)
+    print*, 'xmu max = ', MAXVAL(xmu)
+    print*, 'xmuhyb min = ', MINVAL(xmuhyb)   
+    print*, 'xmuhyb max = ', MAXVAL(xmuhyb)
+    print*, '-------checking jacobian calcs in metvars2ctm.f90----------'
     print*, 'x3jacobf min = ', MINVAL(x3jacobf)
     print*, 'x3jacobf max = ', MAXVAL(x3jacobf)
     print*, 'x3jacobm min = ', MINVAL(x3jacobm)
     print*, 'x3jacobm max = ', MAXVAL(x3jacobm)
 
+
+    print*, 'xx3face = ', xx3face
+    print*, 'xx3midl = ', xx3midl
     CALL layht  (xx3face, xx3midl, x3jacobf, x3jacobm, x3htf, x3htm)
           
-!    print*,'x3jacobm bottom = ',  x3jacobm(:,:,metlay)
-!    print*,'x3jacobm top = ',  x3jacobm(:,:,1)
-!    print*,'x3jacobf bottom = ',  x3jacobf(:,:,metlay)
-!    print*,'x3jacobf top = ',  x3jacobf(:,:,1)
-
+    print*, '-------checking layer height (m) calcs using jacobian in metvars2ctm.f90----------'
     print*, 'x3htf (ZF) min = ', MINVAL(x3htf)
     print*, 'x3htf (ZF) max = ', MAXVAL(x3htf)
     print*, 'x3htm (ZH) min = ', MINVAL(x3htm)
@@ -965,5 +951,17 @@ IF ( met_model == 3) THEN  ! FV3
       ENDDO
     ENDIF
   ENDIF
+
+!-------------------------------------------------------------------------------
+! FV3 uses full Layers: Set remaining calcs in MCIP that use mid to full layers
+!-------------------------------------------------------------------------------
+ IF ( met_model == 3 ) THEN  !FV3
+  xtempm (:,:,1:) = xtempf (:,:,:) 
+  xpresm (:,:,1:) = xpresf (:,:,:)
+  xdensam(:,:,1:) = xdensaf(:,:,:) 
+  xdenswm(:,:,1:) = xdenswf(:,:,:)
+ ENDIF
+  print*, 'xdenswm min = ', MINVAL(xdenswm)
+  print*, 'xdenswm max = ', MAXVAL(xdenswm)
 
 END SUBROUTINE metvars2ctm

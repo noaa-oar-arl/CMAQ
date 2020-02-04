@@ -106,7 +106,7 @@ SUBROUTINE alloc_ctm
    ALLOCATE ( vglvs_gd  ( nlays+1) )
   ENDIF
 
-  IF ( met_model == 3 ) THEN !WRF
+  IF ( met_model == 3 ) THEN !FV3
    ALLOCATE ( vglvs_gd  ( nlays) )
   ENDIF
 

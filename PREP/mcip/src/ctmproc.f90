@@ -453,7 +453,7 @@ SUBROUTINE ctmproc
           c_densa_j%fld(col,row,lvl) = xrhojm(c,r,lvl) / xmapc2(c,r)
         ENDIF
        ENDIF
-       
+      
        IF ( met_model == 3 ) THEN  !FV3
         IF ( ( x3jfmin > xmissing ) .AND. ( xmapmin > xmissing ) ) THEN
           c_jacobf%fld(col,row,lvl) = x3jacobf(c,r,nlays-lvl+1) / xmapc2(c,r)
@@ -571,6 +571,12 @@ SUBROUTINE ctmproc
       ENDDO
     ENDDO
   ENDDO
+
+      print*, '-------checking Jacobian/xmapc2 and density/xmapc2 writes in ctmproc.f90----------'
+      print*, 'x3jfmin = ', x3jfmin, 'xmapmin = ', xmapmin, 'xmissing = ', xmissing
+      print*, 'x3jmmin = ', x3jmmin
+      print*, 'xdnamin = ', xdnamin
+
 
   ! Added for mass consistency
 

@@ -100,7 +100,7 @@ SUBROUTINE metgrid2ctm
    ENDDO
   ENDIF
   
-  IF ( met_model == 3 ) THEN  !FV3
+  IF ( met_model == 3 ) THEN  !FV3 
    DO jw = 1, SIZE(sigmah)-1
      xx3midl(jw) = 0.5 * ( xx3face(jw-1) + xx3face(jw) )
    ENDDO
@@ -111,19 +111,10 @@ SUBROUTINE metgrid2ctm
 !-------------------------------------------------------------------------------
 ! Put time-invariant cross-point arrays on MCIP_X grid.
 !-------------------------------------------------------------------------------
-!  IF ( met_model == 2 ) THEN  !WRF
   sc = x0
   ec = x0 + ncols_x - 1
   sr = y0
   er = y0 + nrows_x - 1
-!  ENDIF
-
-!  IF ( met_model == 3 ) THEN  !FV3
-!  sc = x0
-!  ec = x0 + ncols_x - 1
-!  er = y0
-!  sr = y0 + nrows_x - 1
-!  ENDIF
 
   xtopo(:,:) = terrain(sc:ec,sr:er)
   xmapc(:,:) = mapcrs (sc:ec,sr:er)
@@ -138,20 +129,10 @@ SUBROUTINE metgrid2ctm
 ! on the physical grid, but the face arrays are oversized to the dot-point
 ! array space in MCIP out of convenience.
 !-------------------------------------------------------------------------------
-!  IF ( met_model == 2 ) THEN  !WRF
   sc = x0
   ec = x0 + ncols_x
   sr = y0
   er = y0 + nrows_x
-!  ENDIF
-
-!  IF ( met_model == 3 ) THEN  !FV3
-!  sc = x0
-!  ec = x0 + ncols_x
-!  er = y0
-!  sr = y0 + nrows_x
-!  ENDIF
-
 
   xmapd(:,:) = mapdot(sc:ec,sr:er)
   xlatd(:,:) = latdot(sc:ec,sr:er)

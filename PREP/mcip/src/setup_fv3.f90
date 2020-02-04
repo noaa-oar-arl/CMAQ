@@ -1299,10 +1299,11 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
   !Leave check in FV3 MCIP version in case fractional land use becomes available,
   ! and it does not stop model if not available
   rcode2 = nf90_inq_varid (cdfid2, 'LANDUSEF', varid)
-  IF ( rcode == nf90_noerr ) THEN
+  IF ( rcode2 == nf90_noerr ) THEN
     iflufrc    = .TRUE.   ! fractional land use is available
     ifluwrfout = .TRUE.   ! fractional land use is located in FV3 history file
   ELSE
+    iflufrc    = .FALSE.   ! fractional land use is not available
     ifluwrfout = .FALSE.  ! fractional land use is not available in FV3 history
     geofile = TRIM( file_geo )
     INQUIRE ( FILE=geofile, EXIST=ifgeo )
@@ -1329,7 +1330,7 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
         CALL graceful_stop (pname)
       ENDIF
     ENDIF
-  ENDIF
+  ENDIF  
 
   ! For now, require LANDUSEF2 and MOSAIC_CAT_INDEX to process NOAH Mosaic.
   ! IFMOSAIC is toggled to FALSE here if either field is missing.
