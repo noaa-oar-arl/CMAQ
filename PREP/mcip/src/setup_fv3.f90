@@ -178,7 +178,7 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
   INTEGER                           :: cdfidg
   REAL,               INTENT(OUT)   :: ctmlays     ( maxlays )
   REAL                              :: phalf_lays  ( maxlays )
-  REAL                              :: pfull_lays  ( maxlays )
+  REAL                              :: pfull_lays  ( maxlays+1 )
   CHARACTER(LEN=32)                 :: date_init
   INTEGER                           :: dimid
   INTEGER                           :: dimids     ( nf90_max_var_dims )
@@ -340,24 +340,24 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
     CALL graceful_stop (pname)
   ENDIF
 
-  rcode = nf90_inq_dimid (cdfid, 'pfull', dimid)
+  rcode = nf90_inq_dimid (cdfid, 'phalf', dimid)
   IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'ID for pfull',  &
+    WRITE (*,f9400) TRIM(pname), 'ID for phalf',  &
                     TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
   rcode = nf90_inquire_dimension (cdfid, dimid, len=ival)
   IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'BOTTOM-TOP_GRID_DIMENSION',  &
+    WRITE (*,f9400) TRIM(pname), 'BOTTOM-TOP_GRID_DIMENSION+1',  &
                     TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ELSE
-!    met_nz = ival - 1
-!     met_nz = ival
+
+! Set met_nz
     IF ( needlayers ) THEN
-     met_nz = MIN(maxlays,ival) !If met layers > max layers, collapse to subset of max layers    
+     met_nz = MIN(maxlays,ival-1) !If ival > max layers, cap at subset of IOAPI max layers
     ELSE
-     met_nz = SIZE(ctmlays)
+     met_nz = SIZE(ctmlays)  
     ENDIF
 
   ENDIF
@@ -374,17 +374,48 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 ! Set NLAYS
   nlays = met_nz
   
-  CALL get_var_1d_real_cdf (cdfid, 'phalf', phalf_lays(1:nlays+1), 1, rcode)
+  rcode = nf90_inq_varid (cdfid, 'phalf', varid)
   IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'phalf', TRIM(nf90_strerror(rcode))
+    WRITE (*,f9400) TRIM(pname), 'phalf',  &
+                    TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
+  ELSE
+  ALLOCATE ( dum1d ( ival ) ) 
+  rcode = nf90_get_var (cdfid, varid, dum1d)
+
+  pfull_lays(1:met_nz+1) = dum1d(ival:ival-met_nz:-1) 
+
+  DEALLOCATE (dum1d)
+  ENDIF
+  
+  rcode = nf90_inq_varid (cdfid, 'pfull', varid)
+  IF ( rcode /= nf90_noerr ) THEN
+    WRITE (*,f9400) TRIM(pname), 'pfull',  &
+                    TRIM(nf90_strerror(rcode))
+    CALL graceful_stop (pname)
+  ELSE
+  ALLOCATE ( dum1d ( ival-1 ) )
+  rcode = nf90_get_var (cdfid, varid, dum1d)
+
+  phalf_lays(1:met_nz) = dum1d(ival:ival-met_nz-1:-1)
+
+  DEALLOCATE (dum1d)
   ENDIF
 
-  CALL get_var_1d_real_cdf (cdfid, 'pfull', pfull_lays(1:nlays), 1, rcode)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'pfull', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
+!  CALL get_var_1d_real_cdf (cdfid, 'pfull', phalf_lays_read, 1, rcode)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'pfull', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+
+  
+!  CALL get_var_1d_real_cdf (cdfid, 'phalf', pfull_lays(nlays+1:1:-1), 1, rcode)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'phalf', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
+
+
 
 
 !-------------------------------------------------------------------------------
@@ -1100,8 +1131,8 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 !    CALL graceful_stop (pname)
 !  ENDIF
 
-!  met_ptop  = phalf_lays(1)*100.0 !FV3 set met_ptop to first value of phalf array, FV3 top-down [Pa]
-  met_ptop  = pfull_lays(1)*100.0 !FV3 set met_ptop to first value of pfull array, FV3 top-down [Pa]
+!  met_ptop  = phalf_lays(nlays)*100.0 !FV3 set met_ptop to first value of phalf array
+  met_ptop  = pfull_lays(nlays+1)*100.0 ! FV3 top-down hPa --> [Pa]
   met_p00   = 100000.0 ! base state sea-level pressure [Pa]
   met_ts0   =    290.0 ! base state sea-level temperature [K]
   met_tlp   =     50.0 ! base state lapse rate d(T)/d(ln P) from 1000 to 300 mb
@@ -1117,7 +1148,8 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 !    ctmlays = (pfull_lays(nlays+1:1:-1) - pfull_lays(1)) / (MAXVAL(pfull_lays) - pfull_lays(1))
     !Flip again to top down to be consistent with other FV3 vertical grid.
 !    ctmlays = ctmlays(nlays+1:1:-1)
-     ctmlays = (pfull_lays - pfull_lays(1)) / (MAXVAL(pfull_lays) - pfull_lays(1))
+!     ctmlays = (pfull_lays - pfull_lays(nlays)) / (MAXVAL(pfull_lays) - pfull_lays(nlays))
+     ctmlays = (phalf_lays - phalf_lays(nlays)) / (MAXVAL(phalf_lays) - phalf_lays(nlays))
   ENDIF
 !-------------------------------------------------------------------------------
 ! Determine FV3 release.

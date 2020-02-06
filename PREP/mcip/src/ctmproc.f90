@@ -149,7 +149,6 @@ SUBROUTINE ctmproc
   USE ctmvars
   USE vgrd
   USE coord   ! <--- fix this so that X3FACE and X3MIDL are moved  TLS 14Dec18
-  USE metinfo
 
   IMPLICIT NONE
 
@@ -248,13 +247,7 @@ SUBROUTINE ctmproc
   x3jfmin = MINVAL(x3jacobf)
 
   DO row = 1, nrows
-    IF ( met_model == 2 ) THEN  !WRF
-     r = row + nthik
-    ENDIF
-    IF ( met_model == 3 ) THEN  !FV3
-     r = row + nthik
-     r = (nrows - r + nthik) + (nthik+nthik)
-    ENDIF 
+    r = row + nthik
     DO col = 1, ncols
       c = col + nthik
 
@@ -428,19 +421,13 @@ SUBROUTINE ctmproc
   xdnamin = MINVAL(xdensam)
 
   DO row = 1, nrows
-    IF ( met_model == 2 ) THEN  !WRF
-     r = row + nthik
-    ENDIF
-    IF ( met_model == 3 ) THEN  !FV3
-     r = row + nthik
-     r = (nrows - r + nthik) + (nthik+nthik)
-    ENDIF
+    r = row + nthik
     DO col = 1, ncols
       c = col + nthik
       DO lvl = 1, nlays
 
         ! Used in generalized vertical coordinates in CCTM.
-       IF ( met_model == 2 ) THEN  !WRF
+
         IF ( ( x3jfmin > xmissing ) .AND. ( xmapmin > xmissing ) ) THEN
           c_jacobf%fld(col,row,lvl) = x3jacobf(c,r,lvl) / xmapc2(c,r)
         ENDIF
@@ -452,44 +439,18 @@ SUBROUTINE ctmproc
         IF ( ( xdnamin > xmissing ) .AND. ( x3jmmin > xmissing ) ) THEN
           c_densa_j%fld(col,row,lvl) = xrhojm(c,r,lvl) / xmapc2(c,r)
         ENDIF
-       ENDIF
-      
-       IF ( met_model == 3 ) THEN  !FV3
-        IF ( ( x3jfmin > xmissing ) .AND. ( xmapmin > xmissing ) ) THEN
-          c_jacobf%fld(col,row,lvl) = x3jacobf(c,r,nlays-lvl+1) / xmapc2(c,r)
-        ENDIF
-        
-        IF ( ( x3jmmin > xmissing ) .AND. ( xmapmin > xmissing ) ) THEN
-          c_jacobm%fld(col,row,lvl) = x3jacobm(c,r,nlays-lvl+1) / xmapc2(c,r)
-        ENDIF
-
-        IF ( ( xdnamin > xmissing ) .AND. ( x3jmmin > xmissing ) ) THEN
-          c_densa_j%fld(col,row,lvl) = xrhojm(c,r,nlays-lvl+1) / xmapc2(c,r)
-        ENDIF
-       ENDIF
-
 
         ! State fields.
-       IF ( met_model == 2 ) THEN  !WRF
+
         c_ta%fld(col,row,lvl)   = xtempm(c,r,lvl)
         c_qv%fld(col,row,lvl)   = xwvapor(c,r,lvl)
         c_pres%fld(col,row,lvl) = xpresm(c,r,lvl)
         c_dens%fld(col,row,lvl) = xdensam(c,r,lvl)
         c_zh%fld(col,row,lvl)   = x3htm(c,r,lvl)
         c_zf%fld(col,row,lvl)   = x3htf(c,r,lvl)
-       ENDIF
-  
-       IF ( met_model == 3 ) THEN  !FV3
-        c_ta%fld(col,row,lvl)   = xtempm(c,r,nlays-lvl+1)
-        c_qv%fld(col,row,lvl)   = xwvapor(c,r,nlays-lvl+1)
-        c_pres%fld(col,row,lvl) = xpresm(c,r,nlays-lvl+1)
-        c_dens%fld(col,row,lvl) = xdensam(c,r,nlays-lvl+1)
-        c_zh%fld(col,row,lvl)   = x3htm(c,r,nlays-lvl+1)
-        c_zf%fld(col,row,lvl)   = x3htf(c,r,nlays-lvl+1)
-       ENDIF
 
         ! Moisture fields.
-       IF ( met_model == 2 ) THEN  !WRF
+
         IF ( nqspecies >= 2 ) THEN
           c_qc%fld(col,row,lvl) = xcldwtr(c,r,lvl)
           c_qr%fld(col,row,lvl) = xranwtr(c,r,lvl)
@@ -501,23 +462,7 @@ SUBROUTINE ctmproc
             ENDIF
           ENDIF
         ENDIF
-       ENDIF
 
-       IF ( met_model == 3 ) THEN  !FV3
-        IF ( nqspecies >= 2 ) THEN
-          c_qc%fld(col,row,lvl) = xcldwtr(c,r,nlays-lvl+1)
-          c_qr%fld(col,row,lvl) = xranwtr(c,r,nlays-lvl+1)
-          IF ( nqspecies >= 4 ) THEN
-            c_qi%fld(col,row,lvl) = xqice (c,r,nlays-lvl+1)
-            c_qs%fld(col,row,lvl) = xqsnow(c,r,nlays-lvl+1)
-            IF ( nqspecies == 5 ) THEN
-              c_qg%fld(col,row,lvl) = xqgraup(c,r,nlays-lvl+1)
-            ENDIF
-          ENDIF
-        ENDIF
-       ENDIF
-
-       IF ( met_model == 2 ) THEN  !WRF
         IF ( iftke ) THEN
           c_tke%fld(col,row,lvl) = xtke(c,r,lvl)
         ENDIF
@@ -540,43 +485,10 @@ SUBROUTINE ctmproc
           c_cldfra_dp%fld(col,row,lvl) = xcldfrad(c,r,lvl)
           c_cldfra_sh%fld(col,row,lvl) = xcldfras(c,r,lvl)
         ENDIF
-       ENDIF
-
-       IF ( met_model == 3 ) THEN  !FV3
-        IF ( iftke ) THEN
-          c_tke%fld(col,row,lvl) = xtke(c,r,nlays-lvl+1)
-        ENDIF
-
-        IF ( lpv > 0 ) THEN
-          c_pv%fld(col,row,lvl) = xpvc(c,r,nlays-lvl+1)
-        ENDIF
-
-        IF ( lwout > 0 ) THEN
-          c_wwind%fld(col,row,lvl) = xwwind(c,r,nlays-lvl+1)
-        ENDIF
-
-        IF ( ifcld3d ) THEN
-          c_cfrac_3d%fld(col,row,lvl) = xcfrac3d(c,r,nlays-lvl+1)
-        ENDIF
-
-        IF ( ifkfradextras ) THEN
-          c_qc_cu%fld(col,row,lvl)     = xqc_cu(c,r,nlays-lvl+1)
-          c_qi_cu%fld(col,row,lvl)     = xqi_cu(c,r,nlays-lvl+1)
-          c_cldfra_dp%fld(col,row,lvl) = xcldfrad(c,r,nlays-lvl+1)
-          c_cldfra_sh%fld(col,row,lvl) = xcldfras(c,r,nlays-lvl+1)
-        ENDIF
-       ENDIF
-
 
       ENDDO
     ENDDO
   ENDDO
-
-      print*, '-------checking Jacobian/xmapc2 and density/xmapc2 writes in ctmproc.f90----------'
-      print*, 'x3jfmin = ', x3jfmin, 'xmapmin = ', xmapmin, 'xmissing = ', xmissing
-      print*, 'x3jmmin = ', x3jmmin
-      print*, 'xdnamin = ', xdnamin
-
 
   ! Added for mass consistency
 
@@ -585,36 +497,17 @@ SUBROUTINE ctmproc
   IF ( xdnjmin > xmissing ) THEN
 
     DO row = 1, nrows
-      IF ( met_model == 2 ) THEN  !WRF
-       r = row + nthik
-      ENDIF
-      IF ( met_model == 3 ) THEN  !FV3
-       r = row + nthik
-       r = (nrows - r + nthik) + (nthik+nthik)
-      ENDIF
+      r = row + nthik
       DO col = 1, ncols
         c = col + nthik
-
         DO lvl = 1, nlays-1
-         IF ( met_model == 2 ) THEN  !WRF
+
           c_what_jd%fld(col,row,lvl) = xwhat(c,r,lvl) *                        &
                                 ( wght_bot(lvl) * c_densa_j%fld(col,row,lvl)   &
                                 + wght_top(lvl) * c_densa_j%fld(col,row,lvl+1) )
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_what_jd%fld(col,row,lvl) = xwhat(c,r,nlays-lvl+1) *                        &
-                                ( wght_bot(nlays-lvl+1) * c_densa_j%fld(col,row,nlays-lvl+1)   &
-                                + wght_top(nlays-lvl+1) * c_densa_j%fld(col,row,nlays-lvl+1) )
-         ENDIF
-
         ENDDO
-         c_what_jd%fld(col,row,nlays) = 0.0
-        
-        IF ( met_model == 3 ) THEN  !FV3
-         c_what_jd%fld(col,row,1) = xwhat(c,r,nlays-1) *                        &
-                                ( wght_bot(nlays-1) * c_densa_j%fld(col,row,nlays-1)   &
-                                + wght_top(nlays-1) * c_densa_j%fld(col,row,nlays) )
-        ENDIF
+
+        c_what_jd%fld(col,row,nlays) = 0.0
 
       ENDDO
     ENDDO
@@ -622,7 +515,7 @@ SUBROUTINE ctmproc
   ENDIF
 
 !-------------------------------------------------------------------------------
-! Fill boundaries for time-varying 3d fields at cell centers.+1
+! Fill boundaries for time-varying 3d fields at cell centers.
 !-------------------------------------------------------------------------------
 
   idx = 0
@@ -636,7 +529,7 @@ SUBROUTINE ctmproc
       DO lvl = 1, nlays
 
         ! Used in generalized vertical coordinates in CCTM.
-       IF ( met_model == 2 ) THEN  !WRF
+
         IF ( ( x3jfmin > xmissing ) .AND. ( xmapmin > xmissing ) ) THEN
           c_jacobf%bdy(idx,lvl) = x3jacobf(c,r,lvl) / xmapc2(c,r)
         ENDIF
@@ -648,43 +541,18 @@ SUBROUTINE ctmproc
         IF ( ( xdnamin > xmissing ) .AND. ( x3jmmin > xmissing ) ) THEN
           c_densa_j%bdy(idx,lvl) = xrhojm(c,r,lvl) / xmapc2(c,r)
         ENDIF
-       ENDIF
-
-       IF ( met_model == 3 ) THEN  !FV3
-        IF ( ( x3jfmin > xmissing ) .AND. ( xmapmin > xmissing ) ) THEN
-          c_jacobf%bdy(idx,lvl) = x3jacobf(c,r,nlays-lvl+1) / xmapc2(c,r)
-        ENDIF
-
-        IF ( ( x3jmmin > xmissing ) .AND. ( xmapmin > xmissing ) ) THEN
-          c_jacobm%bdy(idx,lvl) = x3jacobm(c,r,nlays-lvl+1) / xmapc2(c,r)
-        ENDIF
-
-        IF ( ( xdnamin > xmissing ) .AND. ( x3jmmin > xmissing ) ) THEN
-          c_densa_j%bdy(idx,lvl) = xrhojm(c,r,nlays-lvl+1) / xmapc2(c,r)
-        ENDIF
-       ENDIF
 
         ! State variables.
-       IF ( met_model == 2 ) THEN  !WRF
+
         c_ta%bdy(idx,lvl)   = xtempm(c,r,lvl)
         c_qv%bdy(idx,lvl)   = xwvapor(c,r,lvl)
         c_pres%bdy(idx,lvl) = xpresm(c,r,lvl)
         c_dens%bdy(idx,lvl) = xdensam(c,r,lvl)
         c_zh%bdy(idx,lvl)   = x3htm(c,r,lvl)
         c_zf%bdy(idx,lvl)   = x3htf(c,r,lvl)
-       ENDIF
-
-       IF ( met_model == 3 ) THEN  !FV3
-        c_ta%bdy(idx,lvl)   = xtempm(c,r,nlays-lvl+1)
-        c_qv%bdy(idx,lvl)   = xwvapor(c,r,nlays-lvl+1)
-        c_pres%bdy(idx,lvl) = xpresm(c,r,nlays-lvl+1)
-        c_dens%bdy(idx,lvl) = xdensam(c,r,nlays-lvl+1)
-        c_zh%bdy(idx,lvl)   = x3htm(c,r,nlays-lvl+1)
-        c_zf%bdy(idx,lvl)   = x3htf(c,r,nlays-lvl+1)
-       ENDIF
 
         ! Moisture variables.
-       IF ( met_model == 2 ) THEN  !WRF
+
         IF ( nqspecies >= 2 ) THEN
           c_qc%bdy(idx,lvl) = xcldwtr(c,r,lvl)
           c_qr%bdy(idx,lvl) = xranwtr(c,r,lvl)
@@ -696,71 +564,28 @@ SUBROUTINE ctmproc
             ENDIF
           ENDIF
         ENDIF
-       ENDIF
-
-       IF ( met_model == 3 ) THEN  !FV3
-        IF ( nqspecies >= 2 ) THEN
-          c_qc%bdy(idx,lvl) = xcldwtr(c,r,nlays-lvl+1)
-          c_qr%bdy(idx,lvl) = xranwtr(c,r,nlays-lvl+1)
-          IF ( nqspecies >= 4 ) THEN
-            c_qi%bdy(idx,lvl) = xqice(c,r,nlays-lvl+1)
-            c_qs%bdy(idx,lvl) = xqsnow(c,r,nlays-lvl+1)
-            IF ( nqspecies == 5 ) THEN
-              c_qg%bdy(idx,lvl) = xqgraup(c,r,nlays-lvl+1)
-            ENDIF
-          ENDIF
-        ENDIF
-       ENDIF
 
         IF ( iftke ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
           c_tke%bdy(idx,lvl) = xtke(c,r,lvl)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_tke%bdy(idx,lvl) = xtke(c,r,nlays-lvl+1)
-         ENDIF
         ENDIF
 
         IF ( lpv > 0 ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
           c_pv%bdy(idx,lvl) = xpvc(c,r,lvl)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_pv%bdy(idx,lvl) = xpvc(c,r,nlays-lvl+1)
-         ENDIF
         ENDIF
 
         IF ( lwout > 0 ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
           c_wwind%bdy(idx,lvl) = xwwind(c,r,lvl)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_wwind%bdy(idx,lvl) = xwwind(c,r,nlays-lvl+1)
-         ENDIF
         ENDIF
 
         IF ( ifcld3d ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
           c_cfrac_3d%bdy(idx,lvl) = xcfrac3d(c,r,lvl)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_cfrac_3d%bdy(idx,lvl) = xcfrac3d(c,r,nlays-lvl+1)
-         ENDIF
         ENDIF
 
         IF ( ifkfradextras ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
           c_qc_cu%bdy(idx,lvl)     = xqc_cu(c,r,lvl)
           c_qi_cu%bdy(idx,lvl)     = xqi_cu(c,r,lvl)
           c_cldfra_dp%bdy(idx,lvl) = xcldfrad(c,r,lvl)
           c_cldfra_sh%bdy(idx,lvl) = xcldfras(c,r,lvl)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_qc_cu%bdy(idx,lvl)     = xqc_cu(c,r,nlays-lvl+1)
-          c_qi_cu%bdy(idx,lvl)     = xqi_cu(c,r,nlays-lvl+1)
-          c_cldfra_dp%bdy(idx,lvl) = xcldfrad(c,r,nlays-lvl+1)
-          c_cldfra_sh%bdy(idx,lvl) = xcldfras(c,r,nlays-lvl+1)
-         ENDIF
         ENDIF
 
       ENDDO 
@@ -770,24 +595,12 @@ SUBROUTINE ctmproc
       IF ( xdnjmin > xmissing ) THEN
 
         DO lvl = 1, nlays-1
-         IF ( met_model == 2 ) THEN  !WRF
           c_what_jd%bdy(idx,lvl) = xwhat(c,r,lvl) *                           &
                                    ( wght_bot(lvl) * c_densa_j%bdy(idx,lvl)   &
                                    + wght_top(lvl) * c_densa_j%bdy(idx,lvl+1) )
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_what_jd%bdy(idx,lvl) = xwhat(c,r,nlays-lvl+1) *                           &
-                                   ( wght_bot(nlays-lvl+1) * c_densa_j%bdy(idx,nlays-lvl+1)   &
-                                   + wght_top(nlays-lvl+1) * c_densa_j%bdy(idx,nlays-lvl+1) )
-         ENDIF
         ENDDO
 
         c_what_jd%bdy(idx,nlays) = 0.0
-        IF ( met_model == 3 ) THEN  !FV3
-          c_what_jd%bdy(idx,1) = xwhat(c,r,nlays-1) *                           &
-                                   ( wght_bot(nlays-1) * c_densa_j%bdy(idx,nlays-1)   &
-                                   + wght_top(nlays-1) * c_densa_j%bdy(idx,nlays) )
-         ENDIF
 
       ENDIF
 
@@ -806,53 +619,28 @@ SUBROUTINE ctmproc
         ! Used in generalized vertical coordinates in CCTM.
 
         IF ( ( x3jfmin > xmissing ) .AND. ( xmapmin > xmissing ) ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
           c_jacobf%bdy(idx,lvl) = x3jacobf(c,r,lvl) / xmapc2(c,r)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_jacobf%bdy(idx,lvl) = x3jacobf(c,nrows_x-r+nthik,nlays-lvl+1) / xmapc2(c,nrows_x-r+nthik)
-         ENDIF
         ENDIF
 
         IF ( ( x3jmmin > xmissing ) .AND. ( xmapmin > xmissing ) ) THEN
-         IF ( met_model == 2 ) THEN  !WRF 
           c_jacobm%bdy(idx,lvl) = x3jacobm(c,r,lvl) / xmapc2(c,r)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_jacobm%bdy(idx,lvl) = x3jacobm(c,nrows_x-r+nthik,nlays-lvl+1) / xmapc2(c,nrows_x-r+nthik)
-         ENDIF
         ENDIF
 
         IF ( ( xdnamin > xmissing ) .AND. ( x3jmmin > xmissing ) ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
           c_densa_j%bdy(idx,lvl) = xrhojm(c,r,lvl) / xmapc2(c,r)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_densa_j%bdy(idx,lvl) = xrhojm(c,nrows_x-r+nthik,nlays-lvl+1) / xmapc2(c,nrows_x-r+nthik)
-         ENDIF
         ENDIF
 
         ! State variables.
-      IF ( met_model == 2 ) THEN  !WRF
+
         c_ta%bdy(idx,lvl)   = xtempm(c,r,lvl)
         c_qv%bdy(idx,lvl)   = xwvapor(c,r,lvl)
         c_pres%bdy(idx,lvl) = xpresm(c,r,lvl)
         c_dens%bdy(idx,lvl) = xdensam(c,r,lvl)
         c_zh%bdy(idx,lvl)   = x3htm(c,r,lvl)
         c_zf%bdy(idx,lvl)   = x3htf(c,r,lvl)
-      ENDIF
-
-      IF ( met_model == 3 ) THEN  !FV3
-        c_ta%bdy(idx,lvl)   = xtempm(c,nrows_x-r+nthik,nlays-lvl+1)
-        c_qv%bdy(idx,lvl)   = xwvapor(c,nrows_x-r+nthik,nlays-lvl+1)
-        c_pres%bdy(idx,lvl) = xpresm(c,nrows_x-r+nthik,nlays-lvl+1)
-        c_dens%bdy(idx,lvl) = xdensam(c,nrows_x-r+nthik,nlays-lvl+1)
-        c_zh%bdy(idx,lvl)   = x3htm(c,nrows_x-r+nthik,nlays-lvl+1)
-        c_zf%bdy(idx,lvl)   = x3htf(c,nrows_x-r+nthik,nlays-lvl+1)
-      ENDIF
 
         ! Moisture variables.
-       IF ( met_model == 2 ) THEN  !WRF
+
         IF ( nqspecies >= 2 ) THEN
           c_qc%bdy(idx,lvl) = xcldwtr(c,r,lvl)
           c_qr%bdy(idx,lvl) = xranwtr(c,r,lvl)
@@ -864,72 +652,28 @@ SUBROUTINE ctmproc
             ENDIF
           ENDIF
         ENDIF
-       ENDIF
-
-       IF ( met_model == 3 ) THEN  !FV3
-        IF ( nqspecies >= 2 ) THEN
-          c_qc%bdy(idx,lvl) = xcldwtr(c,nrows_x-r+nthik,nlays-lvl+1)
-          c_qr%bdy(idx,lvl) = xranwtr(c,nrows_x-r+nthik,nlays-lvl+1)
-          IF ( nqspecies >= 4 ) THEN
-            c_qi%bdy(idx,lvl) = xqice(c,nrows_x-r+nthik,nlays-lvl+1)
-            c_qs%bdy(idx,lvl) = xqsnow(c,nrows_x-r+nthik,nlays-lvl+1)
-            IF ( nqspecies == 5 ) THEN
-              c_qg%bdy(idx,lvl) = xqgraup(c,nrows_x-r+nthik,nlays-lvl+1)
-            ENDIF
-          ENDIF
-        ENDIF
-       ENDIF
-
 
         IF ( iftke ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
           c_tke%bdy(idx,lvl) = xtke(c,r,lvl)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_tke%bdy(idx,lvl) = xtke(c,nrows_x-r+nthik,nlays-lvl+1)
-         ENDIF
         ENDIF
 
         IF ( lpv > 0 ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
           c_pv%bdy(idx,lvl) = xpvc(c,r,lvl)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_pv%bdy(idx,lvl) = xpvc(c,nrows_x-r+nthik,nlays-lvl+1)
-         ENDIF
         ENDIF
 
         IF ( lwout > 0 ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
           c_wwind%bdy(idx,lvl) = xwwind(c,r,lvl)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_wwind%bdy(idx,lvl) = xwwind(c,nrows_x-r+nthik,nlays-lvl+1)
-         ENDIF
         ENDIF
 
         IF ( ifcld3d ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
           c_cfrac_3d%bdy(idx,lvl) = xcfrac3d(c,r,lvl)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_cfrac_3d%bdy(idx,lvl) = xcfrac3d(c,nrows_x-r+nthik,nlays-lvl+1)
-         ENDIF
         ENDIF
 
         IF ( ifkfradextras ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
           c_qc_cu%bdy(idx,lvl)     = xqc_cu(c,r,lvl)
           c_qi_cu%bdy(idx,lvl)     = xqi_cu(c,r,lvl)
           c_cldfra_dp%bdy(idx,lvl) = xcldfrad(c,r,lvl)
           c_cldfra_sh%bdy(idx,lvl) = xcldfras(c,r,lvl)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_qc_cu%bdy(idx,lvl)     = xqc_cu(c,nrows_x-r+nthik,nlays-lvl+1)
-          c_qi_cu%bdy(idx,lvl)     = xqi_cu(c,nrows_x-r+nthik,nlays-lvl+1)
-          c_cldfra_dp%bdy(idx,lvl) = xcldfrad(c,nrows_x-r+nthik,nlays-lvl+1)
-          c_cldfra_sh%bdy(idx,lvl) = xcldfras(c,nrows_x-r+nthik,nlays-lvl+1)
-         ENDIF
         ENDIF
 
       ENDDO 
@@ -939,26 +683,12 @@ SUBROUTINE ctmproc
       IF ( xdnjmin > xmissing ) THEN
 
         DO lvl = 1, nlays-1
-         IF ( met_model == 2 ) THEN  !WRF
           c_what_jd%bdy(idx,lvl) = xwhat(c,r,lvl) *                           &
                                    ( wght_bot(lvl) * c_densa_j%bdy(idx,lvl)   &
                                    + wght_top(lvl) * c_densa_j%bdy(idx,lvl+1) )
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_what_jd%bdy(idx,lvl) = xwhat(c,nrows_x-r+nthik,nlays-lvl+1) *                           &
-                                   ( wght_bot(nlays-lvl+1) * c_densa_j%bdy(idx,nlays-lvl+1)   &
-                                   + wght_top(nlays-lvl+1) * c_densa_j%bdy(idx,nlays-lvl+1) )
-         ENDIF
         ENDDO
 
         c_what_jd%bdy(idx,nlays) = 0.0
-
-        IF ( met_model == 3 ) THEN  !FV3
-          c_what_jd%bdy(idx,1) = xwhat(c,nrows_x-r+nthik,nlays-1) *                           &
-                                   ( wght_bot(nlays-1) * c_densa_j%bdy(idx,nlays-1)   &
-                                   + wght_top(nlays-1) * c_densa_j%bdy(idx,nlays) )
-         ENDIF
-
 
       ENDIF
 
@@ -975,8 +705,9 @@ SUBROUTINE ctmproc
       idx = idx + 1
 
       DO lvl = 1, nlays
+
         ! Used in generalized vertical coordinates in CCTM.
-       IF ( met_model == 2 ) THEN  !WRF
+
         IF ( ( x3jfmin > xmissing ) .AND. ( xmapmin > xmissing ) ) THEN
           c_jacobf%bdy(idx,lvl) = x3jacobf(c,r,lvl) / xmapc2(c,r)
         ENDIF
@@ -988,44 +719,18 @@ SUBROUTINE ctmproc
         IF ( ( xdnamin > xmissing ) .AND. ( x3jmmin > xmissing ) ) THEN
           c_densa_j%bdy(idx,lvl) = xrhojm(c,r,lvl) / xmapc2(c,r)
         ENDIF
-       ENDIF
-
-      IF ( met_model == 3 ) THEN  !FV3
-        IF ( ( x3jfmin > xmissing ) .AND. ( xmapmin > xmissing ) ) THEN
-          c_jacobf%bdy(idx,lvl) = x3jacobf(c,r,nlays-lvl+1) / xmapc2(c,r)
-        ENDIF
-
-        IF ( ( x3jmmin > xmissing ) .AND. ( xmapmin > xmissing ) ) THEN
-          c_jacobm%bdy(idx,lvl) = x3jacobm(c,r,nlays-lvl+1) / xmapc2(c,r)
-        ENDIF
-
-        IF ( ( xdnamin > xmissing ) .AND. ( x3jmmin > xmissing ) ) THEN
-          c_densa_j%bdy(idx,lvl) = xrhojm(c,r,nlays-lvl+1) / xmapc2(c,r)
-        ENDIF
-       ENDIF
-
 
         ! State variables.
-       IF ( met_model == 2 ) THEN  !WRF
+
         c_ta%bdy(idx,lvl)   = xtempm(c,r,lvl)
         c_qv%bdy(idx,lvl)   = xwvapor(c,r,lvl)
         c_pres%bdy(idx,lvl) = xpresm(c,r,lvl)
         c_dens%bdy(idx,lvl) = xdensam(c,r,lvl)
         c_zh%bdy(idx,lvl)   = x3htm(c,r,lvl)
         c_zf%bdy(idx,lvl)   = x3htf(c,r,lvl)
-       ENDIF
-
-       IF ( met_model == 3 ) THEN  !FV3
-        c_ta%bdy(idx,lvl)   = xtempm(c,r,nlays-lvl+1)
-        c_qv%bdy(idx,lvl)   = xwvapor(c,r,nlays-lvl+1)
-        c_pres%bdy(idx,lvl) = xpresm(c,r,nlays-lvl+1)
-        c_dens%bdy(idx,lvl) = xdensam(c,r,nlays-lvl+1)
-        c_zh%bdy(idx,lvl)   = x3htm(c,r,nlays-lvl+1)
-        c_zf%bdy(idx,lvl)   = x3htf(c,r,nlays-lvl+1)
-       ENDIF
 
         ! Moisture variables.
-       IF ( met_model == 2 ) THEN  !WRF
+
         IF ( nqspecies >= 2 ) THEN
           c_qc%bdy(idx,lvl) = xcldwtr(c,r,lvl)
           c_qr%bdy(idx,lvl) = xranwtr(c,r,lvl)
@@ -1037,72 +742,28 @@ SUBROUTINE ctmproc
             ENDIF
           ENDIF
         ENDIF
-       ENDIF
-
-       IF ( met_model == 3 ) THEN  !FV3
-        IF ( nqspecies >= 2 ) THEN
-          c_qc%bdy(idx,lvl) = xcldwtr(c,r,nlays-lvl+1)
-          c_qr%bdy(idx,lvl) = xranwtr(c,r,nlays-lvl+1)
-          IF ( nqspecies >= 4 ) THEN
-            c_qi%bdy(idx,lvl) = xqice(c,r,nlays-lvl+1)
-            c_qs%bdy(idx,lvl) = xqsnow(c,r,nlays-lvl+1)
-            IF ( nqspecies == 5 ) THEN
-              c_qg%bdy(idx,lvl) = xqgraup(c,r,nlays-lvl+1)
-            ENDIF
-          ENDIF
-        ENDIF
-       ENDIF
-
 
         IF ( iftke ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
           c_tke%bdy(idx,lvl) = xtke(c,r,lvl)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_tke%bdy(idx,lvl) = xtke(c,r,nlays-lvl+1)
-         ENDIF
         ENDIF
 
         IF ( lpv > 0 ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
           c_pv%bdy(idx,lvl) = xpvc(c,r,lvl)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_pv%bdy(idx,lvl) = xpvc(c,r,nlays-lvl+1)
-         ENDIF
         ENDIF
 
         IF ( lwout > 0 ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
           c_wwind%bdy(idx,lvl) = xwwind(c,r,lvl)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_wwind%bdy(idx,lvl) = xwwind(c,r,nlays-lvl+1)
-         ENDIF
         ENDIF
 
         IF ( ifcld3d ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
-          c_cfrac_3d%bdy(idx,lvl) = xcfrac3d(c,r,lvl)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_cfrac_3d%bdy(idx,lvl) = xcfrac3d(c,r,nlays-lvl+1)
-         ENDIF
+          c_wwind%bdy(idx,lvl) = xcfrac3d(c,r,lvl)
         ENDIF
 
         IF ( ifkfradextras ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
           c_qc_cu%bdy(idx,lvl)     = xqc_cu(c,r,lvl)
           c_qi_cu%bdy(idx,lvl)     = xqi_cu(c,r,lvl)
           c_cldfra_dp%bdy(idx,lvl) = xcldfrad(c,r,lvl)
           c_cldfra_sh%bdy(idx,lvl) = xcldfras(c,r,lvl)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_qc_cu%bdy(idx,lvl)     = xqc_cu(c,r,nlays-lvl+1)
-          c_qi_cu%bdy(idx,lvl)     = xqi_cu(c,r,nlays-lvl+1)
-          c_cldfra_dp%bdy(idx,lvl) = xcldfrad(c,r,nlays-lvl+1)
-          c_cldfra_sh%bdy(idx,lvl) = xcldfras(c,r,nlays-lvl+1)
-         ENDIF
         ENDIF
 
       ENDDO 
@@ -1112,24 +773,13 @@ SUBROUTINE ctmproc
       IF ( xdnjmin > xmissing ) THEN
 
         DO lvl = 1, nlays-1
-         IF ( met_model == 2 ) THEN  !WRF
           c_what_jd%bdy(idx,lvl) = xwhat(c,r,lvl) *                          &
                                    ( wght_bot(lvl) * c_densa_j%bdy(idx,lvl)  & 
                                    + wght_top(lvl) * c_densa_j%bdy(idx,lvl+1) )
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_what_jd%bdy(idx,lvl) = xwhat(c,r,nlays-lvl+1) *                          &
-                                   ( wght_bot(nlays-lvl+1) * c_densa_j%bdy(idx,nlays-lvl+1)  &
-                                   + wght_top(nlays-lvl+1) * c_densa_j%bdy(idx,nlays-lvl+1) )
-         ENDIF
         ENDDO
 
         c_what_jd%bdy(idx,nlays) = 0.0
-        IF ( met_model == 3 ) THEN  !FV3
-          c_what_jd%bdy(idx,1) = xwhat(c,r,nlays-1) *                           &
-                                   ( wght_bot(nlays-1) * c_densa_j%bdy(idx,nlays-1)   &
-                                   + wght_top(nlays-1) * c_densa_j%bdy(idx,nlays) )
-         ENDIF
+
       ENDIF
 
     ENDDO
@@ -1144,7 +794,7 @@ SUBROUTINE ctmproc
       DO lvl = 1, nlays
 
         ! Used in generalized vertical coordinates in CCTM.
-       IF ( met_model == 2 ) THEN  !WRF
+
         IF ( ( x3jfmin > xmissing ) .AND. ( xmapmin > xmissing ) ) THEN
           c_jacobf%bdy(idx,lvl) = x3jacobf(c,r,lvl) / xmapc2(c,r)
         ENDIF
@@ -1156,44 +806,18 @@ SUBROUTINE ctmproc
         IF ( ( xdnamin > xmissing ) .AND. ( x3jmmin > xmissing ) ) THEN
           c_densa_j%bdy(idx,lvl) = xrhojm(c,r,lvl) / xmapc2(c,r)
         ENDIF
-       ENDIF
-
-       IF ( met_model == 3 ) THEN  !FV3
-        IF ( ( x3jfmin > xmissing ) .AND. ( xmapmin > xmissing ) ) THEN
-          c_jacobf%bdy(idx,lvl) = x3jacobf(c,nrows_x-r+nthik,nlays-lvl+1) / xmapc2(c,nrows_x-r+nthik)
-        ENDIF
-
-        IF ( ( x3jmmin > xmissing ) .AND. ( xmapmin > xmissing ) ) THEN
-          c_jacobm%bdy(idx,lvl) = x3jacobm(c,nrows_x-r+nthik,nlays-lvl+1) / xmapc2(c,nrows_x-r+nthik)
-        ENDIF
-
-        IF ( ( xdnamin > xmissing ) .AND. ( x3jmmin > xmissing ) ) THEN
-          c_densa_j%bdy(idx,lvl) = xrhojm(c,nrows_x-r+nthik,nlays-lvl+1) / xmapc2(c,nrows_x-r+nthik)
-        ENDIF
-       ENDIF
-
 
         ! State variables.
-       IF ( met_model == 2 ) THEN  !WRF
+
         c_ta%bdy(idx,lvl)   = xtempm(c,r,lvl)
         c_qv%bdy(idx,lvl)   = xwvapor(c,r,lvl)
         c_pres%bdy(idx,lvl) = xpresm(c,r,lvl)
         c_dens%bdy(idx,lvl) = xdensam(c,r,lvl)
         c_zh%bdy(idx,lvl)   = x3htm(c,r,lvl)
         c_zf%bdy(idx,lvl)   = x3htf(c,r,lvl)
-       ENDIF
-
-       IF ( met_model == 3 ) THEN  !FV3
-        c_ta%bdy(idx,lvl)   = xtempm(c,nrows_x-r+nthik,nlays-lvl+1)
-        c_qv%bdy(idx,lvl)   = xwvapor(c,nrows_x-r+nthik,nlays-lvl+1)
-        c_pres%bdy(idx,lvl) = xpresm(c,nrows_x-r+nthik,nlays-lvl+1)
-        c_dens%bdy(idx,lvl) = xdensam(c,nrows_x-r+nthik,nlays-lvl+1)
-        c_zh%bdy(idx,lvl)   = x3htm(c,nrows_x-r+nthik,nlays-lvl+1)
-        c_zf%bdy(idx,lvl)   = x3htf(c,nrows_x-r+nthik,nlays-lvl+1)
-       ENDIF
 
         ! Moisture variables.
-       IF ( met_model == 2 ) THEN  !WRF
+
         IF ( nqspecies >= 2 ) THEN
           c_qc%bdy(idx,lvl) = xcldwtr(c,r,lvl)
           c_qr%bdy(idx,lvl) = xranwtr(c,r,lvl)
@@ -1205,72 +829,28 @@ SUBROUTINE ctmproc
             ENDIF
           ENDIF
         ENDIF
-       ENDIF
-
-       IF ( met_model == 3 ) THEN  !FV3
-        IF ( nqspecies >= 2 ) THEN
-          c_qc%bdy(idx,lvl) = xcldwtr(c,nrows_x-r+nthik,nlays-lvl+1)
-          c_qr%bdy(idx,lvl) = xranwtr(c,nrows_x-r+nthik,nlays-lvl+1)
-          IF ( nqspecies >= 4 ) THEN
-            c_qi%bdy(idx,lvl) = xqice(c,nrows_x-r+nthik,nlays-lvl+1)
-            c_qs%bdy(idx,lvl) = xqsnow(c,nrows_x-r+nthik,nlays-lvl+1)
-            IF ( nqspecies == 5 ) THEN
-              c_qg%bdy(idx,lvl) = xqgraup(c,nrows_x-r+nthik,nlays-lvl+1)
-            ENDIF
-          ENDIF
-        ENDIF
-       ENDIF
-
 
         IF ( iftke ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
           c_tke%bdy(idx,lvl) = xtke(c,r,lvl)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_tke%bdy(idx,lvl) = xtke(c,nrows_x-r+nthik,nlays-lvl+1)
-         ENDIF
         ENDIF
 
         IF ( lpv > 0 ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
           c_pv%bdy(idx,lvl) = xpvc(c,r,lvl)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_pv%bdy(idx,lvl) = xpvc(c,nrows_x-r+nthik,nlays-lvl+1)
-         ENDIF
         ENDIF
 
         IF ( lwout > 0 ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
           c_wwind%bdy(idx,lvl) = xwwind(c,r,lvl)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_wwind%bdy(idx,lvl) = xwwind(c,nrows_x-r+nthik,nlays-lvl+1)
-         ENDIF
         ENDIF
 
         IF ( ifcld3d ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
           c_cfrac_3d%bdy(idx,lvl) = xcfrac3d(c,r,lvl)
-         ENDIF 
-         IF ( met_model == 3 ) THEN  !FV3
-          c_cfrac_3d%bdy(idx,lvl) = xcfrac3d(c,nrows_x-r+nthik,nlays-lvl+1)
-         ENDIF
         ENDIF
 
         IF ( ifkfradextras ) THEN
-         IF ( met_model == 2 ) THEN  !WRF
           c_qc_cu%bdy(idx,lvl)     = xqc_cu(c,r,lvl)
           c_qi_cu%bdy(idx,lvl)     = xqi_cu(c,r,lvl)
           c_cldfra_dp%bdy(idx,lvl) = xcldfrad(c,r,lvl)
           c_cldfra_sh%bdy(idx,lvl) = xcldfras(c,r,lvl)
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_qc_cu%bdy(idx,lvl)     = xqc_cu(c,nrows_x-r+nthik,nlays-lvl+1)
-          c_qi_cu%bdy(idx,lvl)     = xqi_cu(c,nrows_x-r+nthik,nlays-lvl+1)
-          c_cldfra_dp%bdy(idx,lvl) = xcldfrad(c,nrows_x-r+nthik,nlays-lvl+1)
-          c_cldfra_sh%bdy(idx,lvl) = xcldfras(c,nrows_x-r+nthik,nlays-lvl+1)
-         ENDIF
         ENDIF
 
       ENDDO 
@@ -1280,25 +860,12 @@ SUBROUTINE ctmproc
       IF ( xdnjmin > xmissing ) THEN
 
         DO lvl = 1, nlays-1
-         IF ( met_model == 2 ) THEN  !WRF
           c_what_jd%bdy(idx,lvl) = xwhat(c,r,lvl) *                         &
                                  ( wght_bot(lvl) * c_densa_j%bdy(idx,lvl)   &
                                  + wght_top(lvl) * c_densa_j%bdy(idx,lvl+1) )
-         ENDIF
-         IF ( met_model == 3 ) THEN  !FV3
-          c_what_jd%bdy(idx,lvl) = xwhat(c,nrows_x-r+nthik,nlays-lvl+1) *                         &
-                                 ( wght_bot(nlays-lvl+1) * c_densa_j%bdy(idx,nlays-lvl+1)   &
-                                 + wght_top(nlays-lvl+1) * c_densa_j%bdy(idx,nlays-lvl+1) )
-         ENDIF
         ENDDO
 
         c_what_jd%bdy(idx,nlays) = 0.0
-        IF ( met_model == 3 ) THEN  !FV3
-          c_what_jd%bdy(idx,1) = xwhat(c,nrows_x-r+nthik,nlays-1) *                           &
-                                   ( wght_bot(nlays-1) * c_densa_j%bdy(idx,nlays-1)   &
-                                   + wght_top(nlays-1) * c_densa_j%bdy(idx,nlays) )
-         ENDIF
-
 
       ENDIF
 
@@ -1316,13 +883,7 @@ SUBROUTINE ctmproc
 
   DO k = 1, nlays
     DO row = 1, nrows+1
-    IF ( met_model == 2 ) THEN  !WRF
-     r = row + nthik
-    ENDIF
-    IF ( met_model == 3 ) THEN  !FV3
-     r = row + nthik
-     r = (nrows - r + nthik) + (nthik+nthik)
-    ENDIF
+      r = row + nthik
       DO col = 1, ncols+1
         c = col + nthik
 
@@ -1347,13 +908,7 @@ SUBROUTINE ctmproc
   IF ( ifsoil ) THEN
 
     DO row = 1, nrows
-      IF ( met_model == 2 ) THEN  !WRF
-       r = row + nthik
-      ENDIF
-      IF ( met_model == 3 ) THEN  !FV3
-       r = row + nthik
-       r = (nrows - r + nthik) + (nthik+nthik)
-      ENDIF
+      r = row + nthik
       DO col = 1, ncols
         c = col + nthik
         DO lvl = 1, metsoi
@@ -1374,13 +929,7 @@ SUBROUTINE ctmproc
   IF ( ifmosaic ) THEN
 
     DO row = 1, nrows
-     IF ( met_model == 2 ) THEN  !WRF
       r = row + nthik
-     ENDIF
-     IF ( met_model == 3 ) THEN  !FV3
-      r = row + nthik
-      r = (nrows - r + nthik) + (nthik+nthik)
-     ENDIF
       DO col = 1, ncols
         c = col + nthik
         DO lvl = 1, nummosaic

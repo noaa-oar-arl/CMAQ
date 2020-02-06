@@ -79,7 +79,12 @@ SUBROUTINE metgrid2ctm
   lbndface = LBOUND(xx3face,1)
   ubndsigf = UBOUND(sigmaf,1)
   maxface  = lbndface + SIZE(sigmaf) - 1
-
+  print*, 'lbndface = ', lbndface
+  print*, 'maxface = ', maxface
+  print*, 'lbndsigf = ', lbndsigf
+  print*, 'ubndsigf = ', ubndsigf
+  print*, 'SIZE(sigmah) = ', SIZE(sigmah)
+  
   ALLOCATE ( x3workf ( lbndsigf:ubndsigf ) )
 
   IF ( sigmaf(lbndsigf) > sigmaf(ubndsigf) ) THEN  ! NOT monotonic increase
@@ -94,18 +99,12 @@ SUBROUTINE metgrid2ctm
 
   xx3face(lbndface:maxface) = x3workf(lbndsigf:ubndsigf)
 
-  IF ( met_model == 2 ) THEN  !WRF
    DO jw = 1, SIZE(sigmah)
      xx3midl(jw) = 0.5 * ( xx3face(jw-1) + xx3face(jw) )
    ENDDO
-  ENDIF
-  
-  IF ( met_model == 3 ) THEN  !FV3 
-   DO jw = 1, SIZE(sigmah)-1
-     xx3midl(jw) = 0.5 * ( xx3face(jw-1) + xx3face(jw) )
-   ENDDO
-  ENDIF
 
+  print*, 'SIZE(xx3face) = ', SIZE(xx3face)
+  print*, 'SIZE(xx3midl) = ', SIZE(xx3midl)
   DEALLOCATE ( x3workf )
 
 !-------------------------------------------------------------------------------

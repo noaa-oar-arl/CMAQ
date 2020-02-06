@@ -68,7 +68,8 @@ SUBROUTINE statflds
 ! trying to create thinner lowest layer or thinner top layer than input
 ! meteorology.
 !-------------------------------------------------------------------------------
-
+  print*, vglvs_gd(2)     - sigmaf(2)
+  print*, -(vglvs_gd(nlays) - sigmaf(met_nz))
   IF ( (   vglvs_gd(2)     - sigmaf(2)       > epsilons )   .OR.  &
        ( -(vglvs_gd(nlays) - sigmaf(met_nz)) > epsilons ) ) THEN
     WRITE (*,f9000) TRIM(pname), vglvs_gd(2), sigmaf(2), vglvs_gd(nlays),  &

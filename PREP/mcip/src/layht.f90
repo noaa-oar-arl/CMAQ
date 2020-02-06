@@ -41,6 +41,7 @@ SUBROUTINE layht (xx3face, xx3midl, xx3jcbf, xx3jcbm, xx3htf, xx3htm)
 !           29 Aug 2011  Improved error handling.  (T. Otte)
 !           07 Sep 2011  Updated disclaimer.  (T. Otte)
 !-------------------------------------------------------------------------------
+  USE metinfo
 
   IMPLICIT NONE
 
@@ -48,7 +49,7 @@ SUBROUTINE layht (xx3face, xx3midl, xx3jcbf, xx3jcbm, xx3htf, xx3htm)
   INTEGER                           :: imax
   INTEGER                           :: j
   INTEGER                           :: jmax
-  INTEGER                           :: k
+  INTEGER                           :: k,k2
   INTEGER                           :: lbndf
   INTEGER                           :: lbndm
   CHARACTER(LEN=16),  PARAMETER     :: pname      = 'LAYHT'
@@ -98,8 +99,6 @@ SUBROUTINE layht (xx3face, xx3midl, xx3jcbf, xx3jcbm, xx3htf, xx3htm)
 ! extract dimension information.
 !-------------------------------------------------------------------------------
 
-   print*, '-------checking layer height (m) calcs in layht.f90----------'
-
   ! Check IMAX.
 
   imax = SIZE(xx3htf,1)
@@ -145,9 +144,7 @@ SUBROUTINE layht (xx3face, xx3midl, xx3jcbf, xx3jcbm, xx3htf, xx3htm)
 !-------------------------------------------------------------------------------
 ! Build layer height fields using Jacobian.
 !-------------------------------------------------------------------------------
-  print*,'lbndf = ', lbndf, 'ubndf = ', ubndf
-  print*,'lbndm = ', lbndm, 'ubndm = ', ubndm
-   
+ IF ( met_model == 2 ) THEN
   DO i = 1, imax
     DO j = 1, jmax
 
@@ -162,6 +159,7 @@ SUBROUTINE layht (xx3face, xx3midl, xx3jcbf, xx3jcbm, xx3htf, xx3htm)
 
       ! Half levels
 
+      
       xx3htm(i,j,lbndm) = ( xx3midl(lbndm) - xx3face(lbndf) )  &
                         * 0.5 * ( xx3jcbf(i,j,lbndf) + xx3jcbm(i,j,lbndm) )
 
@@ -172,5 +170,36 @@ SUBROUTINE layht (xx3face, xx3midl, xx3jcbf, xx3jcbm, xx3htf, xx3htm)
 
     ENDDO
   ENDDO   
+ ENDIF
+
+ IF ( met_model == 3 ) THEN
+  DO i = 1, imax
+    DO j = 1, jmax
+
+      ! Half levels 
+
+      xx3htm(i,j,ubndm) = 0.0
+     
+      DO k = lbndm, ubndm-1
+         k2 = ubndm-k
+        xx3htm(i,j,k2) = xx3htm(i,j,k2+1) + ( xx3midl(k2) - xx3midl(k2-1) ) *  &
+                                            xx3jcbf(i,j,lbndf+k2-2)
+      ENDDO
+
+      ! Full levels
+
+
+      xx3htf(i,j,ubndf) = ( xx3face(ubndf) - xx3midl(ubndm) )  &
+                        * 0.5 * ( xx3jcbf(i,j,ubndf) + xx3jcbm(i,j,ubndm) )
+
+      DO k = lbndf, ubndf-1
+         k2 = ubndf-k
+        xx3htf(i,j,k2) = xx3htf(i,j,k2+1) + ( xx3face(k2) - xx3face(k2-1) ) *  &
+                                            xx3jcbm(i,j,lbndf+k2-1)
+      ENDDO
+
+    ENDDO
+  ENDDO
+ ENDIF
 
 END SUBROUTINE layht
