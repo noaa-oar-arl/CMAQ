@@ -85,7 +85,10 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
 
   rcode = nf90_get_var (cdfid, id_data, dum3d, start=(/1,1,1,it/),  &
                         count=(/nx,ny,nz,1/))
-
+  IF ( rcode /= nf90_noerr ) then
+   print*,'read error ',cdfid,var
+   print*,'nx,ny,nz=',nx,ny,nz
+  endif 
 END SUBROUTINE get_var_3d_real_cdf
 
 !-------------------------------------------------------------------------------
@@ -207,6 +210,33 @@ SUBROUTINE get_var_1d_real_cdf (cdfid, var, dum1d, it, rcode)
                         count=(/nx,1/))
 
 END SUBROUTINE get_var_1d_real_cdf
+
+!-------
+SUBROUTINE get_var_1d_double_cdf (cdfid, var, dum1d, it, rcode)
+
+  USE netcdf
+
+  IMPLICIT NONE
+
+  INTEGER,           INTENT(IN)    :: cdfid
+  REAL,  INTENT(OUT)               :: dum1d    ( : )
+  INTEGER                          :: id_data
+  INTEGER,           INTENT(IN)    :: it
+  INTEGER                          :: nx
+  INTEGER,           INTENT(OUT)   :: rcode
+  CHARACTER(LEN=*),  INTENT(IN)    :: var
+  double precision, allocatable  :: dbtmp(:)
+  
+  nx = SIZE(dum1d)
+  allocate(dbtmp(nx))
+  
+  rcode = nf90_inq_varid (cdfid, var, id_data)
+  IF ( rcode /= nf90_noerr ) RETURN
+
+  rcode = nf90_get_var (cdfid, id_data, dbtmp, start=(/1,it/),  &
+                        count=(/nx,1/))
+  dum1d(:)=sngl(dbtmp(:))
+END SUBROUTINE get_var_1d_double_cdf
 
 !-------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------

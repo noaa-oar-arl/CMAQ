@@ -129,7 +129,10 @@ SUBROUTINE metgrid2ctm
   xmapc(:,:) = mapcrs (sc:ec,sr:er)
   xlatc(:,:) = latcrs (sc:ec,sr:er)
   xlonc(:,:) = loncrs (sc:ec,sr:er)
-
+  
+!  print*,'xtopo min,max=',minval(terrain(sc:ec,sr:er)),maxval(terrain(sc:ec,sr:er)),minval(xtopo),maxval(xtopo)
+!  print*,'xtopo x0,y0,sc,ec,sr,er=',sc,ec,sr,er,ubound(xtopo,1),ubound(xtopo,2)
+  
   xmapc2(:,:) = xmapc(:,:) * xmapc(:,:)
 
 !-------------------------------------------------------------------------------

@@ -166,6 +166,7 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
   USE metinfo
   USE date_pack
   USE mcipparm
+  USE coord
   USE files
   USE netcdf_io
   USE const, ONLY: pi180
@@ -210,9 +211,9 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
   INTEGER                           :: nxm
   INTEGER                           :: nym
   CHARACTER(LEN=16),  PARAMETER     :: pname      = 'SETUP_FV3'
-  INTEGER                           :: rcode, rcode2
+  INTEGER                           :: rcode,rcode2,imax2,jmax2
   REAL                              :: rval
-  REAL,  ALLOCATABLE                :: times      ( : )
+  REAL,  ALLOCATABLE                :: times ( : )
   INTEGER                           :: varid
   CHARACTER(LEN=80)                 :: fv3version
 !-------------------------------------------------------------------------------
@@ -323,11 +324,16 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 !-------------------------------------------------------------------------------
   WRITE (*,f6000)
 
-  fl = file_mm(1)
-
   rcode = nf90_get_att (cdfid, nf90_global, 'im', met_nx)
   IF ( rcode /= nf90_noerr ) THEN
     WRITE (*,f9400) TRIM(pname), 'WEST-EAST_GRID_DIMENSION',  &
+                    TRIM(nf90_strerror(rcode))
+    CALL graceful_stop (pname)
+  ENDIF
+
+  rcode2 = nf90_get_att (cdfid2, nf90_global, 'im', imax2)
+  IF ( rcode2 /= nf90_noerr ) THEN
+    WRITE (*,f9400) TRIM(pname), 'SFC WEST-EAST_GRID_DIMENSION',  &
                     TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
@@ -339,6 +345,19 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
                     TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
+  
+  rcode2 = nf90_get_att (cdfid2, nf90_global,'jm',jmax2)
+  IF ( rcode2 /= nf90_noerr ) THEN
+    WRITE (*,f9400) TRIM(pname), 'SFC SOUTH-NORTH_GRID_DIMENSION',  &
+                    TRIM(nf90_strerror(rcode))
+    CALL graceful_stop (pname)
+  ENDIF
+  
+  if(met_nx.ne.imax2.or.met_ny.ne.jmax2) then
+   print*,'inconsistent i,j dimension between ATM and SFC files ',&
+     met_nx,imax2,met_ny,jmax2
+   call graceful_stop(pname)
+  endif   
 
   rcode = nf90_inq_dimid (cdfid, 'pfull', dimid)
   IF ( rcode /= nf90_noerr ) THEN
@@ -356,7 +375,7 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 !     met_nz = ival
     IF ( needlayers ) THEN
      met_nz = MIN(maxlays,ival) !If met layers > max layers, collapse to subset of max layers    ELSE
-     met_nz = SIZE(ctmlays)
+!     met_nz = SIZE(ctmlays)
     ENDIF
 
   ENDIF
@@ -373,18 +392,32 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 ! Set NLAYS
   nlays = met_nz
   
-  CALL get_var_1d_real_cdf (cdfid, 'phalf', phalf_lays(1:nlays+1), 1, rcode)
+  CALL get_var_1d_real_cdf (cdfid, 'phalf', phalf_lays, 1, rcode)
   IF ( rcode /= nf90_noerr ) THEN
     WRITE (*,f9400) TRIM(pname), 'phalf', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
 
-  CALL get_var_1d_real_cdf (cdfid, 'pfull', pfull_lays(1:nlays), 1, rcode)
+  CALL get_var_1d_real_cdf (cdfid, 'pfull', pfull_lays, 1, rcode)
   IF ( rcode /= nf90_noerr ) THEN
     WRITE (*,f9400) TRIM(pname), 'pfull', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
+!
+!---Read FV3 Lat/lon
 
+  allocate(fv3lat(met_ny),fv3lon(met_nx))
+  
+  CALL get_var_1d_double_cdf (cdfid, 'grid_yt', fv3lat, 1, rcode)
+  IF ( rcode /= nf90_noerr ) THEN
+    WRITE (*,f9400) TRIM(pname), 'grid_yt', TRIM(nf90_strerror(rcode))
+    CALL graceful_stop (pname)
+  ENDIF
+  CALL get_var_1d_double_cdf (cdfid, 'grid_xt', fv3lon, 1, rcode)
+  IF ( rcode /= nf90_noerr ) THEN
+    WRITE (*,f9400) TRIM(pname), 'grid_xt', TRIM(nf90_strerror(rcode))
+    CALL graceful_stop (pname)
+  ENDIF
 
 !-------------------------------------------------------------------------------
 ! Extract domain attributes.
@@ -528,24 +561,24 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 !  
 !  END SELECT
 
-!     FV3 Gaussian Global Grid
-      met_mapproj    = 4                      ! FV3 Gaussian Map Projection      
-      met_proj_clon  = 0.0
-      met_p_alp_d  = 0.0                      ! lat of coord origin [deg]
-      met_p_bet_d  = 0.0                      ! (not used)
-      met_p_gam_d  = met_proj_clon            ! lon of coord origin [deg]
-      met_cone_fac = 0.0                      ! cone factor
-      met_ref_lat  = -999.0                   ! not used
+!!     FV3 Gaussian Global Grid
+       met_mapproj    = 4                      ! FV3 Gaussian Map Projection      
+!      met_proj_clon  = 0.0
+!      met_p_alp_d  = 0.0                      ! lat of coord origin [deg]
+!      met_p_bet_d  = 0.0                      ! (not used)
+!      met_p_gam_d  = met_proj_clon            ! lon of coord origin [deg]
+!      met_cone_fac = 0.0                      ! cone factor
+!      met_ref_lat  = -999.0                   ! not used
       
-       met_cen_lat  = met_cen_lat_in          ! set from namelist
-       met_cen_lon  = met_cen_lon_in          ! set from namelist                  
+!       met_cen_lat  = met_cen_lat_in          ! set from namelist
+!       met_cen_lon  = met_cen_lon_in          ! set from namelist                  
 !      met_cen_lat  = 89.9103191600434         ! Hardcoded for now GFSv16 Gaussian...
 !      met_cen_lon  = 359.882792740194         ! Hardcoded for now GFSv16 Gaussian...
 !      met_cen_lat  = 45.0         ! Hardcoded for now GFSv16 Gaussian...
 !      met_cen_lon  = -180.0         ! Hardcoded for now GFSv16 Gaussian...
 
-      CALL ll2xy_gau (met_cen_lat, met_cen_lon, met_proj_clon,  &
-                       met_xxctr, met_yyctr)
+!      CALL ll2xy_gau (met_cen_lat, met_cen_lon, met_proj_clon,  &
+!                       met_xxctr, met_yyctr)
 
 !-------------------------------------------------------------------------------
 ! Extract model run options.
@@ -951,7 +984,7 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
     CALL graceful_stop (pname)
   ENDIF
 
-  met_startdate =  date_init(13:32) // '.0000'
+  met_startdate =  date_init(13:31) // '.0000'
 
   ! FV3 always turned off for "met restart" in MCIP
   met_restart = 0
@@ -1018,6 +1051,7 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
     WRITE (*,f9400) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
+  print*,'n_times,times=',n_times,times
 
 !  IF ( n_times > 1 ) THEN
 !    CALL geth_idts (times(2)(1:19), times(1)(1:19), idtsec)

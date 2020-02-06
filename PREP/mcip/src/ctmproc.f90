@@ -248,13 +248,13 @@ SUBROUTINE ctmproc
   x3jfmin = MINVAL(x3jacobf)
 
   DO row = 1, nrows
-    IF ( met_model == 2 ) THEN  !WRF
+!    IF ( met_model == 2 ) THEN  !WRF
      r = row + nthik
-    ENDIF
-    IF ( met_model == 3 ) THEN  !FV3
-     r = row + nthik
-     r = (nrows - r + nthik) + (nthik+nthik)
-    ENDIF 
+!    ENDIF
+!    IF ( met_model == 3 ) THEN  !FV3
+!     r = row + nthik
+!     r = (nrows - r + nthik) + (nthik+nthik)
+!    ENDIF 
     DO col = 1, ncols
       c = col + nthik
 

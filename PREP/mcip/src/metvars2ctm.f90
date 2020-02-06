@@ -626,7 +626,7 @@ SUBROUTINE metvars2ctm
 !  ENDIF
 
 
-  IF ( met_model == 2 .OR. met_model == 3 ) THEN  ! WRF or FV3: UA and VA on C-grid (face points)
+  IF ( met_model == 2) THEN  ! WRF: UA and VA on C-grid (face points)
 
     xuu_d(:,1,        :) = ua(sc:ec,sr,:)
     xuu_d(:,2:nrows_x,:) = 0.5 * (ua(sc:ec,sr:er-2,:) + ua(sc:ec,sr+1:er-1,:))
@@ -637,7 +637,15 @@ SUBROUTINE metvars2ctm
 
     xuu_s(:,:,:)         = ua(sc:ec,sr:er,:)
     xvv_t(:,:,:)         = va(sc:ec,sr:er,:)
-
+  else if ( met_model == 3 ) THEN ! inerpolated fv3 in B-grid
+    xuu_d(:,:,:)= ua(sc:ec,sr:er,:)
+    xvv_d(:,:,:)= va(sc:ec,sr:er,:)
+    
+    xuu_s(:,1:nrows_x,:) = 0.5 * (ua(sc:ec,sr:er-1,:) + ua(sc:ec,sr+1:er,:))             ! B -> C for U
+    xuu_s(:,nrows_x+1,:) = ua(sc:ec,er,:)
+    
+    xvv_t(1:ncols_x,:,:) = 0.5*(va(sc:ec-1,sr:er,:)+va(sc+1:ec,sr:er,:))
+    xvv_t(ncols_x+1,:,:) = va(ec,sr:er,:)
   ENDIF
 
 !------------------------------------------------------------------------------

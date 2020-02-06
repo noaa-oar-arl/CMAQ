@@ -16,7 +16,7 @@
 !  subject to their copyright restrictions.                                    !
 !------------------------------------------------------------------------------!
 
-SUBROUTINE getmet (mcip_now)
+SUBROUTINE getmet (mcip_now,nn)
 
 !-------------------------------------------------------------------------------
 ! Name:     Get Meteorology (from MM5)
@@ -51,7 +51,7 @@ SUBROUTINE getmet (mcip_now)
 
   CHARACTER(LEN=24),  INTENT(IN)    :: mcip_now
   CHARACTER(LEN=16),  PARAMETER     :: pname      = 'GETMET'
-
+  INTEGER, INTENT(IN)    :: nn
 !-------------------------------------------------------------------------------
 ! Error, warning, and informational messages.
 !-------------------------------------------------------------------------------
@@ -70,7 +70,7 @@ SUBROUTINE getmet (mcip_now)
   IF ( met_model == 2 ) THEN  ! WRF-ARW
     CALL rdwrfem (mcip_now)
   ELSE IF ( met_model == 3 ) THEN  ! FV3-GFS 
-    CALL rdfv3 (mcip_now)
+    CALL rdfv3 (mcip_now,nn)
   ELSE
     WRITE (*,f9000) TRIM(pname), met_model
     CALL graceful_stop (pname)

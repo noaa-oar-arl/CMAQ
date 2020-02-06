@@ -50,13 +50,13 @@ SUBROUTINE gridproc
   xmapmin = MINVAL(xmapc)  ! XMAPMIN also used for XMAPD
  
   DO row = 1, nrows
-    IF ( met_model == 2 ) THEN  !WRF
+!    IF ( met_model == 2 ) THEN  !WRF
      r = row + nthik
-    ENDIF
-    IF ( met_model == 3 ) THEN  !FV3
-     r = row + nthik
-     r = (nrows - r + nthik) + (nthik+nthik) 
-    ENDIF
+!    ENDIF
+!    IF ( met_model == 3 ) THEN  !FV3
+!     r = row + nthik
+!     r = (nrows - r + nthik) + (nthik+nthik) 
+!    ENDIF
     DO col = 1, ncols
       c = col + nthik
             
@@ -81,7 +81,7 @@ SUBROUTINE gridproc
 
     ENDDO
   ENDDO
-
+!  print*,'topo min,max=',minval(g_ht%fld),maxval(g_ht%fld),minval(xtopo),maxval(xtopo)
 !-------------------------------------------------------------------------------
 ! Fill time-independent 3d fields (fractional land use) at cell centers.
 !-------------------------------------------------------------------------------

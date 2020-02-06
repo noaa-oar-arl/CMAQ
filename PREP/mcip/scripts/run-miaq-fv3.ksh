@@ -4,10 +4,10 @@ CoordName=FV3_RPO	      # 16-character maximum
 GridName=FV3_CONUS	      # 16-character maximum
 
 # set DataPath   = /gpfs/hps2/ptmp/Patrick.C.Campbell
-DataPath=$HOME/ptmp2/gfs.2018011000
+DataPath=/gpfs/hps3/ptmp/Youhua.Tang/gfs.20200112/12
 InMetDir=$DataPath
 InGeoDir=$DataPath
-OutDir=$DataPath/fv3gfs_v16_test
+OutDir=$HOME/ptmp2/fv3gfs_v16_test
 #set ProgDir    = /gpfs/hps3/emc/naqfc/noscrub/Patrick.C.Campbell/CMAQ_REPO/PREP/mcip/src
 ProgDir=/gpfs/hps3/emc/naqfc/noscrub/Youhua.Tang/CMAQ/fv3-mcip/src
 WorkDir=$OutDir
@@ -32,42 +32,43 @@ if [ ! -d $ProgDir ]; then
 fi
 
 cd $OutDir
-cat>>namelist.mcip<<!
+cat>namelist.mcip<<!
 &FILENAMES
-  file_gd    = '/u/Youhua.Tang/ptmp2/gfs.2018011000/fv3gfs_v16_test/GRIDDESC'
-  file_mm    = '/u/Youhua.Tang/ptmp2/gfs.2018011000/gfs.t00z.atmf006.nc',
-               '/u/Youhua.Tang/ptmp2/gfs.2018011000/gfs.t00z.atmf024.nc'
-  file_sfc   = '/u/Youhua.Tang/ptmp2/gfs.2018011000/gfs.t00z.sfcf006.nc',
-               '/u/Youhua.Tang/ptmp2/gfs.2018011000/gfs.t00z.sfcf024.nc'
+  file_gd    = 'GRIDDESC'
+  file_mm    = '$DataPath/gfs.t12z.atmf','.nc'
+  file_sfc   = '$DataPath/gfs.t12z.sfcf','.nc'
   ioform     =  1
  &END
 
  &USERDEFS
   inmetmodel =  3
-  dx_in      =  13000
-  dy_in      =  13000
+  dx_in      =  12000
+  dy_in      =  12000
   met_cen_lat_in =  0.0
   met_cen_lon_in =  0.0
   lpv        =  0
   lwout      =  0
   luvbout    =  1
-  mcip_start = "2018-01-10-06:00:00.0000"
-  mcip_end   = "2018-01-10-24:00:00.0000"
-  intvl      =  360
+  mcip_start = "2020-01-12-12:00:00.0000"
+  mcip_end   = "2020-01-12-13:00:00.0000"
+  intvl      =  60
   coordnam   = "FV3_RPO"
   grdnam     = "FV3_CONUS"
   ctmlays    =  -1.0
   btrim      =  -1
   lprt_col   =  0
   lprt_row   =  0
+  ntimes     = 2
   wrf_lc_ref_lat = 40.0
+  projparm = 2., 33.,45., -97., -97., 40.
+  domains = -2508000., -1716000., 12000., 12000., 442, 265
  &END
 
  &WINDOWDEFS
-  x0         =  2000
-  y0         =  100
-  ncolsin    =  500
-  nrowsin    =  500
+  x0         =  1
+  y0         =  1
+  ncolsin    =  442
+  nrowsin    =  265
  &END
 !
 

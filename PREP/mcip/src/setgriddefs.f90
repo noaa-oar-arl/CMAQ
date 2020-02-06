@@ -342,6 +342,13 @@ SUBROUTINE setgriddefs
     CALL graceful_stop (pname)
   ENDIF
 
+  if( met_model.eq.3) then  ! fv3 interpolated
+    ncols=int(domains(5))
+    nrows=int(domains(6))
+    nrows_x = nrows + 2 * nthik
+    ncols_x = ncols + 2 * nthik
+    nbndy   = 2 * nthik * (ncols + nrows + 2*nthik)
+  endif  
 !-------------------------------------------------------------------------------
 ! Calculate window domain size in terms of MET grid.
 !-------------------------------------------------------------------------------
@@ -370,8 +377,8 @@ SUBROUTINE setgriddefs
     gdtyp_gd = polgrd3
   ELSE IF ( met_mapproj == 3 ) THEN  ! equatorial Mercator
     gdtyp_gd = eqmgrd3
-   ELSE IF ( met_mapproj == 4 ) THEN  ! Gaussian (FV3) currently set to Mercator, wrong.
-    gdtyp_gd = mergrd3
+  ELSE IF ( met_mapproj == 4 ) THEN  ! Gaussian (FV3) currently set to Mercator, wrong.
+    gdtyp_gd = int(projparm(1))
   ELSE
     WRITE (*,f9275) TRIM(pname), met_mapproj
     CALL graceful_stop (pname)
@@ -415,6 +422,13 @@ SUBROUTINE setgriddefs
   ELSE IF ( gdtyp_gd == eqmgrd3 ) THEN
     xcent_gd = DBLE(met_proj_clon)  ! [degrees longitude]
     ycent_gd = 0.0d0                ! [degrees latitude]
+  else if ( met_model.eq.3) then ! if FV3, using interpolation
+    gdtyp_gd=int(projparm(1))
+    p_alp_gd=dble(projparm(2)) ! lat1,lat2,projlon, center_lon, center_lat 
+    p_bet_gd=dble(projparm(3))
+    p_gam_gd=dble(projparm(4))
+    xcent_gd=dble(projparm(5)) 
+    ycent_gd=dble(projparm(6))
   ELSE                              !WRF polar stereographic or FV3 Gaussian
     xcent_gd = DBLE(met_proj_clon)  ! [degrees longitude]
     ycent_gd = DBLE(met_proj_clat)  ! [degrees latitude]
@@ -521,7 +535,6 @@ SUBROUTINE setgriddefs
       xorig_ctm = xtemp * 500.0
       yorig_ctm = ytemp * 500.0
     ENDIF
-      
   ENDIF
 
 !-------------------------------------------------------------------------------
@@ -532,17 +545,23 @@ SUBROUTINE setgriddefs
 ! For Lat-Lon: units are degrees - unused
 !-------------------------------------------------------------------------------
 
-  IF ( ( met_model == 2 ) .OR. ( met_model == 3) ) THEN  ! WRF or FV3 -- Allow trailing digits.
-    xorig_gd   = DBLE(xorig_ctm)        ! X-origin [m]
-    yorig_gd   = DBLE(yorig_ctm)        ! Y-origin [m]
+  IF ( met_model == 2 ) THEN  ! WRF
+    xorig_gd  = DBLE(xorig_ctm)        ! X-origin [m]
+    yorig_gd  = DBLE(yorig_ctm)        ! Y-origin [m]
+  else if (met_model.eq.3) then ! fv3 interpolated
+    xorig_gd  = DBLE(domains(1))       ! xorig, yorig,xcell,ycell,ncols,nrows,nthik
+    yorig_gd  = DBLE(domains(2))
+    xcell_gd  = DBLE(domains(3))
+    ycell_gd  = DBLE(domains(4))
   ENDIF
 
 !-------------------------------------------------------------------------------
 ! Check user-defined MCIP output time info against input meteorology.
 !-------------------------------------------------------------------------------
 
-  IF ( ABS( intvl - NINT(met_tapfrq) ) > ttol_min ) THEN
+  IF ( ABS( intvl - NINT(met_tapfrq) ) > ttol_min.and. (met_model.ne.3) ) THEN
     WRITE (*,f9300) TRIM(pname), intvl, met_tapfrq
+    write(*,*)'intvl,met_tapfrq,ttol_min=',intvl,met_tapfrq,ttol_min
     CALL graceful_stop (pname)
   ENDIF
 
