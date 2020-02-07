@@ -2127,20 +2127,20 @@ SUBROUTINE rdfv3 (mcip_now,nn)
 !    CALL graceful_stop (pname)
 !  ENDIF
 
-  CALL get_var_1d_real_cdf (cdfid, 'phalf', sigmah, it, rcode)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'phalf', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
+!  CALL get_var_1d_real_cdf (cdfid, 'phalf', sigmah, it, rcode)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'phalf', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
 
-  CALL get_var_1d_real_cdf (cdfid, 'pfull', sigmaf, it, rcode)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'pfull', TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
+!  CALL get_var_1d_real_cdf (cdfid, 'pfull', sigmaf, it, rcode)
+!  IF ( rcode /= nf90_noerr ) THEN
+!    WRITE (*,f9400) TRIM(pname), 'pfull', TRIM(nf90_strerror(rcode))
+!    CALL graceful_stop (pname)
+!  ENDIF
 
-  sigmah = (sigmah - sigmah(1)) / (MAXVAL(sigmah) - sigmah(1))
-  sigmaf = (sigmaf - sigmaf(1)) / (MAXVAL(sigmaf) - sigmaf(1))
+  sigmah = (phalf - phalf(1)) / (MAXVAL(phalf) - phalf(1))
+  sigmaf = (pfull - pfull(1)) / (MAXVAL(phalf) - pfull(1))
 
   IF ( met_hybrid >= 0 ) THEN
 !FV3 does not have the hybrid coefficients and need to calculate them using
@@ -2431,8 +2431,8 @@ real ua(ix,jy),va(ix,jy),londot(ix,jy),reflon,reflat
            cosx2 = cos(angle2)
            ut = ua(i,j)
            vt = va(i,j)
-           ua(i,j) = cosx2*ut+sinx2*vt
-           va(i,j) =-sinx2*ut+cosx2*vt
+           ua(i,j) = cosx2*ut-sinx2*vt
+           va(i,j) = sinx2*ut+cosx2*vt
          end do
         end do 
 end subroutine windrotation

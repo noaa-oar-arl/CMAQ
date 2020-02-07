@@ -194,7 +194,7 @@ SUBROUTINE alloc_met
     ALLOCATE ( v10   (met_nx, met_ny) )
   ENDIF
 
-  IF ( met_model == 2 ) THEN  ! WRF
+  IF ( met_model == 2 .or.  met_model == 3 ) THEN  ! WRF or FV3
     ALLOCATE ( mu    (met_nx, met_ny) )
     ALLOCATE ( mub   (met_nx, met_ny) )
     ALLOCATE ( pb    (met_nx, met_ny, met_nz)   )

@@ -142,7 +142,7 @@ SUBROUTINE dealloc_met
   IF ( ALLOCATED ( qfx    ) )  DEALLOCATE ( qfx   )
 
   IF ( met_model == 2 .OR. met_model == 3 )THEN  ! WRF or FV3
-    DEALLOCATE ( mu    )
+!    DEALLOCATE ( mu    )
     DEALLOCATE ( mub   )
     DEALLOCATE ( pb    )
     DEALLOCATE ( ph    )

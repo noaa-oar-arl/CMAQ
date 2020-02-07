@@ -178,8 +178,9 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 !  INTEGER                           :: cdfid2
   INTEGER                           :: cdfidg
   REAL,               INTENT(OUT)   :: ctmlays     ( maxlays )
-  REAL                              :: phalf_lays  ( maxlays )
-  REAL                              :: pfull_lays  ( maxlays )
+!  REAL                              :: phalf_lays  ( maxlays )
+!  REAL                              :: pfull_lays  ( maxlays )
+  real, allocatable                 :: phalf_lays(:),pfull_lays(:)
   CHARACTER(LEN=32)                 :: date_init
   INTEGER                           :: dimid
   INTEGER                           :: dimids     ( nf90_max_var_dims )
@@ -382,7 +383,7 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 
 
   WRITE (*,f6100) met_nx, met_ny, met_nz
-
+  allocate(phalf_lays(met_nz+1),pfull_lays(met_nz))
   met_rictr_dot = FLOAT(met_nx - 1) / 2.0 + 1.0
   met_rjctr_dot = FLOAT(met_ny - 1) / 2.0 + 1.0
 
@@ -1144,7 +1145,7 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 !    ctmlays = (pfull_lays(nlays+1:1:-1) - pfull_lays(1)) / (MAXVAL(pfull_lays) - pfull_lays(1))
     !Flip again to top down to be consistent with other FV3 vertical grid.
 !    ctmlays = ctmlays(nlays+1:1:-1)
-     ctmlays = (pfull_lays - pfull_lays(1)) / (MAXVAL(pfull_lays) - pfull_lays(1))
+     ctmlays = (pfull_lays - pfull_lays(1)) / (MAXVAL(phalf_lays) - pfull_lays(1))
   ENDIF
 !-------------------------------------------------------------------------------
 ! Determine FV3 release.

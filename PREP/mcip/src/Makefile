@@ -48,18 +48,19 @@ MODEL = mcip.exe
 #...Intel Fortran
 FC      = ifort
 #NETCDF = /usr/local/apps/netcdf-4.6.3/intel-18.0
-NETCDF =  /opt/cray/netcdf/4.3.2/INTEL/140/
+NETCDF =  /opt/cray/netcdf/4.3.2/INTEL/140
 #NETCDF  =/gpfs/hps/usrx/local/prod/NetCDF/4.2/intel/haswell
 #NETCDF_FORTAN = /gpfs/hps/usrx/local/prod/NetCDF/3.6.3/intel/haswell/src/netcdf-3.6.3-beta1/fortran/
 #IOAPI_ROOT = /usr/local/apps/ioapi-3.2/intel-18.0
 #IOAPI_ROOT = /gpfs/hps3/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.1.8/lib/
-IOAPI_ROOT = /u/Youhua.Tang/nwprod/cmaq.v5.1.4/lib
+IOAPI_ROOT = /gpfs/hps3/emc/naqfc/noscrub/Youhua.Tang/CMAQ/ioapi-3.2/Linux2_x86_64ifort
 ###FFLAGS  = -g -O0 -check all -C -traceback -FR -I$(NETCDF)/include  \
 ###          -I$(IOAPI_ROOT)/Linux2_x86_64ifort
 #FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/Linux2_x86_64ifort
-FFLAGS  = -FR -O3 -traceback -check bounds -I$(NETCDF)/include -I$(IOAPI_ROOT)/include
+FFLAGS  = -FR -O3 -traceback -check bounds -I$(NETCDF)/include -I$(IOAPI_ROOT)
 LIBS    = -L$(IOAPI_ROOT) -laqm_ioapi \
-          -L$(NETCDF)/lib -lnetcdf -lnetcdff \
+          -L$(NETCDF)/lib -lnetcdf -lnetcdff -openmp
+#	  -L/gpfs/hps/usrx/local/prod/HDF5/1.8.9/serial/intel/haswell/lib -lhdf5_fortran -lhdf5_hl -lhdf5 -lz -openmp
 #          -L$(NETCDF_FORTRAN) -lnetcdff
 #          -L$(NETCDF)/lib -lnetcdf
 #          -L$(NETCDF)/lib -lnetcdf -lnetcdff
