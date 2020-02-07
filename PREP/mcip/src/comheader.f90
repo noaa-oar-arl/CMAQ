@@ -36,7 +36,6 @@ SUBROUTINE comheader (sdate, stime)
   USE coord
   USE m3utilio
   USE mcipparm
-  USE metinfo
 
   IMPLICIT NONE
 
@@ -65,22 +64,20 @@ SUBROUTINE comheader (sdate, stime)
 
   vgtyp3d = vgtyp_gd
   vgtop3d = vgtop_gd
-  
-  vglvs3d(:) = 0.0  ! initialized to ensure monotonicity
 
-! Layer defined in standard met. coordinate.
-  IF ( met_model == 2 ) THEN !WRF, bottom-up, i.e., 0 for last array
-   vglvs3d(1:nlays+1) = vglvs_gd(1:nlays+1)
+  ! Layer defined in standard met. coordinate.
+
+  vglvs3d(:)         = 0.0  ! initialized to ensure monotonicity
+  vglvs3d(1:nlays+1) = vglvs_gd(1:nlays+1) 
+
+  IF (SIZE(vglvs3d) > maxlays ) THEN
+    vglvs3d(nlays+1) = 0.0
   ENDIF
-  IF ( met_model == 3 ) THEN !FV3, top-down, i.e., 1 for last array
-   vglvs3d(2:nlays+1) =1.0e-25
-   vglvs3d(3:nlays+1) = vglvs_gd(2:nlays)
-  ENDIF
-   print*, 'SIZE(vglvs_gd) in comheader = ', SIZE(vglvs_gd)
-   print*, 'vglvs_gd in comheader =  ', vglvs_gd
-   print*, 'SIZE(vglvs3d) in comheader = ', SIZE(vglvs3d)
-   print*, 'vglvs3d in comheader =  ', vglvs3d
-! Initialize FDESC3D and UPDESC3D array.
+ 
+  print*, 'vglvs_gd comheader = ', vglvs_gd
+  print*, 'vglvs3d comheader = ', vglvs3d 
+  ! Initialize FDESC3D and UPDESC3D array.
+
   fdesc3d(1:mxdesc3) = ' '
   updsc3d(1:mxdesc3) = ' '
 

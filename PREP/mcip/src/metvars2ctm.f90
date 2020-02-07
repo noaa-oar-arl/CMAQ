@@ -763,6 +763,8 @@ SUBROUTINE metvars2ctm
 ! If input meteorology has a time-varying vertical coordinate, compute Jacobian
 ! and layer heights.
 !-------------------------------------------------------------------------------
+  IF ( met_model == 2 .OR. met_model == 3 ) THEN
+
 
     IF ( met_hybrid >= 0 ) THEN
       DO k = 0, metlay
@@ -809,6 +811,7 @@ SUBROUTINE metvars2ctm
     print*, 'x3htm (ZH) min = ', MINVAL(x3htm)
     print*, 'x3htm (ZH) max = ', MAXVAL(x3htm)
 
+  ENDIF
 
 !-------------------------------------------------------------------------------
 ! Calculate height differences.

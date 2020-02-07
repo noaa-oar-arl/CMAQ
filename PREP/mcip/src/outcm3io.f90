@@ -30,7 +30,6 @@ SUBROUTINE outcm3io (sdate, stime)
 !                        fields.  (T. Spero)
 !-------------------------------------------------------------------------------
 
-  USE metinfo
   USE mcipparm
   USE ctmvars
   USE coord
@@ -188,7 +187,9 @@ SUBROUTINE outcm3io (sdate, stime)
   nrows3d = nrows
   nthik3d = nthik
   tstep3d = grstep
-  
+
+  print*, 'vglvs3d outcm3io = ', vglvs3d
+
   IF ( first ) THEN
     IF ( .NOT. open3 (metcro3d, fsunkn3, pname) ) THEN
       WRITE (*,f9000) TRIM(pname), TRIM(metcro3d)
@@ -257,27 +258,21 @@ SUBROUTINE outcm3io (sdate, stime)
     ENDDO
   ENDIF
 
-
-!-------------------------------------------------------------------------------
-! Build common header for I/O API output.
-!-------------------------------------------------------------------------------
-
-  CALL comheader (sdate, stime)
-
 !-------------------------------------------------------------------------------
 ! Write MET_BDY_3D.  Header is the same as MET_CRO_3D except for file type.
 !-------------------------------------------------------------------------------
 
   ftype3d = bndary3
-  
+
   IF ( first ) THEN
     IF ( .NOT. open3 (metbdy3d, fsunkn3, pname) ) THEN
       WRITE (*,f9000) TRIM(pname), TRIM(metbdy3d)
       CALL graceful_stop (pname)
     ENDIF
   ENDIF
+
   IF ( .NOT. desc3 (metbdy3d) ) THEN
-    CALL m3err ('METBDY', sdate, stime,  &
+    CALL m3err ('METCRO', sdate, stime,  &
                 'Could not read DESC of ' // metbdy3d // ' file', .TRUE.)
   ENDIF
 
@@ -337,18 +332,10 @@ SUBROUTINE outcm3io (sdate, stime)
     ENDDO
   ENDIF
 
-
-
-!-------------------------------------------------------------------------------
-! Build common header for I/O API output.
-!-------------------------------------------------------------------------------
-
-  CALL comheader (sdate, stime)
-
 !-------------------------------------------------------------------------------
 ! Write MET_DOT_3D.
 !-------------------------------------------------------------------------------
-  
+
   DO n = 1, nfld3dxyzt_d
 
     vtype3d(n) = m3real
@@ -493,10 +480,6 @@ SUBROUTINE outcm3io (sdate, stime)
     nrows3d = nrows
     nthik3d = nthik
     tstep3d = grstep
-    ! FV3 to ensure monotonicity check near surface when Open3 and CHKDESC
-!    IF ( met_model == 3 ) THEN     ! FV3
-!     vglvs3d(nlays+1)=1.01
-!    ENDIF
 
     IF ( first ) THEN
       IF ( .NOT. open3 (mosaiccro, fsunkn3, pname) ) THEN

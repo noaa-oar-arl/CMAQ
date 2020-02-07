@@ -986,7 +986,7 @@ SUBROUTINE rdfv3 (mcip_now)
 !Calculate sigma from pressure layers
   
   sigmaf = (pfull - pfull(met_nz+1)) / (pfull(1) - pfull(met_nz+1))
-  sigmah = (phalf - phalf(met_nz)) / (phalf(1) - phalf(met_nz+1))
+  sigmah = (phalf - phalf(met_nz)) / (phalf(1) - phalf(met_nz))
   
 
   IF ( .NOT. ALLOCATED ( dum3d_t ) )  &

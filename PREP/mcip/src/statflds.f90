@@ -68,14 +68,26 @@ SUBROUTINE statflds
 ! trying to create thinner lowest layer or thinner top layer than input
 ! meteorology.
 !-------------------------------------------------------------------------------
-  print*, vglvs_gd(2)     - sigmaf(2)
-  print*, -(vglvs_gd(nlays) - sigmaf(met_nz))
+ IF ( met_model == 2) THEN !WRF
   IF ( (   vglvs_gd(2)     - sigmaf(2)       > epsilons )   .OR.  &
        ( -(vglvs_gd(nlays) - sigmaf(met_nz)) > epsilons ) ) THEN
     WRITE (*,f9000) TRIM(pname), vglvs_gd(2), sigmaf(2), vglvs_gd(nlays),  &
                    sigmaf(met_nz)
     CALL graceful_stop (pname)
   ENDIF
+ ENDIF
+
+  print*, vglvs_gd(2)     - sigmah(2)
+  print*, -(vglvs_gd(nlays) - sigmah(met_nz))
+
+ IF ( met_model == 3) THEN !FV3
+  IF ( (   vglvs_gd(2)     - sigmah(2)       > epsilons )   .OR.  &
+       ( -(vglvs_gd(nlays) - sigmah(met_nz)) > epsilons ) ) THEN
+    WRITE (*,f9000) TRIM(pname), vglvs_gd(2), sigmah(2), vglvs_gd(nlays),  &
+                   sigmah(met_nz)
+    CALL graceful_stop (pname)
+  ENDIF
+ ENDIF 
 
 !-------------------------------------------------------------------------------
 ! Get land use categories.

@@ -397,7 +397,7 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
   ALLOCATE ( dum1d ( ival-1 ) )
   rcode = nf90_get_var (cdfid, varid, dum1d)
 
-  phalf_lays(1:met_nz) = dum1d(ival:ival-met_nz-1:-1)
+  phalf_lays(1:met_nz) = dum1d(ival-1:ival-met_nz-1:-1)
 
   DEALLOCATE (dum1d)
   ENDIF
@@ -1132,7 +1132,8 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 !  ENDIF
 
 !  met_ptop  = phalf_lays(nlays)*100.0 !FV3 set met_ptop to first value of phalf array
-  met_ptop  = pfull_lays(nlays+1)*100.0 ! FV3 top-down hPa --> [Pa]
+!  met_ptop  = pfull_lays(nlays+1)*100.0 ! FV3 top-down hPa --> [Pa]
+  met_ptop  = phalf_lays(nlays)*100.0
   met_p00   = 100000.0 ! base state sea-level pressure [Pa]
   met_ts0   =    290.0 ! base state sea-level temperature [K]
   met_tlp   =     50.0 ! base state lapse rate d(T)/d(ln P) from 1000 to 300 mb
@@ -1149,7 +1150,7 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
     !Flip again to top down to be consistent with other FV3 vertical grid.
 !    ctmlays = ctmlays(nlays+1:1:-1)
 !     ctmlays = (pfull_lays - pfull_lays(nlays)) / (MAXVAL(pfull_lays) - pfull_lays(nlays))
-     ctmlays = (phalf_lays - phalf_lays(nlays)) / (MAXVAL(phalf_lays) - phalf_lays(nlays))
+     ctmlays = (phalf_lays - phalf_lays(nlays)) / ((phalf_lays(1)) - phalf_lays(nlays))
   ENDIF
 !-------------------------------------------------------------------------------
 ! Determine FV3 release.
