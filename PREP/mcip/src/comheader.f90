@@ -67,12 +67,13 @@ SUBROUTINE comheader (sdate, stime)
 
   ! Layer defined in standard met. coordinate.
 
-  vglvs3d(:)         = 0.0  ! initialized to ensure monotonicity
+  vglvs3d(:)         = 0.0  ! initialized to ensure monotonicity in vglvs3d
   vglvs3d(1:nlays+1) = vglvs_gd(1:nlays+1) 
 
-  IF (SIZE(vglvs3d) > maxlays ) THEN
-    vglvs3d(nlays+1) = 0.0
-  ENDIF
+!dont need...
+!  IF (SIZE(vglvs3d) > maxlays ) THEN ! further ensure monotonicity
+!    vglvs3d(nlays+1) = 0.0
+!  ENDIF
  
   print*, 'vglvs_gd comheader = ', vglvs_gd
   print*, 'vglvs3d comheader = ', vglvs3d 

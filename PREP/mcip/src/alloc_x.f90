@@ -103,12 +103,6 @@ SUBROUTINE alloc_x
    ALLOCATE ( xx3midl (   metlay ) )
    ALLOCATE ( xdx3    (   metlay ) )
 
-!  IF ( met_model == 3 ) THEN  ! FV3
-!   ALLOCATE ( xx3face (   metlay ) )
-!   ALLOCATE ( xx3midl ( 0:metlay ) )
-!   ALLOCATE ( xdx3    (   metlay ) )
-!  ENDIF
-
   ALLOCATE ( xludesc ( nummetlu ) )
 
   IF ( metsoi > 0 ) THEN
@@ -221,7 +215,6 @@ SUBROUTINE alloc_x
 !-------------------------------------------------------------------------------
 ! Cross-Point 3D Arrays.
 !-------------------------------------------------------------------------------
-   ALLOCATE ( xtempf   (ncols_x, nrows_x,   metlay) )
    ALLOCATE ( xtempm   (ncols_x, nrows_x,   metlay) )
    ALLOCATE ( xpresm   (ncols_x, nrows_x,   metlay) )
    ALLOCATE ( xdensam  (ncols_x, nrows_x,   metlay) )
@@ -303,10 +296,10 @@ SUBROUTINE alloc_x
 !-------------------------------------------------------------------------------
 ! Variables for WRF or FV3 only.
 !-------------------------------------------------------------------------------
-
+  IF ( met_model == 2 .OR. met_model == 3 ) THEN  ! WRF or FV3
     ALLOCATE ( xmu   (ncols_x, nrows_x)           )
     ALLOCATE ( xgeof (ncols_x, nrows_x, 0:metlay) )
-
+  ENDIF
 !-------------------------------------------------------------------------------
 ! Internal Arrays.
 !-------------------------------------------------------------------------------

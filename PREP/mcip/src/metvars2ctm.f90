@@ -564,10 +564,13 @@ SUBROUTINE metvars2ctm
     xcldfrad(:,:,:)  = cldfra_dp(sc:ec,sr:er,:)
     xcldfras(:,:,:)  = cldfra_sh(sc:ec,sr:er,:)
   ENDIF
-  
-    xwwind (:,:,0:) = wa(sc:ec,sr:er,1:)
+ 
+    IF ( SIZE(c1f) > maxlays ) THEN ! 
+      xwwind (:,:,1:) = wa(sc:ec,sr:er,1:)
+    ELSE
+      xwwind (:,:,0:) = wa(sc:ec,sr:er,1:)
+    ENDIF
 
-    xwwind (:,:,1:) = wa(sc:ec,sr:er,1:)
 
     IF ( ( iftke ) .AND. ( .NOT. iftkef ) ) THEN  ! TKE on half-layers
      xtke   (:,:, :) = tke(sc:ec,sr:er, :)
@@ -668,7 +671,7 @@ SUBROUTINE metvars2ctm
      DO k = 0, metlay
       DO c = 1, ncols_x
         DO r = 1, nrows_x
-         xpresf(c,r,k) = phalf (k+1)
+         xpresf(c,r,k) = pfull (k+1)
         ENDDO
       ENDDO
      ENDDO
@@ -677,7 +680,7 @@ SUBROUTINE metvars2ctm
     DO k = 1, metlay
       DO c = 1, ncols_x
         DO r = 1, nrows_x
-         xpresm(c,r,k) = pfull (k)
+         xpresm(c,r,k) = phalf (k)
         ENDDO
       ENDDO
      ENDDO
@@ -685,8 +688,12 @@ SUBROUTINE metvars2ctm
 
     xprsfc(:,:) = psa(sc:ec,sr:er)  ! FV3 contains 2D surface pressure
     xmu   (:,:) = xprsfc(:,:) - met_ptop !FV3 does not have MU, so calculate 2D MU (Pa)
-    xgeof (:,:,1:) = (1.0/giwrf) * delz(:,:,1:) !FV3 does not have geopotential, so calculate (m2 s-2)
-
+    
+    IF ( SIZE(c1f) > maxlays ) THEN !
+      xgeof (:,:,1:) = (1.0/giwrf) * delz(:,:,:) !FV3 does not have geopotential, so calculate (m2 s-2)
+    ELSE
+      xgeof (:,:,0:) = (1.0/giwrf) * delz(:,:,:)
+    ENDIF
 
   END IF
 

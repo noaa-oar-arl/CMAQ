@@ -212,7 +212,6 @@ MODULE xvars
 !-------------------------------------------------------------------------------
 
   REAL, ALLOCATABLE :: xtempm  ( : , : , : )  ! temp. at layer middle [K]
-  REAL, ALLOCATABLE :: xtempf  ( : , : , : )  ! temp. at layer full [K]
   REAL, ALLOCATABLE :: xpresm  ( : , : , : )  ! pressure at layer middle [Pa]
   REAL, ALLOCATABLE :: xdensam ( : , : , : )  ! air density at middle [kg/m^3]
   REAL, ALLOCATABLE :: xdenswm ( : , : , : )  ! vapor density at middle [kg/m^3]
