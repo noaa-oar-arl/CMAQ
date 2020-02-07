@@ -52,9 +52,9 @@ FC      = ifort
 #...NetCDF/HDF5 Settings
 #NETCDF = /usr/local/apps/netcdf-4.6.3/intel-18.0
 #...Serial netCDF I/O
-#NETCDF =  /opt/cray/netcdf/4.3.2/INTEL/140/
+NETCDF =  /opt/cray/netcdf/4.3.2/INTEL/140/
 #...Parallel netCDF I/O with HDF5
-NETCDF =  /opt/cray/netcdf-hdf5parallel/4.4.1.1/INTEL/150
+#NETCDF =  /opt/cray/netcdf-hdf5parallel/4.4.1.1/INTEL/150
 #NETCDF  = /gpfs/hps/usrx/local/prod/NetCDF/4.2/intel/sandybridge
 #HDF5    = /usrx/local/prod/HDF5/1.8.9/parallel/intel/sandybridge
 
@@ -67,7 +67,7 @@ NETCDF =  /opt/cray/netcdf-hdf5parallel/4.4.1.1/INTEL/150
 IOAPI_ROOT = /gpfs/hps/nco/ops/nwprod/cmaq.v5.1.4/lib/
 
 #...MPI Settings
-MPI_ROOT = /opt/cray/mpt/7.2.0/gni/mpich2-intel/140
+#MPI_ROOT = /opt/cray/mpt/7.2.0/gni/mpich2-intel/140
 
 ###FFLAGS  = -g -O0 -check all -C -traceback -FR -I$(NETCDF)/include  \
 ###          -I$(IOAPI_ROOT)/Linux2_x86_64ifort
@@ -75,11 +75,11 @@ MPI_ROOT = /opt/cray/mpt/7.2.0/gni/mpich2-intel/140
 
 #...Serial
 #FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT)/include
-#FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/include 
+FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/include 
 
 #...Parallel
 #FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/include -I$(MPI_ROOT)/include
-FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT)/include -I$(MPI_ROOT)/include
+#FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT)/include -I$(MPI_ROOT)/include
 #FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(HDF5)/include -I$(IOAPI_ROOT)/include -I$(MPI_ROOT)/include 
 
 LIBS    = -L$(IOAPI_ROOT) -laqm_ioapi \
@@ -183,7 +183,6 @@ OBJS =\
  statflds.o \
  vertarys.o \
  vertnhy_wrf.o \
- vertnhy_fv3.o \
  vstamp.o \
  vtemp.o \
  wind.o \

@@ -70,13 +70,6 @@ SUBROUTINE comheader (sdate, stime)
   vglvs3d(:)         = 0.0  ! initialized to ensure monotonicity in vglvs3d
   vglvs3d(1:nlays+1) = vglvs_gd(1:nlays+1) 
 
-!dont need...
-!  IF (SIZE(vglvs3d) > maxlays ) THEN ! further ensure monotonicity
-!    vglvs3d(nlays+1) = 0.0
-!  ENDIF
- 
-  print*, 'vglvs_gd comheader = ', vglvs_gd
-  print*, 'vglvs3d comheader = ', vglvs3d 
   ! Initialize FDESC3D and UPDESC3D array.
 
   fdesc3d(1:mxdesc3) = ' '

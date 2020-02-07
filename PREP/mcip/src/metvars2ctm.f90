@@ -749,23 +749,6 @@ SUBROUTINE metvars2ctm
     xdenss(:,:) = xdensaf(:,:,0)
     xdenswm(:,:,:) = xdensam(:,:,:) * xwvapor(:,:,:) / ( 1.0 + xwvapor(:,:,:) )
 
-
-           print*, '-------checking density calcs in metvars2ctm.f90----------'
-           print*, 'xdenss min = ', MINVAL(xdenss(:,:))
-           print*, 'xdenss max = ', MAXVAL(xdenss(:,:))
-           print*, 'xdensaf min = ', MINVAL(xdensaf)
-           print*, 'xdensaf max = ', MAXVAL(xdensaf)
-           print*, 'xdensam size = ', SIZE(xdensam)
-           print*, 'xdensam min = ', MINVAL(xdensam)
-           print*, 'xdensam max = ', MAXVAL(xdensam)
-           print*, 'xwvapor size = ', SIZE(xwvapor)
-           print*, 'xwvapor min = ', MINVAL(xwvapor)
-           print*, 'xwvapor max = ', MAXVAL(xwvapor)
-           print*,'xdensam max bottom = ',  MAXVAL(xdensam(:,:,metlay))
-           print*,'xdensam min top = ',  MINVAL(xdensam(:,:,1))
-           print*,'xdensaf max bottom = ',  MAXVAL(xdensaf(:,:,metlay))
-           print*,'xdensaf min top = ',  MINVAL(xdensaf(:,:,1))
-
 !-------------------------------------------------------------------------------
 ! If input meteorology has a time-varying vertical coordinate, compute Jacobian
 ! and layer heights.
@@ -794,29 +777,7 @@ SUBROUTINE metvars2ctm
       ENDDO
     ENDIF
 
-    print*, '-------checking hybrid MU (Pa) calcs in metvars2ctm.f90----------'  
-    print*, 'xmu min = ', MINVAL(xmu)
-    print*, 'xmu max = ', MAXVAL(xmu)
-    print*, 'xmuhyb min = ', MINVAL(xmuhyb)   
-    print*, 'xmuhyb max = ', MAXVAL(xmuhyb)
-    print*, '-------checking jacobian calcs in metvars2ctm.f90----------'
-    print*, 'x3jacobf min = ', MINVAL(x3jacobf)
-    print*, 'x3jacobf max = ', MAXVAL(x3jacobf)
-    print*, 'x3jacobm min = ', MINVAL(x3jacobm)
-    print*, 'x3jacobm max = ', MAXVAL(x3jacobm)
-
-
-    print*, 'xx3face = ', xx3face
-    print*, 'xx3midl = ', xx3midl
-
-
     CALL layht (xx3face, xx3midl, x3jacobf, x3jacobm, x3htf, x3htm)
-
-    print*, '-------checking layer height (m) calcs using jacobian in metvars2ctm.f90----------'
-    print*, 'x3htf (ZF) min = ', MINVAL(x3htf)
-    print*, 'x3htf (ZF) max = ', MAXVAL(x3htf)
-    print*, 'x3htm (ZH) min = ', MINVAL(x3htm)
-    print*, 'x3htm (ZH) max = ', MAXVAL(x3htm)
 
   ENDIF
 
@@ -832,14 +793,9 @@ SUBROUTINE metvars2ctm
 ! Calculate contravariant velocity (w-component).
 !-------------------------------------------------------------------------------
 
-  IF ( met_model == 2 ) THEN  ! WRF-ARW
+  IF ( met_model == 2 .OR. met_model == 3 ) THEN  ! WRF-ARW or FV3
     CALL vertnhy_wrf
   ENDIF
-
-  IF ( met_model == 3 ) THEN !FV3, same as WRF?
-    CALL vertnhy_fv3
-  ENDIF
-
 
 !-------------------------------------------------------------------------------
 ! Calculate depths of soil layers.

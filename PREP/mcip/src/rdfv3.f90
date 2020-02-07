@@ -188,7 +188,6 @@ SUBROUTINE rdfv3 (mcip_now)
   USE mcipparm
   USE netcdf_io
   USE netcdf
-  USE mpi 
 
   IMPLICIT NONE
 
@@ -437,21 +436,6 @@ SUBROUTINE rdfv3 (mcip_now)
     & /, 1x, 70('*'))"
 
 
-! MPI stuff if necessary: number of processors, rank of this processor, and error
-! code.
-  INTEGER :: p, my_rank, ierr
-
-!-------------------------------------------------------------------------------
-! Initialize MPI, learn local rank and total number of processors.
-  IF ( ifmpi ) THEN
-   CALL MPI_Init(ierr)
-   print*, 'ierr = ', ierr
-   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
-   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
-   print*, p, my_rank
-  ENDIF
-!------------------------------------------------------------------------------
-
 !-------------------------------------------------------------------------------
 ! Define additional staggered grid dimensions.
 !-------------------------------------------------------------------------------
@@ -644,11 +628,6 @@ SUBROUTINE rdfv3 (mcip_now)
           WRITE (*,f9420) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
           CALL graceful_stop (pname)
         ENDIF
-!        rcode = nf90_inquire_dimension (cdfid, dimids(1), len=lent)
-!        IF ( rcode /= nf90_noerr ) THEN
-!          WRITE (*,f9430) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
-!          CALL graceful_stop (pname)
-!        ENDIF
         rcode = nf90_inquire_dimension (cdfid, dimids(1), len=n_times)
         IF ( rcode /= nf90_noerr ) THEN
           WRITE (*,f9430) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
@@ -664,6 +643,7 @@ SUBROUTINE rdfv3 (mcip_now)
         ENDIF
         newfilem1  = .FALSE.
       ENDIF
+
       DO i = 1, n_times
 !        CALL geth_idts (times(i), mcip_previous(1:19), idtsec)
 !      Commented geth_idts function for time difference/tolerance
@@ -707,7 +687,6 @@ SUBROUTINE rdfv3 (mcip_now)
       WRITE (*,f9400) TRIM(pname), 'cprat_ave', TRIM(nf90_strerror(rcode))
       CALL graceful_stop (pname)
     ENDIF
-    print*, rcode
 
 
     CALL get_var_2d_real_cdf (cdfid2, 'prate_ave', dum2d, itm1, rcode)
@@ -783,11 +762,6 @@ SUBROUTINE rdfv3 (mcip_now)
         WRITE (*,f9420) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
         CALL graceful_stop (pname)
       ENDIF
-!      rcode = nf90_inquire_dimension (cdfid, dimids(1), len=lent)
-!      IF ( rcode /= nf90_noerr ) THEN
-!        WRITE (*,f9430) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
-!        CALL graceful_stop (pname)
-!      ENDIF
       rcode = nf90_inquire_dimension (cdfid, dimids(1), len=n_times)
       IF ( rcode /= nf90_noerr ) THEN
         WRITE (*,f9430) TRIM(pname), 'time', TRIM(nf90_strerror(rcode))
@@ -841,7 +815,7 @@ SUBROUTINE rdfv3 (mcip_now)
 !-------------------------------------------------------------------------------
 ! Read FV3 data for this domain.
 !-------------------------------------------------------------------------------
-  !Need this to allocate inverse top-down FV3 array
+  !Use this to allocate inverse top-down FV3 array
   rcode = nf90_inq_dimid (cdfid, 'pfull', dimid)
   IF ( rcode /= nf90_noerr ) THEN
     WRITE (*,f9400) TRIM(pname), 'ID for pfull',  &
@@ -893,71 +867,6 @@ SUBROUTINE rdfv3 (mcip_now)
     CALL graceful_stop (pname)
   ENDIF
 
-!  FV3 already contains the temperature state variable:
-
-!  CALL get_var_3d_real_cdf (cdfid, 'PH', dum3d_w, it, rcode)
-!  IF ( rcode == nf90_noerr ) THEN
-!    ph(1:nxm,   1:nym,   :) = dum3d_w(:,:,:)
-!    ph(  met_nx, :,      :) = ph(nxm,:,:)
-!    ph( :,        met_ny,:) = ph(:,nym,:)
-!    WRITE (*,ifmt1a) 'PH       ', (ph(lprt_metx,lprt_mety,k),k=1,nzp)
-!  ELSE
-!    WRITE (*,f9400) TRIM(pname), 'PH', TRIM(nf90_strerror(rcode))
-!    CALL graceful_stop (pname)
-!  ENDIF
-!
-!  CALL get_var_3d_real_cdf (cdfid, 'PHB', dum3d_w, it, rcode)
-!  IF ( rcode == nf90_noerr ) THEN
-!    phb(1:nxm,   1:nym,   :) = dum3d_w(:,:,:)
-!    phb(  met_nx, :,      :) = phb(nxm,:,:)
-!    phb( :,        met_ny,:) = phb(:,nym,:)
-!    WRITE (*,ifmt1a) 'PHB      ', (phb(lprt_metx,lprt_mety,k),k=1,nzp)
-!  ELSE
-!    WRITE (*,f9400) TRIM(pname), 'PHB', TRIM(nf90_strerror(rcode))
-!    CALL graceful_stop (pname)
-!  ENDIF
-!
-!  CALL get_var_3d_real_cdf (cdfid, 'P', dum3d_p, it, rcode)
-!  IF ( rcode == nf90_noerr ) THEN
-!    pp(1:nxm,   1:nym,   :) = dum3d_p(:,:,:)
-!    pp(  met_nx, :,      :) = pp(nxm,:,:)
-!    pp( :,        met_ny,:) = pp(:,nym,:)
-!    WRITE (*,ifmt1) 'P        ', (pp(lprt_metx,lprt_mety,k),k=1,met_nz)
-!  ELSE
-!    WRITE (*,f9400) TRIM(pname), 'P', TRIM(nf90_strerror(rcode))
-!    CALL graceful_stop (pname)
-!  ENDIF
-!
-!  CALL get_var_3d_real_cdf (cdfid, 'PB', dum3d_p, it, rcode)
-!  IF ( rcode == 0 ) THEN
-!    pb(1:nxm,   1:nym,   :) = dum3d_p(:,:,:)
-!    pb(  met_nx, :,      :) = pb(nxm,:,:)
-!    pb( :,        met_ny,:) = pb(:,nym,:)
-!    WRITE (*,ifmt1) 'PB       ', (pb(lprt_metx,lprt_mety,k),k=1,met_nz)
-!  ELSE
-!    WRITE (*,f9400) TRIM(pname), 'PB', TRIM(nf90_strerror(rcode))
-!    CALL graceful_stop (pname)
-!  ENDIF
-!
-!  CALL get_var_3d_real_cdf (cdfid, 'T', dum3d_t, it, rcode)
-!  IF ( rcode == nf90_noerr ) THEN
-!    dum3d_p(:,:,:) = dum3d_p(:,:,:) + pp(1:nxm,1:nym,:)   ! pressure [Pa]
-!    dum3d_t(:,:,:) = dum3d_t(:,:,:) + 300.0               ! theta [K]
-!    IF ( lpv > 0 .OR. ifmolpx ) THEN  ! need theta
-!      theta(1:nxm,   1:nym,   :) = dum3d_t(:,:,:)
-!      theta(  met_nx, :,      :) = theta(nxm,:,:)
-!      theta( :,        met_ny,:) = theta(:,nym,:)
-!      WRITE (*,ifmt1) 'THETA    ', (theta(lprt_metx,lprt_mety,k),k=1,met_nz)
-!    ENDIF
-!    ta(1:nxm,   1:nym,   :) = dum3d_t(:,:,:) * (dum3d_p(:,:,:)/100000.0)**rdovcp
-!    ta(  met_nx, :,      :) = ta(nxm,:,:)
-!    ta( :,        met_ny,:) = ta(:,nym,:)
-!    WRITE (*,ifmt1) 'T        ', (ta(lprt_metx,lprt_mety,k),k=1,met_nz)
-!  ELSE
-!    WRITE (*,f9400) TRIM(pname), 'T', TRIM(nf90_strerror(rcode))
-!    CALL graceful_stop (pname)
-!  ENDIF
-
   IF ( .NOT. ALLOCATED ( dum1d ) )  &
     ALLOCATE ( dum1d (ival2 ) )    ! 3D, cross points, half lvls
  
@@ -982,7 +891,6 @@ SUBROUTINE rdfv3 (mcip_now)
   ENDIF
    DEALLOCATE (dum1d)
    
-
 !Calculate sigma from pressure layers
   
   sigmaf = (pfull - pfull(met_nz+1)) / (pfull(1) - pfull(met_nz+1))
@@ -1133,37 +1041,8 @@ SUBROUTINE rdfv3 (mcip_now)
     ENDIF
   ENDIF
 
-!  CALL get_var_2d_real_cdf (cdfid2, 'MU', dum2d, it, rcode)
-!  IF ( rcode == nf90_noerr ) THEN
-!    mu(1:nxm,1:nym) = dum2d(:,:)
-!    mu(met_nx,:) = mu(nxm,:)
-!    mu(:,met_ny) = mu(:,nym)
-!    WRITE (*,f6000) 'MU       ', mu(lprt_metx, lprt_mety), 'Pa'
-!  ELSE
-!    WRITE (*,f9400) TRIM(pname), 'MU', TRIM(nf90_strerror(rcode))
-!    CALL graceful_stop (pname)
-!  ENDIF
-!
-!  CALL get_var_2d_real_cdf (cdfid2, 'MUB', dum2d, it, rcode)
-!  IF ( rcode == nf90_noerr ) THEN
-!    mub(1:nxm,1:nym) = dum2d(:,:)
-!    mub(met_nx,:) = mub(nxm,:)
-!    mub(:,met_ny) = mub(:,nym)
-!    WRITE (*,f6000) 'MUB      ', mub(lprt_metx, lprt_mety), 'Pa'
-!  ELSE
-!    WRITE (*,f9400) TRIM(pname), 'MUB', TRIM(nf90_strerror(rcode))
-!    CALL graceful_stop (pname)
-!  ENDIF
-
   IF ( ift2m ) THEN
     CALL get_var_2d_real_cdf (cdfid2, 'tmp2m', dum2d, it, rcode)
-!    rcode = nf90_inq_varid (cdfid2,'tmp2m', id_data)
-!    IF ( rcode.ne.nf90_noerr ) then
-!     print*,'can not find tmp2m in file ',cdfid2
-!     CALL graceful_stop (pname)
-!    endif
-!    rcode = nf90_get_var (cdfid2, id_data, dum2d, start=(/1,1,1/),  &
-!                        count=(/nxm,nym,1/)) 
     IF ( rcode == nf90_noerr ) THEN
       t2(1:nxm,1:nym) = dum2d(:,met_ny:1:-1)
       t2(met_nx,:) = t2(nxm,:)
@@ -1222,38 +1101,6 @@ SUBROUTINE rdfv3 (mcip_now)
     CALL graceful_stop (pname)
   ENDIF
 
-!FV3 does not contain map factors
-!  CALL get_var_2d_real_cdf (cdfid2, 'MAPFAC_M', dum2d, it, rcode)
-!  IF ( rcode == nf90_noerr ) THEN
-!    mapcrs(1:nxm,1:nym) = dum2d(:,:)
-!    mapcrs(met_nx,:) = mapcrs(nxm,:)
-!    mapcrs(:,met_ny) = mapcrs(:,nym)
-!    WRITE (*,f6000) 'MAPFAC_M ', mapcrs(lprt_metx, lprt_mety), 'dimensionless'
-!  ELSE
-!    WRITE (*,f9400) TRIM(pname), 'MAPFAC_M', TRIM(nf90_strerror(rcode))
-!    CALL graceful_stop (pname)
-!  ENDIF
-!
-!  CALL get_var_2d_real_cdf (cdfid2, 'MAPFAC_U', dum2d_u, it, rcode)
-!  IF ( rcode == nf90_noerr ) THEN
-!    mapu(:,1:nym)  = dum2d_u(:,:)
-!    mapu(:,met_ny) = mapu(:,nym)
-!    WRITE (*,f6000) 'MAPFAC_U ', mapu(lprt_metx, lprt_mety), 'dimensionless'
-!  ELSE
-!    gotfaces = .FALSE.
-!  ENDIF
-!
-!  CALL get_var_2d_real_cdf (cdfid2, 'MAPFAC_V', dum2d_v, it, rcode)
-!  IF ( rcode == nf90_noerr ) THEN
-!    mapv(1:nxm,:)  = dum2d_v(:,:)
-!    mapv(met_nx,:) = mapv(nxm,:)
-!    WRITE (*,f6000) 'MAPFAC_V ', mapv(lprt_metx, lprt_mety), 'dimensionless'
-!  ELSE
-!    gotfaces = .FALSE.
-!  ENDIF
-
-!  Calculate mapfactor using latitude below for Gaussian
-
 !Assume at surface the FV3 geopotential height (gpm) = geometric height (m)
   CALL get_var_2d_real_cdf (cdfid2, 'orog', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
@@ -1266,81 +1113,7 @@ SUBROUTINE rdfv3 (mcip_now)
     CALL graceful_stop (pname)
   ENDIF
 
-   !  FV3 only contains incremental precip
-!  IF ( met_pcp_incr == 0 ) THEN  ! compute incremental precip in MCIP
-!
-!    CALL get_var_2d_real_cdf (cdfid2, 'RAINC', dum2d, it, rcode)
-!    IF ( rcode == nf90_noerr ) THEN
-!      WHERE ( dum2d < smallnum )
-!        dum2d = 0.0
-!      ENDWHERE
-!      raincon(1:nxm,1:nym) = (dum2d(:,:) - rcold(1:nxm,1:nym))/10.0
-!      raincon(met_nx,:) = raincon(nxm,:)
-!      raincon(:,met_ny) = raincon(:,nym)
-!      rcold(1:nxm,1:nym) = dum2d(:,:)
-!      WRITE (*,f6000) 'RAINC    ', raincon(lprt_metx, lprt_mety), 'cm'
-!    ELSE
-!      WRITE (*,f9400) TRIM(pname), 'RAINC', TRIM(nf90_strerror(rcode))
-!      CALL graceful_stop (pname)
-!    ENDIF
-!
-!    CALL get_var_2d_real_cdf (cdfid2, 'RAINNC', dum2d, it, rcode)
-!    IF ( rcode == nf90_noerr ) THEN
-!      WHERE ( dum2d < smallnum )
-!        dum2d = 0.0
-!      ENDWHERE
-!      rainnon(1:nxm,1:nym) = (dum2d(:,:) - rnold(1:nxm,1:nym))/10.0
-!      rainnon(met_nx,:) = rainnon(nxm,:)
-!      rainnon(:,met_ny) = rainnon(:,nym)
-!      rnold(1:nxm,1:nym) = dum2d(:,:)
-!      WRITE (*,f6000) 'RAINNC   ', rainnon(lprt_metx, lprt_mety), 'cm'
-!    ELSE
-!      WRITE (*,f9400) TRIM(pname), 'RAINNC', TRIM(nf90_strerror(rcode))
-!      CALL graceful_stop (pname)
-!    ENDIF
-!
-!    IF ( met_rain_bucket > 0.0 ) THEN  ! adjust RAINC and RAINNC for bucket
-!    
-!      CALL get_var_2d_int_cdf (cdfid, 'I_RAINC', dum2d_i, it, rcode)
-!      IF ( rcode == nf90_noerr ) THEN
-!        i_rainc(1:nxm,1:nym) = dum2d_i(:,:) - ircold(1:nxm,1:nym)
-!        i_rainc(met_nx,:) = i_rainc(nxm,:)
-!        i_rainc(:,met_ny) = i_rainc(:,nym)
-!        raincon(:,:) = raincon(:,:) + 0.1 * met_rain_bucket * FLOAT(i_rainc(:,:))
-!        ircold (1:nxm,1:nym) = dum2d_i(:,:)
-!        ircold (met_nx,:) = ircold(nxm,:)
-!        ircold (:,met_ny) = ircold(:,nym)
-!        WRITE (*,f6100) 'I_RAINC  ', i_rainc(lprt_metx, lprt_mety), 'times'
-!        WRITE (*,f6000) 'CONV RAIN', raincon(lprt_metx, lprt_mety), 'cm'
-!      ELSE
-!        WRITE (*,f9400) TRIM(pname), 'I_RAINC', TRIM(nf90_strerror(rcode))
-!        CALL graceful_stop (pname)
-!      ENDIF
-!  
-!      CALL get_var_2d_int_cdf (cdfid, 'I_RAINNC', dum2d_i, it, rcode)
-!      IF ( rcode == nf90_noerr ) THEN
-!        i_rainnc(1:nxm,1:nym) = dum2d_i(:,:) - irnold(1:nxm,1:nym)
-!        i_rainnc(met_nx,:) = i_rainnc(nxm,:)
-!        i_rainnc(:,met_ny) = i_rainnc(:,nym)
-!        rainnon (:,:) = rainnon(:,:) + 0.1 * met_rain_bucket * FLOAT(i_rainnc(:,:))
-!        irnold  (1:nxm,1:nym) = dum2d_i(:,:)
-!        irnold  (met_nx,:) = irnold(nxm,:)
-!        irnold  (:,met_ny) = irnold(:,nym)
-!        WRITE (*,f6100) 'I_RAINNC ', i_rainnc(lprt_metx, lprt_mety), 'times'
-!        WRITE (*,f6000) 'NONC RAIN', rainnon(lprt_metx, lprt_mety), 'cm'
-!      ELSE
-!        WRITE (*,f9400) TRIM(pname), 'I_RAINNC', TRIM(nf90_strerror(rcode))
-!        CALL graceful_stop (pname)
-!      ENDIF
-!  
-!    ENDIF  ! tipping bucket
-!
-!    ! Ensure precipitation values for this time increment are not negative.
-!
-!    raincon(:,:) = MAX(0.0, raincon(:,:))
-!    rainnon(:,:) = MAX(0.0, rainnon(:,:))
-!  
-!  ELSE  ! incremental ave precip taken directly from FV3 (avoid IF block)
+    ! incremental ave precip taken directly from FV3 (avoid IF block)
 
     CALL get_var_2d_real_cdf (cdfid2, 'cprat_ave', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
@@ -1371,8 +1144,6 @@ SUBROUTINE rdfv3 (mcip_now)
       WRITE (*,f9400) TRIM(pname), 'prate_ave', TRIM(nf90_strerror(rcode))
       CALL graceful_stop (pname)
     ENDIF
-
-!  ENDIF  ! incremental precip
 
   CALL get_var_2d_real_cdf (cdfid2, 'dswrf', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
@@ -1411,24 +1182,6 @@ SUBROUTINE rdfv3 (mcip_now)
    !FV3 does not contain the lat/lon of cell faces
    gotfaces = .FALSE.
    
-!  CALL get_var_2d_real_cdf (cdfid2, 'XLAT_U', dum2d_u, it, rcode)
-!  IF ( rcode == nf90_noerr ) THEN
-!    latu(:,1:nym)  = dum2d_u(:,:)
-!    latu(:,met_ny) = latu(:,nym)
-!    WRITE (*,f6000) 'XLAT_U   ', latu(lprt_metx, lprt_mety), 'degrees_north'
-!  ELSE
-!    gotfaces = .FALSE.
-!  ENDIF
-
-!  CALL get_var_2d_real_cdf (cdfid2, 'XLAT_V', dum2d_v, it, rcode)
-!  IF ( rcode == nf90_noerr ) THEN
-!    latv(1:nxm,:)  = dum2d_v(:,:)
-!    latv(met_nx,:) = latv(nxm,:)
-!    WRITE (*,f6000) 'XLAT_V   ', latv(lprt_metx, lprt_mety), 'degrees_north'
-!  ELSE
-!    gotfaces = .FALSE.
-!  ENDIF
-
   CALL get_var_2d_real_cdf (cdfid2, 'lon', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
     loncrs(1:nxm,1:nym) = dum2d(:,met_ny:1:-1)
@@ -1439,25 +1192,6 @@ SUBROUTINE rdfv3 (mcip_now)
     WRITE (*,f9400) TRIM(pname), 'lon', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
-    print*, 'min lon = ', MINVAL(loncrs)
-    print*, 'max lon = ', MAXVAL(loncrs)
-!  CALL get_var_2d_real_cdf (cdfid2, 'XLONG_U', dum2d_u, it, rcode)
-!  IF ( rcode == nf90_noerr ) THEN
-!    lonu(:,1:nym)  = dum2d_u(:,:)
-!    lonu(:,met_ny) = lonu(:,nym)
-!    WRITE (*,f6000) 'XLONG_U  ', lonu(lprt_metx, lprt_mety), 'degrees_east'
-!  ELSE
-!    gotfaces = .FALSE.
-!  ENDIF
-
-!  CALL get_var_2d_real_cdf (cdfid2, 'XLONG_V', dum2d_v, it, rcode)
-!  IF ( rcode == nf90_noerr ) THEN
-!    lonv(1:nxm,:)  = dum2d_v(:,:)
-!    lonv(met_nx,:) = lonv(nxm,:)
-!    WRITE (*,f6000) 'XLONG_V  ', lonv(lprt_metx, lprt_mety), 'degrees_east'
-!  ELSE
-!    gotfaces = .FALSE.
-!  ENDIF
 
   CALL get_var_2d_real_cdf (cdfid2, 'vtype', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
@@ -1517,6 +1251,7 @@ SUBROUTINE rdfv3 (mcip_now)
     WRITE (*,f9400) TRIM(pname), 'fricv', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
+
   !M-O length not in FV3GFSv16
   IF ( ifmol ) THEN
     CALL get_var_2d_real_cdf (cdfid2, 'RMOL', dum2d, it, rcode)
@@ -1660,27 +1395,6 @@ SUBROUTINE rdfv3 (mcip_now)
     ENDIF
   ENDIF
   IF ( ifveg ) THEN
-! No P-X physics in FV3. :)
-!    IF ( met_soil_lsm == 7 ) THEN  ! Pleim-Xiu land-surface model
-!      CALL get_var_2d_real_cdf (cdfid2, 'VEGF_PX', dum2d, it, rcode)
-!      IF ( rcode == nf90_noerr ) THEN
-!        veg(1:nxm,1:nym) = dum2d(:,:)
-!        veg(met_nx,:) = veg(nxm,:)
-!        veg(:,met_ny) = veg(:,nym)
-!        WRITE (*,f6000) 'VEGF_PX  ', veg(lprt_metx, lprt_mety), 'm2 m-2'
-!      ELSE
-!        CALL get_var_2d_real_cdf (cdfid2, 'VEGFRA', dum2d, it, rcode)
-!        IF ( rcode == nf90_noerr ) THEN
-!          veg(1:nxm,1:nym) = dum2d(:,:) * 0.01
-!          veg(met_nx,:) = veg(nxm,:)
-!          veg(:,met_ny) = veg(:,nym)
-!          WRITE (*,f6000) 'VEGFRA   ', veg(lprt_metx, lprt_mety), 'fraction'
-!        ELSE
-!          WRITE (*,f9400) TRIM(pname), 'VEGFRA', TRIM(nf90_strerror(rcode))
-!          CALL graceful_stop (pname)
-!        ENDIF
-!      ENDIF
-!    ELSE
       CALL get_var_2d_real_cdf (cdfid2, 'veg', dum2d, it, rcode)
       IF ( rcode == nf90_noerr ) THEN
         veg(1:nxm,1:nym) = dum2d(:,met_ny:1:-1) * 0.01
@@ -1691,7 +1405,6 @@ SUBROUTINE rdfv3 (mcip_now)
         WRITE (*,f9400) TRIM(pname), 'veg', TRIM(nf90_strerror(rcode))
         CALL graceful_stop (pname)
       ENDIF
-!    ENDIF
   ENDIF
 
   IF ( ifsoil ) THEN
@@ -1701,9 +1414,6 @@ SUBROUTINE rdfv3 (mcip_now)
       isltyp(1:nxm,1:nym) = int(dum2d(:,met_ny:1:-1))
       isltyp(met_nx,:) = isltyp(nxm,:)
       isltyp(:,met_ny) = isltyp(:,nym)
-!!!   IF ( met_soil_lsm == 7 ) THEN  ! Pleim-Xiu used; detangle soil categories
-!!!     CALL detangle_soil_px
-!!!   ENDIF
       WRITE (*,f6100) 'sotyp   ', isltyp(lprt_metx, lprt_mety), 'category'
     ELSE
       WRITE (*,f9400) TRIM(pname), 'sotyp', TRIM(nf90_strerror(rcode))
@@ -2171,63 +1881,10 @@ SUBROUTINE rdfv3 (mcip_now)
     ENDIF
 
   ENDIF  ! ifkfradextras
-!FV3 does not have eta levels and need to calculate them using pressure levels
-!  CALL get_var_1d_real_cdf (cdfid, 'ZNU', sigmah, it, rcode)
-!  IF ( rcode /= nf90_noerr ) THEN
-!    WRITE (*,f9400) TRIM(pname), 'ZNU', TRIM(nf90_strerror(rcode))
-!    CALL graceful_stop (pname)
-!  ENDIF
-!
-!  CALL get_var_1d_real_cdf (cdfid, 'ZNW', sigmaf, it, rcode)
-!  IF ( rcode /= nf90_noerr ) THEN
-!    WRITE (*,f9400) TRIM(pname), 'ZNW', TRIM(nf90_strerror(rcode))
-!    CALL graceful_stop (pname)
-!  ENDIF
-
-!  CALL get_var_1d_real_cdf (cdfid, 'pfull', sigmah, it, rcode)
-!  IF ( rcode /= nf90_noerr ) THEN
-!    WRITE (*,f9400) TRIM(pname), 'pfull', TRIM(nf90_strerror(rcode))
-!    CALL graceful_stop (pname)
-!  ENDIF
-
-!  CALL get_var_1d_real_cdf (cdfid, 'phalf', sigmaf, it, rcode)
-!  IF ( rcode /= nf90_noerr ) THEN
-!    WRITE (*,f9400) TRIM(pname), 'phalf', TRIM(nf90_strerror(rcode))
-!    CALL graceful_stop (pname)
-!  ENDIF
-
-!Needs work, swap to reduce hardcoding for vertical FV3 in metvars2ctm and metgrd2cm,
-!  sigmah = (sigmah - sigmah(1)) / (MAXVAL(sigmah) - sigmah(1))
-!  sigmah(1:met_nz) = sigmah(met_nz:1:-1)
-!  sigmaf = (sigmaf - sigmaf(1)) / (MAXVAL(sigmaf) - sigmaf(1))
-!  sigmaf(1:met_nz+1) = sigmaf(met_nz+1:1:-1)
 
   IF ( met_hybrid >= 0 ) THEN
 !FV3 does not have the hybrid coefficients and need to calculate them using
 !b parameter, sigmah, an sigmaf
-!    CALL get_var_1d_real_cdf (cdfid, 'C1F', c1f, it, rcode)
-!    IF ( rcode /= nf90_noerr ) THEN
-!      WRITE (*,f9400) TRIM(pname), 'C1F', TRIM(nf90_strerror(rcode))
-!      CALL graceful_stop (pname)
-!    ENDIF
-!
-!    CALL get_var_1d_real_cdf (cdfid, 'C1H', c1h, it, rcode)
-!    IF ( rcode /= nf90_noerr ) THEN
-!      WRITE (*,f9400) TRIM(pname), 'C1H', TRIM(nf90_strerror(rcode))
-!      CALL graceful_stop (pname)
-!    ENDIF
-!
-!    CALL get_var_1d_real_cdf (cdfid, 'C2F', c2f, it, rcode)
-!    IF ( rcode /= nf90_noerr ) THEN
-!      WRITE (*,f9400) TRIM(pname), 'C2F', TRIM(nf90_strerror(rcode))
-!      CALL graceful_stop (pname)
-!    ENDIF
-!
-!    CALL get_var_1d_real_cdf (cdfid, 'C2H', c2h, it, rcode)
-!    IF ( rcode /= nf90_noerr ) THEN
-!      WRITE (*,f9400) TRIM(pname), 'C2H', TRIM(nf90_strerror(rcode))
-!      CALL graceful_stop (pname)
-!    ENDIF
     
     IF ( .NOT. ALLOCATED ( dum1d ) )  &
     ALLOCATE ( dum1d (ival2 + 1 ) )    ! 3D, cross points, full lvls
@@ -2239,14 +1896,7 @@ SUBROUTINE rdfv3 (mcip_now)
     CALL graceful_stop (pname)
     ENDIF
     
-   ! b_k(1)=bk(SIZE(bk))
-   ! DO k = 2, met_nz+1
-   ! b_k(k) = bk(SIZE(bk)-k)
-   ! END DO  
-
     b_k(1:met_nz+1) = dum1d(ival2+1:ival2+1-met_nz:-1)
-
-    print*, 'b_k = ', b_k
 
     c1f(1) = 1.0 
     DO k = 2, met_nz+1 
@@ -2260,14 +1910,6 @@ SUBROUTINE rdfv3 (mcip_now)
     END DO
     c2h = (1.0-c1h) * (100000.0 - met_ptop)
 
-    print*, '-------checking sigma and hybrid coefficient calcs in rdfv3.f90----------'
-    print*, 'met_ptop = ', met_ptop
-    print*, 'sigmaf = ', sigmaf
-    print*, 'sigmah = ', sigmah
-    print*, 'c1f = ', c1f
-    print*, 'c2f = ', c2f
-    print*, 'c1h = ', c1h
-    print*, 'c2h = ', c2h
     DEALLOCATE (dum1d)
 
   ENDIF
@@ -2289,209 +1931,7 @@ SUBROUTINE rdfv3 (mcip_now)
 
   IF ( first ) THEN
 
-    ! Compute distance from origin (at reflat, standlon) to domain center, and
-    ! store in MET_XXCTR and MET_YYCTR.  Then calculate latitude, longitude,
-    ! and map-scale factors using offset distance of given grid point from
-    ! center of domain.
-
-
-! FV3 only has Gaussian grid projection, see below.
-
-!    SELECT CASE ( met_mapproj )
-!
-!      CASE (1)  ! Lambert conformal
-!
-!        xoff = 0.0  ! dot-point grid: no offset from dot-point center value
-!        yoff = 0.0  ! dot-point grid: no offset from dot-point center value
-!
-!        DO j = 1, met_ny
-!          DO i = 1, met_nx
-!
-!            xxin = met_xxctr -  &
-!                   ( met_rictr_dot - (FLOAT(i) + xoff) ) * met_resoln
-!
-!            yyin = met_yyctr -  &
-!                   ( met_rjctr_dot - (FLOAT(j) + yoff) ) * met_resoln
-!
-!            CALL xy2ll_lam (xxin, yyin, met_tru1, met_tru2, met_proj_clon,  &
-!                            met_ref_lat, latdot(i,j), londot(i,j))
-!
-!            mapdot(i,j) = mapfac_lam (latdot(i,j), met_tru1, met_tru2)
-!
-!          ENDDO
-!        ENDDO
-!
-!        IF ( .NOT. gotfaces ) THEN  ! get lat, lon, map-scale factor on faces
-!
-!          xoff = 0.0  ! U-face: no offset in X from dot-point center value
-!          yoff = 0.5  ! U-face: 0.5-cell offset in Y from dot-point center value
-!
-!          DO j = 1, met_ny  ! use all Y to fill array; last row outside domain
-!            DO i = 1, met_nx
-!
-!              xxin = met_xxctr -  &
-!                     ( met_rictr_dot - (FLOAT(i) + xoff) ) * met_resoln
-!
-!              yyin = met_yyctr -  &
-!                     ( met_rjctr_dot - (FLOAT(j) + yoff) ) * met_resoln
-!
-!              CALL xy2ll_lam (xxin, yyin, met_tru1, met_tru2, met_proj_clon,  &
-!                              met_ref_lat, latu(i,j), lonu(i,j))
-!
-!              mapu(i,j) = mapfac_lam (latu(i,j), met_tru1, met_tru2)
-!
-!            ENDDO
-!          ENDDO
-!
-!          xoff = 0.5  ! V-face: 0.5-cell offset in X from dot-point center value
-!          yoff = 0.0  ! V-face: no offset in Y from dot-point center value
-!
-!          DO j = 1, met_ny
-!            DO i = 1, met_nx  ! use all X to fill array; last col outside domain
-!
-!              xxin = met_xxctr -  &
-!                     ( met_rictr_dot - (FLOAT(i) + xoff) ) * met_resoln
-!
-!              yyin = met_yyctr -  &
-!                     ( met_rjctr_dot - (FLOAT(j) + yoff) ) * met_resoln
-!
-!              CALL xy2ll_lam (xxin, yyin, met_tru1, met_tru2, met_proj_clon,  &
-!                              met_ref_lat, latv(i,j), lonv(i,j))
-!
-!              mapv(i,j) = mapfac_lam (latv(i,j), met_tru1, met_tru2)
-!
-!            ENDDO
-!          ENDDO
-!
-!        ENDIF
-!
-!
-!      CASE (2)  ! polar stereographic
-!
-!        DO j = 1, met_ny
-!          DO i = 1, met_nx
-!
-!            ! Use four-point interpolation here for latitude and longitude.
-!            ! Because CMAQ will never use outermost row and column from WRF
-!            ! due to location of CMAQ boundaries, inexact values in the
-!            ! outermost row and column will not matter.
-!
-!            ii = MIN(i,nxm)
-!            jj = MIN(j,nym)
-!
-!            im1 = MIN(i-1,1)
-!            jm1 = MIN(j-1,1)
-!
-!            latdot(i,j) = ( latcrs(im1,jj)  + latcrs(ii,jj) +   &
-!                            latcrs(im1,jm1) + latcrs(ii,jm1) ) * 0.25
-!
-!            londot(i,j) = ( loncrs(im1,jj)  + loncrs(ii,jj) +   &
-!                            loncrs(im1,jm1) + loncrs(ii,jm1) ) * 0.25
-!
-!            mapdot(i,j) = mapfac_ps (latdot(i,j), met_tru1)
-!
-!          ENDDO
-!        ENDDO
-!
-!        IF ( .NOT. gotfaces ) THEN  ! get lat, lon, map-scale factor on faces
-!
-!          DO j = 1, met_ny
-!            DO i = 1, met_nx
-!
-!              ! Use linear interpolation here for latitude and longitude.
-!              ! Because CMAQ will never use outermost row and column from WRF
-!              ! due to location of CMAQ boundaries, inexact values in the
-!              ! outermost row and column will not matter.
-!
-!              ii = MIN(i,nxm)
-!              jj = MIN(j,nym)
-!
-!              im1 = MIN(i-1,1)
-!              jm1 = MIN(j-1,1)
-!
-!              latu(i,j) = ( latcrs(im1,jj) + latcrs(ii,jj) ) * 0.5
-!              lonu(i,j) = ( loncrs(im1,jj) + loncrs(ii,jj) ) * 0.5
-!              mapu(i,j) = mapfac_ps (latu(i,j), met_tru1)
-!
-!              latv(i,j) = ( latcrs(ii,jm1) + latcrs(ii,jj) ) * 0.5
-!              lonv(i,j) = ( loncrs(ii,jm1) + loncrs(ii,jj) ) * 0.5
-!              mapv(i,j) = mapfac_ps (latv(i,j), met_tru1)
-!
-!            ENDDO
-!          ENDDO
-!
-!        ENDIF
-!
-!
-!      CASE (3)  ! Mercator
-!
-!        xoff = 0.0  ! dot-point grid: no offset from dot-point center value
-!        yoff = 0.0  ! dot-point grid: no offset from dot-point center value
-!
-!        DO j = 1, met_ny
-!          DO i = 1, met_nx
-!
-!            xxin = met_xxctr -  &
-!                   ( met_rictr_dot - (FLOAT(i) + xoff) ) * met_resoln
-!
-!            yyin = met_yyctr -  &
-!                   ( met_rjctr_dot - (FLOAT(j) + yoff) ) * met_resoln
-!
-!            CALL xy2ll_merc (xxin, yyin, met_proj_clon,  &
-!                             latdot(i,j), londot(i,j))
-!
-!            mapdot(i,j) = mapfac_merc (latdot(i,j))
-!
-!          ENDDO
-!        ENDDO
-!
-!        IF ( .NOT. gotfaces ) THEN  ! get lat, lon, map-scale factor on faces
-!
-!          xoff = 0.0  ! U-face: no offset in X from dot-point center value
-!          yoff = 0.5  ! U-face: 0.5-cell offset in Y from dot-point center value
-!
-!          DO j = 1, met_ny  ! use all Y to fill array; last row outside domain
-!            DO i = 1, met_nx
-!
-!              xxin = met_xxctr -  &
-!                     ( met_rictr_dot - (FLOAT(i) + xoff) ) * met_resoln
-!
-!              yyin = met_yyctr -  &
-!                     ( met_rjctr_dot - (FLOAT(j) + yoff) ) * met_resoln
-!
-!              CALL xy2ll_merc (xxin, yyin, met_proj_clon,  &
-!                               latu(i,j), lonu(i,j))
-!
-!              mapu(i,j) = mapfac_merc (latu(i,j))
-!
-!            ENDDO
-!          ENDDO
-!
-!          xoff = 0.5  ! V-face: 0.5-cell offset in X from dot-point center value
-!          yoff = 0.0  ! V-face: no offset in Y from dot-point center value
-!
-!          DO j = 1, met_ny
-!            DO i = 1, met_nx  ! use all X to fill array; last col outside domain
-!
-!              xxin = met_xxctr -  &
-!                     ( met_rictr_dot - (FLOAT(i) + xoff) ) * met_resoln
-!
-!              yyin = met_yyctr -  &
-!                     ( met_rjctr_dot - (FLOAT(j) + yoff) ) * met_resoln
-!
-!              CALL xy2ll_merc (xxin, yyin, met_proj_clon,  &
-!                               latv(i,j), lonv(i,j))
-!
-!              mapv(i,j) = mapfac_merc (latv(i,j))
-!
-!            ENDDO
-!          ENDDO
-!
-!        ENDIF
-!
-!     END SELECT
-
-!  Just copied Mercator Projection for Gaussian for now
+!  Just copied Mercator Projection for Gaussian Map factors for now
         xoff = 0.0  ! dot-point grid: no offset from dot-point center value
         yoff = 0.0  ! dot-point grid: no offset from dot-point center value
 
@@ -2554,13 +1994,6 @@ SUBROUTINE rdfv3 (mcip_now)
        ENDIF
 
   ENDIF
-              print*, '-------checking map factor calcs based on Mercator in rdfv3.f90----------'
-              print*, 'min mapcrs = ', MINVAL(mapcrs)
-              print*, 'max mapcrs = ', MAXVAL(mapcrs)
-              print*, 'min mapu = ', MINVAL(mapu)
-              print*, 'max mapu = ', MAXVAL(mapu)
-              print*, 'min mapv = ', MINVAL(mapv)
-              print*, 'max mapv = ', MAXVAL(mapv)
 
 !-------------------------------------------------------------------------------
 ! If this is the first time in this routine, then determine season.
@@ -2589,7 +2022,7 @@ SUBROUTINE rdfv3 (mcip_now)
         met_season = 2   ! winter
       ENDIF
     ENDIF
-        print*, 'met_season = ', met_season
+
 !-------------------------------------------------------------------------------
 ! If roughness length was not available in output, fill it from lookup tables.
 ! If the urban model was used in WRF, replace roughness length with urban-
@@ -2693,13 +2126,6 @@ SUBROUTINE rdfv3 (mcip_now)
 ! DEALLOCATE ( dum3d_v )  ! commented out to avoid memory fragmentation
 ! DEALLOCATE ( dum3d_w )  ! commented out to avoid memory fragmentation
 
-!-------------------------------------------------------------------------------
-! MPI Stuff
-!-------------------------------------------------------------------------------
-  IF ( ifmpi ) THEN
-!   MPI library must be shut down.
-   CALL MPI_Finalize(ierr) 
-  ENDIF
 !-------------------------------------------------------------------------------
 
 END SUBROUTINE rdfv3

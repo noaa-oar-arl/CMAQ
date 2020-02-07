@@ -79,11 +79,6 @@ SUBROUTINE metgrid2ctm
   lbndface = LBOUND(xx3face,1)
   ubndsigf = UBOUND(sigmaf,1)
   maxface  = lbndface + SIZE(sigmaf) - 1
-  print*, 'lbndface = ', lbndface
-  print*, 'maxface = ', maxface
-  print*, 'lbndsigf = ', lbndsigf
-  print*, 'ubndsigf = ', ubndsigf
-  print*, 'SIZE(sigmah) = ', SIZE(sigmah)
   
   ALLOCATE ( x3workf ( lbndsigf:ubndsigf ) )
 
@@ -103,8 +98,6 @@ SUBROUTINE metgrid2ctm
      xx3midl(jw) = 0.5 * ( xx3face(jw-1) + xx3face(jw) )
    ENDDO
 
-  print*, 'SIZE(xx3face) = ', SIZE(xx3face)
-  print*, 'SIZE(xx3midl) = ', SIZE(xx3midl)
   DEALLOCATE ( x3workf )
 
 !-------------------------------------------------------------------------------

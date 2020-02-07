@@ -165,13 +165,6 @@ set IfGeo      = "F"
 set InGeoFile  = $InGeoDir/geo_em_d01.nc
 
 #-----------------------------------------------------------------------
-# If its desired to use MPI, parallel netCDF I/O (e.g., speed up FV3 I/O)
-# Note: If true, must compile MCIP with NetCDF parallel version using HDF5 library, e.g.,  netcdf-hdf5parallel
-# and add mpich include in Makefile (Default = TRUE)   
-set IfMPI      = "F"
-#-----------------------------------------------------------------------
-
-#-----------------------------------------------------------------------
 # Set input meteorological model (2 = WRF or 3 = FV3). (Default = 2)
 #
 #set InMetModel = 2
@@ -287,17 +280,6 @@ set CTMLAYS = "-1.0"
 #              0.388094, 0.356994, 0.326694, 0.297694, 0.270694, \
 #              0.245894, 0.223694, 0.203594, 0.154394, 0.127094, \
 #              0.000000"
-
-#FV3
-#set CTMLAYS=" 0.000000, 0.127094, 0.154394, 0.203594, 0.223694, \
-#              0.245894, 0.270694, 0.297694, 0.326694, 0.356994, \
-#              0.388094, 0.419694, 0.451894, 0.484394, 0.511711, \
-#              0.549714, 0.582114, 0.614214, 0.645814, 0.735314, \
-#              0.786714, 0.829314, 0.862914, 0.888811, 0.908404, \
-#              0.930397, 0.936895, 0.954689, 0.960187, 0.970684, \
-#              0.975782, 0.980781, 0.985679, 0.990479, 0.995253, \
-#              1.000000"
-
 
 #-----------------------------------------------------------------------
 # Define output CMAQ resolution to be interpolated to, dx = dy (m).
@@ -469,7 +451,6 @@ cat >> $WorkDir/namelist.${PROG} << !
  $Marker
 
  &USERDEFS
-  ifmpi      =  $IfMPI
   inmetmodel =  $InMetModel
   dx_in      =  $DX_IN
   dy_in      =  $DY_IN
@@ -561,11 +542,7 @@ if ( -f $OutDir/mcip_bdy.nc  ) rm -f $OutDir/mcip_bdy.nc
 # Execute MCIP.
 #-----------------------------------------------------------------------
 
-if ( $IfMPI == "T" ) then
-aprun -n24 -N2 $ProgDir/${PROG}.exe
-else
 $ProgDir/${PROG}.exe
-endif 
 
 if ( $status == 0 ) then
   rm fort.*

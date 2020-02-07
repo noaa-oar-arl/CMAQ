@@ -188,8 +188,6 @@ SUBROUTINE outcm3io (sdate, stime)
   nthik3d = nthik
   tstep3d = grstep
 
-  print*, 'vglvs3d outcm3io = ', vglvs3d
-
   IF ( first ) THEN
     IF ( .NOT. open3 (metcro3d, fsunkn3, pname) ) THEN
       WRITE (*,f9000) TRIM(pname), TRIM(metcro3d)

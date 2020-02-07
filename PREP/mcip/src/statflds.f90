@@ -77,9 +77,6 @@ SUBROUTINE statflds
   ENDIF
  ENDIF
 
-  print*, vglvs_gd(2)     - sigmah(2)
-  print*, -(vglvs_gd(nlays) - sigmah(met_nz))
-
  IF ( met_model == 3) THEN !FV3
   IF ( (   vglvs_gd(2)     - sigmah(2)       > epsilons )   .OR.  &
        ( -(vglvs_gd(nlays) - sigmah(met_nz)) > epsilons ) ) THEN
@@ -94,18 +91,15 @@ SUBROUTINE statflds
 !-------------------------------------------------------------------------------
 
   CALL getluse
-  print*, 'pass getluse'
 !-------------------------------------------------------------------------------
 ! Put time-invariant fields on MCIP grid.
 !-------------------------------------------------------------------------------
 
   CALL metgrid2ctm
-  print*, 'pass metgrid2ctm'
 !-------------------------------------------------------------------------------
 ! Create metadata for output files.
 !-------------------------------------------------------------------------------
 
   CALL blddesc
-  print*, 'pass blddesc'
 
 END SUBROUTINE statflds
