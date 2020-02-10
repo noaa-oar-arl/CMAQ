@@ -348,13 +348,13 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
   ENDIF
   rcode = nf90_inquire_dimension (cdfid, dimid, len=ival)
   IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'BOTTOM-TOP_GRID_DIMENSION+1',  &
+    WRITE (*,f9400) TRIM(pname), 'BOTTOM-TOP_GRID_DIMENSION',  &
                     TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ELSE
 
 ! Set met_nz
-  met_nz = MIN(maxlays,ival-1) !If ival > max layers, cap at subset of IOAPI max layers
+  met_nz = ival-1
 
   ENDIF
 
@@ -392,11 +392,10 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
   ALLOCATE ( dum1d ( ival-1 ) )
   rcode = nf90_get_var (cdfid, varid, dum1d)
 
-  phalf_lays(1:met_nz) = dum1d(ival-1:ival-met_nz-1:-1)
+  phalf_lays(1:met_nz) = dum1d(ival-1:ival-met_nz:-1)
 
   DEALLOCATE (dum1d)
   ENDIF
-
 !-------------------------------------------------------------------------------
 ! Extract domain attributes.
 !-------------------------------------------------------------------------------
