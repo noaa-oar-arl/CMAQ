@@ -136,6 +136,7 @@ MODULE metvars
   REAL,          ALLOCATABLE   :: seaice     ( : , : )
   REAL,          ALLOCATABLE   :: phalf      ( : )
   REAL,          ALLOCATABLE   :: pfull      ( : )
+  REAL,          ALLOCATABLE   :: dpres      ( : , : , :)
   REAL,          ALLOCATABLE   :: sigmaf     ( : )
   REAL,          ALLOCATABLE   :: sigmah     ( : )
   REAL,          ALLOCATABLE   :: b_k        ( : )

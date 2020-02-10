@@ -666,29 +666,30 @@ SUBROUTINE metvars2ctm
   ENDIF
 
   IF ( met_model == 3 )  THEN  ! FV3
-!FV3, layers are in full and interface levels are in half    
-!FV3 pressure levels are 1-D
-     DO k = 0, metlay
-      DO c = 1, ncols_x
-        DO r = 1, nrows_x
-         xpresf(c,r,k) = pfull (k+1)
-        ENDDO
-      ENDDO
-     ENDDO
-!FV3, layers are in full and interface levels are in half
-!FV3 pressure levels are 1-D
-    DO k = 1, metlay
-      DO c = 1, ncols_x
-        DO r = 1, nrows_x
-         xpresm(c,r,k) = phalf (k)
-        ENDDO
-      ENDDO
-     ENDDO
-
 
     xprsfc(:,:) = psa(sc:ec,sr:er)  ! FV3 contains 2D surface pressure
     xmu   (:,:) = xprsfc(:,:) - met_ptop !FV3 does not have MU, so calculate 2D MU (Pa)
-    
+ 
+!FV3, layers are in full and interface levels are in half    
+!FV3 pressure levels are 1-D
+
+     xpresf(:,:,0) = xprsfc(:,:)
+
+     DO k = 1, metlay
+         xpresf(:,:,k) = xpresf(:,:,k-1) - dpres(:,:,k)
+       IF ( k == 0 ) CYCLE
+          xpresm(:,:,k) = 0.5 * ( xpresf(:,:,k) + xpresf(:,:,k-1) )
+     ENDDO
+!FV3, layers are in full and interface levels are in half, take average of full layers
+!FV3 pressure levels are 1-D
+!    DO k = 1, metlay
+!      DO c = 1, ncols_x
+!        DO r = 1, nrows_x
+!         xpresm(c,r,k) = phalf (k)
+!        ENDDO
+!      ENDDO
+!     ENDDO
+
     IF ( SIZE(c1f) > maxlays ) THEN !
       xgeof (:,:,1:) = (1.0/giwrf) * delz(:,:,:) !FV3 does not have geopotential, so calculate (m2 s-2)
     ELSE

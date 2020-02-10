@@ -105,6 +105,7 @@ SUBROUTINE alloc_met
 !  ALLOCATE ( sigmah                   (met_nz+1) )
   ALLOCATE ( pfull                    (met_nz+1) )
   ALLOCATE ( phalf                    (met_nz) )
+  ALLOCATE ( dpres                    (met_nx, met_ny,met_nz) )
   ALLOCATE ( delz                     (met_nx, met_ny, met_nz) )
   ALLOCATE ( b_k                      (met_nz+1) )
   ENDIF

@@ -263,7 +263,6 @@ set NROWS =  500
 # Set CTM Eta-Pressure layers to interpolate to.
 # This was put back in for FV3 to explicitly define CMAQ layers.
 # This requires that the pressure (phalf) is available in FV3 met fiel.
-# There is currently a maximum of 100 layers allowed.
 # To use all of the layers from the input meteorology without
 # explicitly specifying, set CTMLAYS = -1.0.
 #-----------------------------------------------------------------------

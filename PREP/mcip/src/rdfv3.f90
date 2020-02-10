@@ -896,9 +896,19 @@ SUBROUTINE rdfv3 (mcip_now)
   sigmaf = (pfull - pfull(met_nz+1)) / (pfull(1) - pfull(met_nz+1))
   sigmah = (phalf - phalf(met_nz)) / (phalf(1) - phalf(met_nz))
   
-
   IF ( .NOT. ALLOCATED ( dum3d_t ) )  &
     ALLOCATE ( dum3d_t (met_nx, met_ny, ival2 ) )    ! 3D, cross points, half lvls
+
+  CALL get_var_3d_real_cdf (cdfid, 'dpres', dum3d_t, it, rcode)
+  IF ( rcode == nf90_noerr ) THEN
+    dpres(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,ival2:ival2-met_nz+1:-1) !FV3 Pa
+    dpres(  met_nx, :,      :) = dpres(nxm,:,:)
+    dpres( :,        met_ny,:) = dpres(:,nym,:)
+     WRITE (*,ifmt1a) 'dpres      ', (dpres(lprt_metx,lprt_mety,k),k=1,met_nz)
+  ELSE
+    WRITE (*,f9400) TRIM(pname), 'dpres', TRIM(nf90_strerror(rcode))
+    CALL graceful_stop (pname)
+  ENDIF
 
   CALL get_var_3d_real_cdf (cdfid, 'delz', dum3d_t, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
