@@ -461,8 +461,8 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
     CALL graceful_stop (pname)
  
   ELSE
-  nxm = met_nx - 1
-  nym = met_ny - 1
+  nxm = met_nx
+  nym = met_ny 
   ALLOCATE ( dum2d_i ( nxm, nym ) )
   rcode = nf90_get_var (cdfid2, varid, dum2d_i)
   nummetlu=MAXVAL(dum2d_i)

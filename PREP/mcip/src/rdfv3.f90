@@ -437,12 +437,12 @@ SUBROUTINE rdfv3 (mcip_now)
 
 
 !-------------------------------------------------------------------------------
-! Define additional staggered grid dimensions.
+! Define additional staggered grid dimensions. (***No staggered FV3 dimensions,e.g., nxm=met_nx***)
 !-------------------------------------------------------------------------------
 
-  nxm = met_nx - 1
-  nym = met_ny - 1
-  nzp = met_nz + 1
+  nxm = met_nx 
+  nym = met_ny 
+  nzp = met_nz 
 
 !-------------------------------------------------------------------------------
 ! Set up print statements.
@@ -888,6 +888,7 @@ SUBROUTINE rdfv3 (mcip_now)
     dpres(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,met_nz:1:-1) !FV3 Pa
     dpres(  met_nx, :,      :) = dpres(nxm,:,:)
     dpres( :,        met_ny,:) = dpres(:,nym,:)
+    
      WRITE (*,ifmt1a) 'dpres      ', (dpres(lprt_metx,lprt_mety,k),k=1,met_nz)
   ELSE
     WRITE (*,f9400) TRIM(pname), 'dpres', TRIM(nf90_strerror(rcode))
@@ -1052,8 +1053,8 @@ SUBROUTINE rdfv3 (mcip_now)
     CALL get_var_2d_real_cdf (cdfid2, 'spfh2m', dum2d, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       q2(1:nxm,1:nym) = dum2d(:,met_ny:1:-1)
-      q2(met_nx,:) = t2(nxm,:)
-      q2(:,met_ny) = t2(:,nym)
+      q2(met_nx,:) = q2(nxm,:)
+      q2(:,met_ny) = q2(:,nym)
       WRITE (*,f6000) 'spfh2m   ', q2(lprt_metx, lprt_mety), 'kg kg-1'
     ELSE
       WRITE (*,f9400) TRIM(pname), 'spfh2m', TRIM(nf90_strerror(rcode))
