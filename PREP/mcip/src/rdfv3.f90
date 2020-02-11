@@ -216,7 +216,7 @@ SUBROUTINE rdfv3 (mcip_now)
   LOGICAL                           :: gotfaces   = .TRUE.
   LOGICAL                           :: gotseaice
   LOGICAL                           :: gotznt
-  INTEGER                           :: i,ival2
+  INTEGER                           :: i
   INTEGER                           :: id_data
   INTEGER                           :: idts_end
   INTEGER                           :: idts_start
@@ -578,6 +578,14 @@ SUBROUTINE rdfv3 (mcip_now)
     ALLOCATE ( dum3d_m (met_nx, met_ny, nummosaic) )  ! 3D, cross pts in mosaic cat
   IF ( .NOT. ALLOCATED ( dum3d_s ) )  &
     ALLOCATE ( dum3d_s (met_nx, met_ny, met_ns ) )    ! 3D, cross points, soil lvls
+  IF ( .NOT. ALLOCATED ( dum3d_u ) )  &
+    ALLOCATE ( dum3d_u (met_nx, met_ny, met_nz ) ) ! 3D, E-W flux pts, full lvls
+  IF ( .NOT. ALLOCATED ( dum3d_v ) )  &
+    ALLOCATE ( dum3d_v (met_nx, met_ny, met_nz ) ) ! 3D, N-S flux pts, full lvls
+  IF ( .NOT. ALLOCATED ( dum3d_w ) )  &
+    ALLOCATE ( dum3d_w (met_nx, met_ny, met_nz ) )    ! 3D, cross points, full lvls
+  IF ( .NOT. ALLOCATED ( dum3d_t ) )  &
+    ALLOCATE ( dum3d_t (met_nx, met_ny, met_nz ) )    ! 3D, cross points, full lvls
 
 
 !-------------------------------------------------------------------------------
@@ -815,30 +823,9 @@ SUBROUTINE rdfv3 (mcip_now)
 !-------------------------------------------------------------------------------
 ! Read FV3 data for this domain.
 !-------------------------------------------------------------------------------
-  !Use this to allocate inverse top-down FV3 array
-  rcode = nf90_inq_dimid (cdfid, 'pfull', dimid)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'ID for pfull',  &
-                    TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
-  rcode = nf90_inquire_dimension (cdfid, dimid, len=ival2)
-  IF ( rcode /= nf90_noerr ) THEN
-    WRITE (*,f9400) TRIM(pname), 'BOTTOM-TOP_GRID_DIMENSION',  &
-                    TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-  ENDIF
-
-  IF ( .NOT. ALLOCATED ( dum3d_u ) )  &
-    ALLOCATE ( dum3d_u (met_nx, met_ny, ival2 ) ) ! 3D, E-W flux pts, half lvls
-  IF ( .NOT. ALLOCATED ( dum3d_v ) )  &
-    ALLOCATE ( dum3d_v (met_nx, met_ny, ival2 ) ) ! 3D, N-S flux pts, half lvls
-  IF ( .NOT. ALLOCATED ( dum3d_w ) )  &
-    ALLOCATE ( dum3d_w (met_nx, met_ny, ival2 ) )    ! 3D, cross points, half lvls
-
   CALL get_var_3d_real_cdf (cdfid, 'ugrd', dum3d_u, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
-    ua(:,1:nym,   :) = dum3d_u(:,met_ny:1:-1,ival2:ival2-met_nz+1:-1)
+    ua(:,1:nym,   :) = dum3d_u(:,met_ny:1:-1,met_nz:1:-1)
     ua(:,  met_ny,:) = ua(:,nym,:)
     WRITE (*,ifmt1) 'ugrd     ', (ua(lprt_metx,lprt_mety,k),k=1,met_nz)
   ELSE
@@ -848,7 +835,7 @@ SUBROUTINE rdfv3 (mcip_now)
 
   CALL get_var_3d_real_cdf (cdfid, 'vgrd', dum3d_v, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
-    va(1:nxm   ,:,:) = dum3d_v(:,met_ny:1:-1,ival2:ival2-met_nz+1:-1)
+    va(1:nxm   ,:,:) = dum3d_v(:,met_ny:1:-1,met_nz:1:-1)
     va(  met_nx,:,:) = va(nxm,:,:)
     WRITE (*,ifmt1) 'vgrd     ', (va(lprt_metx,lprt_mety,k),k=1,met_nz)
   ELSE
@@ -858,7 +845,7 @@ SUBROUTINE rdfv3 (mcip_now)
 
   CALL get_var_3d_real_cdf (cdfid, 'dzdt', dum3d_w, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
-    wa(1:nxm,   1:nym,   :) = dum3d_w(:,met_ny:1:-1,ival2:ival2-met_nz+1:-1)
+    wa(1:nxm,   1:nym,   :) = dum3d_w(:,met_ny:1:-1,met_nz:1:-1)
     wa(  met_nx, :,      :) = wa(nxm,:,:)
     wa( :,        met_ny,:) = wa(:,nym,:) 
     WRITE (*,ifmt1a) 'dzdt     ', (wa(lprt_metx,lprt_mety,k),k=1,met_nz)
@@ -868,11 +855,11 @@ SUBROUTINE rdfv3 (mcip_now)
   ENDIF
 
   IF ( .NOT. ALLOCATED ( dum1d ) )  &
-    ALLOCATE ( dum1d (ival2 ) )    ! 3D, cross points, half lvls
+    ALLOCATE ( dum1d (met_nz ) )    ! 3D, cross points, half lvls
  
   CALL get_var_1d_real_cdf (cdfid, 'pfull', dum1d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
-  phalf = dum1d(ival2:ival2-met_nz+1:-1) *100.0  !FV3 mb (hPa) to Pa
+  phalf = dum1d(met_nz:1:-1) *100.0  !FV3 mb (hPa) to Pa
   ELSE
     WRITE (*,f9400) TRIM(pname), 'phalf', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
@@ -880,11 +867,11 @@ SUBROUTINE rdfv3 (mcip_now)
    DEALLOCATE (dum1d)
 
   IF ( .NOT. ALLOCATED ( dum1d ) )  &
-    ALLOCATE ( dum1d (ival2 + 1 ) )    ! 3D, cross points, full lvls
+    ALLOCATE ( dum1d (met_nz + 1 ) )    ! 3D, cross points, full lvls
 
   CALL get_var_1d_real_cdf (cdfid, 'phalf', dum1d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
-  pfull = dum1d(ival2+1:ival2-met_nz+1:-1) *100.0  !FV3 mb (hPa) to Pa
+  pfull = dum1d(met_nz+1:1:-1) *100.0  !FV3 mb (hPa) to Pa
   ELSE
     WRITE (*,f9400) TRIM(pname), 'pfull', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
@@ -896,12 +883,9 @@ SUBROUTINE rdfv3 (mcip_now)
   sigmaf = (pfull - pfull(met_nz+1)) / (pfull(1) - pfull(met_nz+1))
   sigmah = (phalf - phalf(met_nz)) / (phalf(1) - phalf(met_nz))
   
-  IF ( .NOT. ALLOCATED ( dum3d_t ) )  &
-    ALLOCATE ( dum3d_t (met_nx, met_ny, ival2 ) )    ! 3D, cross points, half lvls
-
   CALL get_var_3d_real_cdf (cdfid, 'dpres', dum3d_t, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
-    dpres(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,ival2:ival2-met_nz+1:-1) !FV3 Pa
+    dpres(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,met_nz:1:-1) !FV3 Pa
     dpres(  met_nx, :,      :) = dpres(nxm,:,:)
     dpres( :,        met_ny,:) = dpres(:,nym,:)
      WRITE (*,ifmt1a) 'dpres      ', (dpres(lprt_metx,lprt_mety,k),k=1,met_nz)
@@ -912,7 +896,7 @@ SUBROUTINE rdfv3 (mcip_now)
 
   CALL get_var_3d_real_cdf (cdfid, 'delz', dum3d_t, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
-    delz(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,ival2:ival2-met_nz+1:-1)
+    delz(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,met_nz:1:-1)
     delz(  met_nx, :,      :) = delz(nxm,:,:)
     delz( :,        met_ny,:) = delz(:,nym,:)
      WRITE (*,ifmt1a) 'delz      ', (delz(lprt_metx,lprt_mety,k),k=1,met_nz)
@@ -923,7 +907,7 @@ SUBROUTINE rdfv3 (mcip_now)
 
   CALL get_var_3d_real_cdf (cdfid, 'tmp', dum3d_t, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
-    ta(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,ival2:ival2-met_nz+1:-1)
+    ta(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,met_nz:1:-1)
     ta(  met_nx, :,      :) = ta(nxm,:,:)
     ta( :,        met_ny,:) = ta(:,nym,:)
     WRITE (*,ifmt1a) 'tmp      ', (ta(lprt_metx,lprt_mety,k),k=1,met_nz)
@@ -934,7 +918,7 @@ SUBROUTINE rdfv3 (mcip_now)
 
   CALL get_var_3d_real_cdf (cdfid, 'spfh', dum3d_t, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
-    qva(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,ival2:ival2-met_nz+1:-1)
+    qva(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,met_nz:1:-1)
     qva(  met_nx, :,      :) = qva(nxm,:,:)
     qva( :,        met_ny,:) = qva(:,nym,:)
     WRITE (*,ifmt1) 'spfh     ', (qva(lprt_metx,lprt_mety,k),k=1,met_nz)
@@ -945,7 +929,7 @@ SUBROUTINE rdfv3 (mcip_now)
 
   CALL get_var_3d_real_cdf (cdfid, 'clwmr', dum3d_t, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
-    qca(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,ival2:ival2-met_nz+1:-1)
+    qca(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,met_nz:1:-1)
     qca(  met_nx, :,      :) = qca(nxm,:,:)
     qca( :,        met_ny,:) = qca(:,nym,:)
     WRITE (*,ifmt1) 'clwmr    ', (qca(lprt_metx,lprt_mety,k),k=1,met_nz)
@@ -956,7 +940,7 @@ SUBROUTINE rdfv3 (mcip_now)
 
   CALL get_var_3d_real_cdf (cdfid, 'rwmr', dum3d_t, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
-    qra(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,ival2:ival2-met_nz+1:-1)
+    qra(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,met_nz:1:-1)
     qra(  met_nx, :,      :) = qra(nxm,:,:)
     qra( :,        met_ny,:) = qra(:,nym,:)
     WRITE (*,ifmt1) 'rwmr     ', (qra(lprt_metx,lprt_mety,k),k=1,met_nz)
@@ -969,7 +953,7 @@ SUBROUTINE rdfv3 (mcip_now)
   IF ( rcode == nf90_noerr ) THEN
     CALL get_var_3d_real_cdf (cdfid, 'icmr', dum3d_t, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
-      qia(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,ival2:ival2-met_nz+1:-1)
+      qia(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,met_nz:1:-1)
       qia(  met_nx, :,      :) = qia(nxm,:,:)
       qia( :,        met_ny,:) = qia(:,nym,:)
       WRITE (*,ifmt1) 'icmr     ', (qia(lprt_metx,lprt_mety,k),k=1,met_nz)
@@ -985,7 +969,7 @@ SUBROUTINE rdfv3 (mcip_now)
   IF ( rcode == nf90_noerr ) THEN
     CALL get_var_3d_real_cdf (cdfid, 'snmr', dum3d_t, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
-      qsa(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,ival2:ival2-met_nz+1:-1)
+      qsa(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,met_nz:1:-1)
       qsa(  met_nx, :,      :) = qsa(nxm,:,:)
       qsa( :,        met_ny,:) = qsa(:,nym,:)
       WRITE (*,ifmt1) 'snmr     ', (qsa(lprt_metx,lprt_mety,k),k=1,met_nz)
@@ -1001,7 +985,7 @@ SUBROUTINE rdfv3 (mcip_now)
   IF ( rcode == nf90_noerr ) THEN
     CALL get_var_3d_real_cdf (cdfid, 'grle', dum3d_t, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
-      qga(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,ival2:ival2-met_nz+1:-1)
+      qga(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,met_nz:1:-1)
       qga(  met_nx, :,      :) = qga(nxm,:,:)
       qga( :,        met_ny,:) = qga(:,nym,:)
       WRITE (*,ifmt1) 'grle     ', (qga(lprt_metx,lprt_mety,k),k=1,met_nz)
@@ -1017,7 +1001,7 @@ SUBROUTINE rdfv3 (mcip_now)
   IF ( ( iftke ) .AND. ( iftkef ) ) THEN  ! TKE on full-levels
     CALL get_var_3d_real_cdf (cdfid, 'TKE', dum3d_w, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
-      tke(1:nxm,   1:nym,   :) = dum3d_w(:,met_ny:1:-1,ival2:ival2-met_nz+1:-1)
+      tke(1:nxm,   1:nym,   :) = dum3d_w(:,met_ny:1:-1,met_nz:1:-1)
       tke(  met_nx, :,      :) = tke(nxm,:,:)
       tke( :,        met_ny,:) = tke(:,nym,:)
       WRITE (*,ifmt1a) 'TKE      ', (tke(lprt_metx,lprt_mety,k),k=1,nzp)
@@ -1028,7 +1012,7 @@ SUBROUTINE rdfv3 (mcip_now)
   ELSE IF ( ( iftke ) .AND. ( .NOT. iftkef ) ) THEN  ! TKE on half-layers
     CALL get_var_3d_real_cdf (cdfid, 'TKE_MYJ', dum3d_t, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
-      tke(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,ival2:ival2-met_nz+1:-1)
+      tke(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,met_nz:1:-1)
       tke(  met_nx, :,      :) = tke(nxm,:,:)
       tke( :,        met_ny,:) = tke(:,nym,:)
       WRITE (*,ifmt1) 'TKE_MYJ  ', (tke(lprt_metx,lprt_mety,k),k=1,met_nz)
@@ -1041,7 +1025,7 @@ SUBROUTINE rdfv3 (mcip_now)
   IF ( ifcld3d ) THEN  ! 3D resolved cloud fraction
     CALL get_var_3d_real_cdf (cdfid, 'cld_amt', dum3d_t, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
-      cldfra(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,ival2:ival2-met_nz+1:-1)
+      cldfra(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,met_nz:1:-1)
       cldfra(  met_nx, :,      :) = cldfra(nxm,:,:)
       cldfra( :,        met_ny,:) = cldfra(:,nym,:)
       WRITE (*,ifmt1a) 'cld_amt  ', (cldfra(lprt_metx,lprt_mety,k),k=1,met_nz)
@@ -1848,7 +1832,7 @@ SUBROUTINE rdfv3 (mcip_now)
 
     CALL get_var_3d_real_cdf (cdfid, 'QC_CU', dum3d_t, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
-      qc_cu(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,ival2:ival2-met_nz+1:-1)
+      qc_cu(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,met_nz:1:-1)
       qc_cu(  met_nx, :,      :) = qc_cu(nxm,:,:)
       qc_cu( :,        met_ny,:) = qc_cu(:,nym,:)
       WRITE (*,ifmt1a) 'QC_CU    ', (qc_cu(lprt_metx,lprt_mety,k),k=1,met_nz)
@@ -1859,7 +1843,7 @@ SUBROUTINE rdfv3 (mcip_now)
 
     CALL get_var_3d_real_cdf (cdfid, 'QI_CU', dum3d_t, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
-      qi_cu(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,ival2:ival2-met_nz+1:-1)
+      qi_cu(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,met_nz:1:-1)
       qi_cu(  met_nx, :,      :) = qi_cu(nxm,:,:)
       qi_cu( :,        met_ny,:) = qi_cu(:,nym,:)
       WRITE (*,ifmt1a) 'QI_CU    ', (qi_cu(lprt_metx,lprt_mety,k),k=1,met_nz)
@@ -1870,7 +1854,7 @@ SUBROUTINE rdfv3 (mcip_now)
 
     CALL get_var_3d_real_cdf (cdfid, 'CLDFRA_DP', dum3d_t, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
-      cldfra_dp(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,ival2:ival2-met_nz+1:-1)
+      cldfra_dp(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,met_nz:1:-1)
       cldfra_dp(  met_nx, :,      :) = cldfra_dp(nxm,:,:)
       cldfra_dp( :,        met_ny,:) = cldfra_dp(:,nym,:)
       WRITE (*,ifmt1a) 'CLDFRA_DP', (cldfra_dp(lprt_metx,lprt_mety,k),k=1,met_nz)
@@ -1881,7 +1865,7 @@ SUBROUTINE rdfv3 (mcip_now)
 
     CALL get_var_3d_real_cdf (cdfid, 'CLDFRA_SH', dum3d_t, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
-      cldfra_sh(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,ival2:ival2-met_nz+1:-1)
+      cldfra_sh(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,met_nz:1:-1)
       cldfra_sh(  met_nx, :,      :) = cldfra_sh(nxm,:,:)
       cldfra_sh( :,        met_ny,:) = cldfra_sh(:,nym,:)
       WRITE (*,ifmt1a) 'CLDFRA_SH', (cldfra_sh(lprt_metx,lprt_mety,k),k=1,met_nz)
@@ -1897,7 +1881,7 @@ SUBROUTINE rdfv3 (mcip_now)
 !b parameter, sigmah, an sigmaf
     
     IF ( .NOT. ALLOCATED ( dum1d ) )  &
-    ALLOCATE ( dum1d (ival2 + 1 ) )    ! 3D, cross points, full lvls
+    ALLOCATE ( dum1d (met_nz + 1 ) )    ! 3D, cross points, full lvls
 
     rcode = nf90_get_att (cdfid, nf90_global, 'bk', dum1d)
     IF ( rcode /= nf90_noerr ) THEN
@@ -1906,7 +1890,7 @@ SUBROUTINE rdfv3 (mcip_now)
     CALL graceful_stop (pname)
     ENDIF
     
-    b_k(1:met_nz+1) = dum1d(ival2+1:ival2-met_nz+1:-1)
+    b_k(1:met_nz+1) = dum1d(met_nz+1:1:-1)
 
     c1f(1) = 1.0 
     DO k = 2, met_nz+1 

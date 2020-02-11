@@ -375,10 +375,10 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
                     TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ELSE
-  ALLOCATE ( dum1d ( ival ) ) 
+  ALLOCATE ( dum1d ( met_nz+1 ) ) 
   rcode = nf90_get_var (cdfid, varid, dum1d)
 
-  pfull_lays(1:met_nz+1) = dum1d(ival:ival-met_nz:-1) 
+  pfull_lays(1:met_nz+1) = dum1d(met_nz+1:1:-1) 
 
   DEALLOCATE (dum1d)
   ENDIF
@@ -389,10 +389,10 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
                     TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ELSE
-  ALLOCATE ( dum1d ( ival-1 ) )
+  ALLOCATE ( dum1d ( met_nz ) )
   rcode = nf90_get_var (cdfid, varid, dum1d)
 
-  phalf_lays(1:met_nz) = dum1d(ival-1:ival-met_nz:-1)
+  phalf_lays(1:met_nz) = dum1d(met_nz:1:-1)
 
   DEALLOCATE (dum1d)
   ENDIF
@@ -554,7 +554,7 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 !        stored in the FV3 I/O API.
 !-------------------------------------------------------------------------------
 
-  met_ptop  = phalf_lays(nlays)*100.0
+  met_ptop  = pfull_lays(nlays)*100.0
   met_p00   = 100000.0 ! base state sea-level pressure [Pa]
   met_ts0   =    290.0 ! base state sea-level temperature [K]
   met_tlp   =     50.0 ! base state lapse rate d(T)/d(ln P) from 1000 to 300 mb

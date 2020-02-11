@@ -564,16 +564,14 @@ SUBROUTINE metvars2ctm
     xcldfrad(:,:,:)  = cldfra_dp(sc:ec,sr:er,:)
     xcldfras(:,:,:)  = cldfra_sh(sc:ec,sr:er,:)
   ENDIF
- 
-      xwwind (:,:,0:) = wa(sc:ec,sr:er,1:)
 
-    IF ( ( iftke ) .AND. ( .NOT. iftkef ) ) THEN  ! TKE on half-layers
-     xtke   (:,:, :) = tke(sc:ec,sr:er, :)
-    ELSE IF ( ( iftke ) .AND. ( iftkef ) ) THEN   ! TKE on full-levels
-     xtke   (:,:,0:) = tke(sc:ec,sr:er,1:)
-   ENDIF
+       xwwind (:,:,0:) = wa(sc:ec,sr:er,1:) 
 
-
+       IF ( ( iftke ) .AND. ( .NOT. iftkef ) ) THEN  ! TKE on half-layers
+        xtke   (:,:, :) = tke(sc:ec,sr:er, :)
+       ELSE IF ( ( iftke ) .AND. ( iftkef ) ) THEN   ! TKE on full-levels
+        xtke   (:,:,0:) = tke(sc:ec,sr:er,1:)
+       ENDIF
 
   ! Ensure that very small (and sometimes negative!) values from WRF moisture
   ! fields are not used.  Here, EPSILONQ is the same minimum value as is set
@@ -664,15 +662,16 @@ SUBROUTINE metvars2ctm
 
     xprsfc(:,:) = psa(sc:ec,sr:er)  ! FV3 contains 2D surface pressure
     xmu   (:,:) = xprsfc(:,:) - met_ptop !FV3 does not have MU, so calculate 2D MU (Pa)
-    xgeof (:,:,0:) = (1.0/giwrf) * delz(:,:,:)
 
+    xgeof (:,:,0:) = (1.0/giwrf) * delz(:,:,:)*(-1.0) !Note that geop and pres and defined on FV3 full-interface
     xpresf(:,:,0) = xprsfc(:,:) 
 
-       DO k = 1, metlay
-         xpresf(:,:,k) = xpresf(:,:,k-1) - dpres(:,:,k)
-         xpresm(:,:,k) = 0.5 * ( xpresf(:,:,k) + xpresf(:,:,k-1) ) 
+        DO k = 1, metlay
+        xpresf(:,:,k) = xpresf(:,:,k-1) - dpres(:,:,k)
+        xpresm(:,:,k) = 0.5 * ( xpresf(:,:,k) + xpresf(:,:,k-1) )
+        print*, 'MAX xpresf = ', MAXVAL(xpresf(:,:,k)), 'MIN xpresf = ', MINVAL(xpresf(:,:,k))
+       print*, 'MAX xpresm = ', MAXVAL(xpresm(:,:,k)), 'MIN xpresm = ', MINVAL(xpresm(:,:,k)) 
        ENDDO
-
   ENDIF
 
     IF ( lpv > 0 .OR. ifmolpx ) THEN  ! will need theta on full levels
