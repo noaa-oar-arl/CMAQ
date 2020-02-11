@@ -52,12 +52,12 @@ SUBROUTINE vertarys (ctmlays)
 ! The list of vertical coordinate surface values in the VGLVUN_GD units
 ! Layer k extends from VGLVS3D( k ) to VGLVS3D( k+1 ).
 !-------------------------------------------------------------------------------
-   IF (SIZE(vglvs_gd) > maxlays ) THEN 
+!   IF (SIZE(vglvs_gd) > maxlays ) THEN 
     vglvs_gd(:) = 0.0 !Initialized to ensure monotonicity in vglvs_gd, and avoid array error
-    vglvs_gd(1:nlays) = ctmlays(1:nlays)
-   ELSE
+!    vglvs_gd(1:nlays) = ctmlays(1:nlays)
+!   ELSE
     vglvs_gd(1:nlays+1) = ctmlays(1:nlays+1)
-   ENDIF
+!   ENDIF
 
 !-------------------------------------------------------------------------------
 ! X3FACE_GD( 0: NLAYS ):
