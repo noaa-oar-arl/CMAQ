@@ -565,12 +565,7 @@ SUBROUTINE metvars2ctm
     xcldfras(:,:,:)  = cldfra_sh(sc:ec,sr:er,:)
   ENDIF
  
-!    IF ( SIZE(c1f) > maxlays ) THEN ! 
-!      xwwind (:,:,1:) = wa(sc:ec,sr:er,1:)
-!    ELSE
       xwwind (:,:,0:) = wa(sc:ec,sr:er,1:)
-!    ENDIF
-
 
     IF ( ( iftke ) .AND. ( .NOT. iftkef ) ) THEN  ! TKE on half-layers
      xtke   (:,:, :) = tke(sc:ec,sr:er, :)
@@ -669,25 +664,14 @@ SUBROUTINE metvars2ctm
 
     xprsfc(:,:) = psa(sc:ec,sr:er)  ! FV3 contains 2D surface pressure
     xmu   (:,:) = xprsfc(:,:) - met_ptop !FV3 does not have MU, so calculate 2D MU (Pa)
-
-!    IF ( SIZE(c1f) > maxlays ) THEN !
-!      xgeof (:,:,1:) = (1.0/giwrf) * delz(:,:,:) !FV3 does not have geopotential, so calculate using layer thickness (m2 s-2)
-!    ELSE
     xgeof (:,:,0:) = (1.0/giwrf) * delz(:,:,:)
-!    ENDIF
 
     xpresf(:,:,0) = xprsfc(:,:) 
 
        DO k = 1, metlay
-!         xpresf(:,:,k) = xpresf(:,:,k-1) *  &
-!                      EXP( (xgeof(:,:,k-1) - xgeof(:,:,k)) /  &
-!                           (rdwrf * xtempm(:,:,k)) )
          xpresf(:,:,k) = xpresf(:,:,k-1) - dpres(:,:,k)
          xpresm(:,:,k) = 0.5 * ( xpresf(:,:,k) + xpresf(:,:,k-1) ) 
        ENDDO
-      print*, 'presf max = ', MAXVAL(xpresf), 'presf min = ', MINVAL(xpresf)
-      print*, 'presm max = ', MAXVAL(xpresm), 'presm min = ', MINVAL(xpresm)
-
 
   ENDIF
 
