@@ -671,8 +671,6 @@ SUBROUTINE metvars2ctm
                       EXP( (xgeof(:,:,k-1) - xgeof(:,:,k)) /  &
                            (rdwrf * xtempm(:,:,k)) )
          xpresm(:,:,k) = 0.5 * ( xpresf(:,:,k) + xpresf(:,:,k-1) )
-         print*, 'MAX xpresf = ', MAXVAL(xpresf(:,:,k)), 'MIN xpresf = ', MINVAL(xpresf(:,:,k))
-         print*, 'MAX xpresm = ', MAXVAL(xpresm(:,:,k)), 'MIN xpresm = ', MINVAL(xpresm(:,:,k)) 
        ENDDO
   ENDIF
 
