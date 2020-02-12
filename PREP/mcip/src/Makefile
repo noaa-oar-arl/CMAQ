@@ -93,8 +93,15 @@ FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)
 #FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT)/include -I$(MPI_ROOT)/include
 #FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(HDF5)/include -I$(IOAPI_ROOT)/include -I$(MPI_ROOT)/include 
 
-LIBS    = -L$(IOAPI_ROOT) -laqm_ioapi \
+
+#WCOSS-Cray
+#LIBS    = -L$(IOAPI_ROOT) -laqm_ioapi \
           -L$(NETCDF)/lib -lnetcdf -lnetcdff -openmp
+
+#ARL-AAQEST-Local
+LIBS    = -L$(IOAPI_ROOT) -lioapi \
+          -L$(NETCDF)/lib -lnetcdf -lnetcdff -qopenmp
+
 #          -L$(HDF5)/lib -lhdf5
 #          -L$(NETCDF_FORTRAN) -lnetcdff
 #          -L$(NETCDF)/lib -lnetcdf

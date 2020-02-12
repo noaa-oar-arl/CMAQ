@@ -126,11 +126,17 @@ set APPL       = Test_FV3
 set CoordName  = FV3_RPO           # 16-character maximum
 set GridName   = FV3_CONUS         # 16-character maximum
 
-set DataPath   = /gpfs/hps2/ptmp/Patrick.C.Campbell
-set InMetDir   = $DataPath/fv3gfs_v16_test
-set InGeoDir   = $DataPath/fv3gfs_v16_test
-set OutDir     = $DataPath/fv3gfs_v16_test
-set ProgDir    = /gpfs/hps3/emc/naqfc/noscrub/Patrick.C.Campbell/CMAQ_REPO/PREP/mcip/src
+#WCOSS-Cray
+#set DataPath   = /gpfs/hps2/ptmp/Patrick.C.Campbell
+#ARL-AAQEST
+set DataPath   = /data/aqf/patrickc
+set InMetDir   = $DataPath/fv3gfs_v16_test/12z_hourly
+set InGeoDir   = $DataPath/fv3gfs_v16_test/12z_hourly
+set OutDir     = $DataPath/fv3gfs_v16_test/12z_hourly
+#WCOSS-Cray
+#set ProgDir    = /gpfs/hps3/emc/naqfc/noscrub/Patrick.C.Campbell/CMAQ_REPO/PREP/mcip/src
+#ARL-AAQEST
+set ProgDir    = /data/aqf/patrickc/models/CMAQ_REPO/PREP/mcip/src
 set WorkDir    = $OutDir
 
 #-----------------------------------------------------------------------

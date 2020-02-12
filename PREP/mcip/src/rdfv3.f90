@@ -1911,7 +1911,7 @@ SUBROUTINE rdfv3 (mcip_now)
 
 !FV3 output doesn't have soil thicknesses, hardcode to 4 Noah LSM levels!
 !Harcoded FV3GFSv16 Noah 4-layers soil thicknesses right now...
-  dzs = (/0.1, 0.3, 0.6, 1/)
+  dzs = (/0.1, 0.3, 0.6, 1.0/)
 
   rcode = nf90_close (cdfid)
   IF ( rcode /= nf90_noerr ) THEN
