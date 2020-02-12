@@ -662,15 +662,17 @@ SUBROUTINE metvars2ctm
 
     xprsfc(:,:) = psa(sc:ec,sr:er)  ! FV3 contains 2D surface pressure
     xmu   (:,:) = xprsfc(:,:) - met_ptop !FV3 does not have MU, so calculate 2D MU (Pa)
-
-    xgeof (:,:,0:) = (1.0/giwrf) * delz(:,:,:)*(-1.0) !Note that geop and pres and defined on FV3 full-interface
+    xgeof (:,:,0) = 0.0 !Note that geop and pres and defined on FV3 full-interface
     xpresf(:,:,0) = xprsfc(:,:) 
 
         DO k = 1, metlay
-        xpresf(:,:,k) = xpresf(:,:,k-1) - dpres(:,:,k)
-        xpresm(:,:,k) = 0.5 * ( xpresf(:,:,k) + xpresf(:,:,k-1) )
-        print*, 'MAX xpresf = ', MAXVAL(xpresf(:,:,k)), 'MIN xpresf = ', MINVAL(xpresf(:,:,k))
-       print*, 'MAX xpresm = ', MAXVAL(xpresm(:,:,k)), 'MIN xpresm = ', MINVAL(xpresm(:,:,k)) 
+         xgeof (:,:,k) = xgeof (:,:,k-1) + ((1.0/giwrf) * delz(:,:,k))
+         xpresf(:,:,k) = xpresf(:,:,k-1) *  &
+                      EXP( (xgeof(:,:,k-1) - xgeof(:,:,k)) /  &
+                           (rdwrf * xtempm(:,:,k)) )
+         xpresm(:,:,k) = 0.5 * ( xpresf(:,:,k) + xpresf(:,:,k-1) )
+         print*, 'MAX xpresf = ', MAXVAL(xpresf(:,:,k)), 'MIN xpresf = ', MINVAL(xpresf(:,:,k))
+         print*, 'MAX xpresm = ', MAXVAL(xpresm(:,:,k)), 'MIN xpresm = ', MINVAL(xpresm(:,:,k)) 
        ENDDO
   ENDIF
 

@@ -897,7 +897,7 @@ SUBROUTINE rdfv3 (mcip_now)
 
   CALL get_var_3d_real_cdf (cdfid, 'delz', dum3d_t, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
-    delz(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,met_nz:1:-1)
+    delz(1:nxm,   1:nym,   :) = dum3d_t(:,met_ny:1:-1,met_nz:1:-1)*(-1.0) 
     delz(  met_nx, :,      :) = delz(nxm,:,:)
     delz( :,        met_ny,:) = delz(:,nym,:)
      WRITE (*,ifmt1a) 'delz      ', (delz(lprt_metx,lprt_mety,k),k=1,met_nz)
