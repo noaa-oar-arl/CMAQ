@@ -366,9 +366,6 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 !-------------------------------------------------------------------------------
 ! Read FV3 Pressure layers.
 !-------------------------------------------------------------------------------
-! Set NLAYS
-  nlays = met_nz
-  
   rcode = nf90_inq_varid (cdfid, 'phalf', varid)
   IF ( rcode /= nf90_noerr ) THEN
     WRITE (*,f9400) TRIM(pname), 'phalf',  &
@@ -546,6 +543,16 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
    ENDIF
    
 !-------------------------------------------------------------------------------
+! If layer structure was not defined in user namelist, use use FV3 pressure
+! to calculate ctmlays.
+!-------------------------------------------------------------------------------
+  IF ( needlayers ) THEN
+     nlays=met_nz
+     ctmlays(:) = 0.0 !Initialize
+     ctmlays = (pfull_lays(1:nlays+1) - pfull_lays(nlays+1)) / ((pfull_lays(1)) - phalf_lays(nlays+1))
+  ENDIF
+
+!-------------------------------------------------------------------------------
 ! Set variables for non-hydrostatic base state.  There is no option for
 ! hydrostatic run in FV3.  The base state variables are not currently output
 ! , so fill in "default" values from FV3 namelist.
@@ -554,20 +561,12 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 !        stored in the FV3 I/O API.
 !-------------------------------------------------------------------------------
 
-  met_ptop  = pfull_lays(nlays)*100.0
+  met_ptop  = pfull_lays(nlays+1)*100.0
   met_p00   = 100000.0 ! base state sea-level pressure [Pa]
   met_ts0   =    290.0 ! base state sea-level temperature [K]
   met_tlp   =     50.0 ! base state lapse rate d(T)/d(ln P) from 1000 to 300 mb
   met_tiso  = fillreal ! base state stratospheric isothermal T [K]  ! not used
 
-!-------------------------------------------------------------------------------
-! If layer structure was not defined in user namelist, use use FV3 pressure
-! to calculate ctmlays.
-!-------------------------------------------------------------------------------
-  IF ( needlayers ) THEN
-     ctmlays(:) = 0.0 !Initialize
-     ctmlays = (pfull_lays(1:nlays+1) - pfull_lays(nlays+1)) / ((pfull_lays(1)) - phalf_lays(nlays+1))
-  ENDIF
 !-------------------------------------------------------------------------------
 ! Determine FV3 release.
 !-------------------------------------------------------------------------------

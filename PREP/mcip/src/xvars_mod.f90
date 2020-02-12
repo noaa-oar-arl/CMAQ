@@ -245,7 +245,7 @@ MODULE xvars
   REAL, ALLOCATABLE :: xvv_d   ( : , : , : )  ! v comp. wind on dot pts [m/s]
   REAL, ALLOCATABLE :: xuu_s   ( : , : , : )  ! u comp. wind on flux pts [m/s]
   REAL, ALLOCATABLE :: xvv_t   ( : , : , : )  ! v comp. wind on flux pts [m/s]
-
+ 
 !-------------------------------------------------------------------------------
 ! Cross-Point Soil arrays.
 !-------------------------------------------------------------------------------

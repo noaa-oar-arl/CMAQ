@@ -47,7 +47,7 @@ SUBROUTINE outcm3io (sdate, stime)
   CHARACTER(LEN=16),  PARAMETER     :: pname       = 'OUTCM3IO'
   INTEGER,            INTENT(IN)    :: sdate
   INTEGER,            INTENT(IN)    :: stime
-
+  
 !-------------------------------------------------------------------------------
 ! Error, warning, and informational messages.
 !-------------------------------------------------------------------------------

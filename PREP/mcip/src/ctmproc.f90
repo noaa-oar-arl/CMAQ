@@ -156,12 +156,13 @@ SUBROUTINE ctmproc
   INTEGER                           :: cm1
   INTEGER                           :: col
   LOGICAL, SAVE                     :: first       = .TRUE.
-  INTEGER                           :: icld
+  INTEGER                           :: ii  
   INTEGER                           :: idx
-  INTEGER                           :: ii
+  INTEGER                           :: icld
   INTEGER                           :: ipv
   INTEGER                           :: itke
   INTEGER                           :: iwout
+  INTEGER                           :: iuvbout
   REAL,    SAVE,      ALLOCATABLE   :: jdenm       ( : , : , : )
   INTEGER                           :: k
   INTEGER                           :: l
@@ -183,6 +184,23 @@ SUBROUTINE ctmproc
   REAL,    SAVE,      ALLOCATABLE   :: xuhat_s     ( : , : , : )
   REAL,    SAVE,      ALLOCATABLE   :: xvhat_t     ( : , : , : )
   REAL(8)                           :: yorigdot
+
+!-------------------------------------------------------------------------------  
+! For collapsing
+!-------------------------------------------------------------------------------
+  REAL,    SAVE,      ALLOCATABLE   :: dumaray0    ( : , : , : , : )
+  REAL,    SAVE,      ALLOCATABLE   :: dumaray1    ( : , : , : , : )
+
+  INTERFACE
+
+    SUBROUTINE collapx (aa, vertin, vertout)
+      IMPLICIT NONE
+      REAL,               INTENT(INOUT) :: aa         ( : , : , : )
+      REAL,               INTENT(IN)    :: vertin     ( : )
+      REAL,               INTENT(IN)    :: vertout    ( : )
+    END SUBROUTINE collapx
+
+  END INTERFACE
 
 !-------------------------------------------------------------------------------
 ! Allocate necessary variables.
@@ -233,6 +251,11 @@ SUBROUTINE ctmproc
       icld = 1
     ELSE
       icld = 0
+    ENDIF
+    IF ( luvbout > 0 ) THEN
+      iuvbout = 1
+    ELSE
+      iuvbout = 0
     ENDIF
 
     first = .FALSE.
@@ -412,6 +435,159 @@ SUBROUTINE ctmproc
       ENDDO
     ENDDO
   ENDDO
+
+!-------------------------------------------------------------------------------
+! Collapse 3-D 'X' arrays at cell centers. (Original values are replaced
+! temporarily.)
+! For safe collpasing, store information first in DUMARRAY.
+!-------------------------------------------------------------------------------
+  IF ( metlay /= nlays ) THEN
+
+    IF ( iftke ) THEN
+      IF ( iftkef ) THEN  ! TKE on full-levels
+        IF ( .NOT. ALLOCATED ( dumaray0 ) ) &
+          ALLOCATE ( dumaray0 ( ncols_x, nrows_x, 0:metlay, 4+itke+iwout ) )
+        IF ( ifcld3d ) THEN  ! 3D resolved cloud fraction
+          IF ( .NOT. ALLOCATED ( dumaray1 ) ) &
+            ALLOCATE ( dumaray1 ( ncols_x, nrows_x, 1:metlay, 6+nqspecies+ipv+icld ) )
+        ELSE
+          IF ( .NOT. ALLOCATED ( dumaray1 ) ) &
+            ALLOCATE ( dumaray1 ( ncols_x, nrows_x, 1:metlay, 6+nqspecies+ipv ) )
+        ENDIF
+      ELSE  ! TKE on half-layers
+        IF ( .NOT. ALLOCATED ( dumaray0 ) ) &
+          ALLOCATE ( dumaray0 ( ncols_x, nrows_x, 0:metlay, 4+iwout ) )
+        IF ( ifcld3d ) THEN  ! 3D resolved cloud fraction
+          IF ( .NOT. ALLOCATED ( dumaray1 ) ) &
+            ALLOCATE ( dumaray1 ( ncols_x, nrows_x, 1:metlay, 6+nqspecies+itke+ipv+icld ) )
+        ELSE
+          IF ( .NOT. ALLOCATED ( dumaray1 ) ) &
+            ALLOCATE ( dumaray1 ( ncols_x, nrows_x, 1:metlay, 6+nqspecies+itke+ipv ) )
+        ENDIF
+      ENDIF
+    ELSE
+      IF ( .NOT. ALLOCATED ( dumaray0 ) ) &
+        ALLOCATE ( dumaray0 ( ncols_x, nrows_x, 0:metlay, 4+iwout ) )
+      IF ( ifcld3d ) THEN  ! 3D resolved cloud fraction
+        IF ( .NOT. ALLOCATED ( dumaray1 ) ) &
+          ALLOCATE ( dumaray1 ( ncols_x, nrows_x, 1:metlay, 6+nqspecies+ipv+icld) )
+      ELSE
+        IF ( .NOT. ALLOCATED ( dumaray1 ) ) &
+          ALLOCATE ( dumaray1 ( ncols_x, nrows_x, 1:metlay, 6+nqspecies+ipv ) )
+      ENDIF
+    ENDIF
+
+    DO k = 1, metlay
+      DO r = 1, nrows_x
+        DO c = 1, ncols_x
+
+          dumaray1(c,r,k, 1) = xrhojm  (c,r,k)
+          dumaray1(c,r,k, 2) = xdensam (c,r,k)
+          dumaray1(c,r,k, 3) = xpresm  (c,r,k)
+          dumaray1(c,r,k, 4) = xtempm  (c,r,k)
+          dumaray1(c,r,k, 5) = xwvapor (c,r,k)
+          dumaray1(c,r,k, 6) = x3htm   (c,r,k)
+
+          IF ( nqspecies >= 2 ) THEN
+            dumaray1(c,r,k, 7) = xcldwtr (c,r,k)
+            dumaray1(c,r,k, 8) = xranwtr (c,r,k)
+            IF ( nqspecies >= 4 ) THEN
+              dumaray1(c,r,k, 9) = xqice   (c,r,k)
+              dumaray1(c,r,k,10) = xqsnow  (c,r,k)
+              IF ( nqspecies == 5 ) THEN
+                dumaray1(c,r,k,11) = xqgraup (c,r,k)
+              ENDIF
+            ENDIF
+          ENDIF
+
+
+        ENDDO
+      ENDDO
+    ENDDO
+
+    IF ( ( iftke ) .AND. ( .NOT. iftkef ) ) THEN  ! TKE on half-layers
+      dumaray1(:,:,:,6+nqspecies+itke) = xtke (:,:,:)
+    ENDIF
+
+    IF ( lpv > 0 ) THEN  ! Output potential vorticity
+      dumaray1(:,:,:,6+nqspecies+itke+ipv) = xpvc (:,:,:)
+    ENDIF
+
+    IF ( ifcld3d ) THEN  ! 3D resolved cloud fraction
+      dumaray1(:,:,:,6+nqspecies+itke+ipv+icld) = xcfrac3d (:,:,:)
+    ENDIF
+
+    DO k = 0, metlay
+      DO r = 1, nrows_x
+        DO c = 1, ncols_x
+
+          dumaray0(c,r,k,1) = xrhojf  (c,r,k)
+          dumaray0(c,r,k,2) = xwhat   (c,r,k)
+          dumaray0(c,r,k,3) = x3htf   (c,r,k)
+          dumaray0(c,r,k,4) = xdensaf (c,r,k)
+
+        ENDDO
+      ENDDO
+    ENDDO
+
+    IF ( lwout > 0 ) THEN
+      DO k = 0, metlay
+        DO r = 1, nrows_x
+          DO c = 1, ncols_x
+            dumaray0(c,r,k,5) = xwwind  (c,r,k)
+          ENDDO
+        ENDDO
+      ENDDO
+    ENDIF
+
+    IF ( ( iftke ) .AND. ( iftkef ) ) THEN  ! TKE on full-levels
+      dumaray0(:,:,0:,5+iwout) = xtke (:,:,0:)
+    ENDIF
+
+    CALL collapx (xrhojm,  xx3midl, x3midl)
+    CALL collapx (xdensam, xx3midl, x3midl)
+    CALL collapx (xpresm,  xx3midl, x3midl)
+    CALL collapx (xtempm,  xx3midl, x3midl)
+    CALL collapx (xwvapor, xx3midl, x3midl)
+    CALL collapx (x3htm,   xx3midl, x3midl)
+    IF ( nqspecies >= 2 ) THEN
+      CALL collapx (xcldwtr, xx3midl, x3midl)
+      CALL collapx (xranwtr, xx3midl, x3midl)
+      IF ( nqspecies >= 4 ) THEN
+        CALL collapx (xqice,   xx3midl, x3midl)
+        CALL collapx (xqsnow,  xx3midl, x3midl)
+        IF ( nqspecies == 5 ) THEN
+          CALL collapx (xqgraup, xx3midl, x3midl)
+        ENDIF
+      ENDIF
+    ENDIF
+
+    IF ( ( iftke ) .AND. ( .NOT. iftkef ) ) THEN  ! TKE on half-layers
+      CALL collapx (xtke,  xx3midl, x3midl)
+    ENDIF
+
+    IF ( lpv > 0 ) THEN  ! Output potential vorticity
+      CALL collapx (xpvc,  xx3midl, x3midl)
+    ENDIF
+
+    IF ( ifcld3d ) THEN
+      CALL collapx (xcfrac3d, xx3midl, x3midl)
+    ENDIF
+
+    CALL collapx (xrhojf,  xx3face, x3face)
+    CALL collapx (xwhat,   xx3face, x3face)
+    CALL collapx (x3htf,   xx3face, x3face)
+    CALL collapx (xdensaf, xx3face, x3face)
+
+    IF ( lwout > 0 ) THEN
+      CALL collapx (xwwind,  xx3face, x3face)
+    ENDIF
+
+    IF ( ( iftke ) .AND. ( iftkef ) ) THEN  ! TKE on full-levels
+      CALL collapx (xtke,  xx3face, x3face)
+    ENDIF
+
+  ENDIF
 
 !-------------------------------------------------------------------------------
 ! Fill time-varying 3d fields at cell centers.
@@ -872,6 +1048,122 @@ SUBROUTINE ctmproc
     ENDDO
   ENDDO
 
+
+!-------------------------------------------------------------------------------
+! For safe collpasing, restore information from DUMARAY.
+!-------------------------------------------------------------------------------
+
+  IF ( metlay /= nlays ) THEN
+
+    DO k = 1, metlay
+      DO r = 1, nrows_x
+        DO c = 1, ncols_x
+          xrhojm  (c,r,k) = dumaray1(c,r,k, 1)
+          xdensam (c,r,k) = dumaray1(c,r,k, 2)
+          xpresm  (c,r,k) = dumaray1(c,r,k, 3)
+          xtempm  (c,r,k) = dumaray1(c,r,k, 4)
+          xwvapor (c,r,k) = dumaray1(c,r,k, 5)
+          x3htm   (c,r,k) = dumaray1(c,r,k, 6)
+          IF ( nqspecies >= 2 ) THEN
+            xcldwtr (c,r,k) = dumaray1(c,r,k, 7)
+            xranwtr (c,r,k) = dumaray1(c,r,k, 8)
+            IF ( nqspecies >= 4 ) THEN
+              xqice   (c,r,k) = dumaray1(c,r,k, 9)
+              xqsnow  (c,r,k) = dumaray1(c,r,k,10)
+              IF ( nqspecies == 5 ) THEN
+                xqgraup (c,r,k) = dumaray1(c,r,k,11)
+              ENDIF
+            ENDIF
+          ENDIF
+        ENDDO
+      ENDDO
+    ENDDO
+
+    IF ( ( iftke ) .AND. ( .NOT. iftkef ) ) THEN  ! TKE on half-layers
+      xtke (:,:,:) = dumaray1(:,:,:,6+nqspecies+itke)
+    ENDIF
+
+    IF ( lpv > 0 ) THEN  ! Output potential vorticity
+      xpvc (:,:,:) = dumaray1(:,:,:,6+nqspecies+itke+ipv)
+    ENDIF
+
+    IF ( ifcld3d ) THEN  ! 3D resolved cloud fraction
+      xcfrac3d (:,:,:) = dumaray1(:,:,:,6+nqspecies+itke+ipv+icld)
+    ENDIF
+
+    DO k = 0, metlay
+      DO r = 1, nrows_x
+        DO c = 1, ncols_x
+          xrhojf  (c,r,k) = dumaray0(c,r,k,1)
+          xwhat   (c,r,k) = dumaray0(c,r,k,2)
+          x3htf   (c,r,k) = dumaray0(c,r,k,3)
+          xdensaf (c,r,k) = dumaray0(c,r,k,4)
+        ENDDO
+      ENDDO
+    ENDDO
+
+    IF ( lwout > 0 ) THEN
+      DO k = 0, metlay
+        DO r = 1, nrows_x
+          DO c = 1, ncols_x
+            xwwind  (c,r,k) = dumaray0(c,r,k,5)
+          ENDDO
+        ENDDO
+      ENDDO
+    ENDIF
+
+    IF ( ( iftke ) .AND. ( iftkef ) ) THEN  ! TKE on full-levels
+      xtke (:,:,0:) = dumaray0(:,:,0:,5+iwout)
+    ENDIF
+
+!   DEALLOCATE ( dumaray0 )  ! commented out to avoid memory fragmentation
+!   DEALLOCATE ( dumaray1 )  ! commented out to avoid memory fragmentation
+
+  ENDIF
+
+
+!-------------------------------------------------------------------------------
+! Collapse 3-D 'X' arrays for METDOT3D.  (Original values are replaced
+! temporarily.)
+! For safe collpasing, store information first in DUMARRAY.
+!-------------------------------------------------------------------------------
+
+  IF ( metlay /= nlays ) THEN
+
+    IF ( .NOT. ALLOCATED ( dumaray1 ) )  &
+      ALLOCATE ( dumaray1 ( ncols_x+1, nrows_x+1, 1:metlay, 4+iuvbout ) )
+
+    DO k = 1, metlay
+      DO r = 1, nrows_x+1
+        DO c = 1, ncols_x+1
+          dumaray1(c,r,k,1) = xuhat_s (c,r,k)
+          dumaray1(c,r,k,2) = xvhat_t (c,r,k)
+          dumaray1(c,r,k,3) = xuu_d   (c,r,k)
+          dumaray1(c,r,k,4) = xvv_d   (c,r,k)
+        ENDDO
+      ENDDO
+    ENDDO
+
+    CALL collapx (xuhat_s, xx3midl, x3midl)
+    CALL collapx (xvhat_t, xx3midl, x3midl)
+    CALL collapx (xuu_d,   xx3midl, x3midl)
+    CALL collapx (xvv_d,   xx3midl, x3midl)
+
+    IF ( luvbout > 0 ) THEN
+      DO k = 1, metlay
+        DO r = 1, nrows_x+1
+          DO c = 1, ncols_x+1
+            dumaray1(c,r,k,5) = xuu_s   (c,r,k)
+            dumaray1(c,r,k,6) = xvv_t   (c,r,k)
+          ENDDO
+        ENDDO
+      ENDDO
+      CALL collapx (xuu_s,   xx3midl, x3midl)
+      CALL collapx (xvv_t,   xx3midl, x3midl)
+    ENDIF
+
+  ENDIF
+
 !-------------------------------------------------------------------------------
 ! Fill time-varying 3d fields at cell corners and cell faces.
 !
@@ -900,6 +1192,36 @@ SUBROUTINE ctmproc
       ENDDO
     ENDDO
   ENDDO
+
+!-------------------------------------------------------------------------------
+! For safe collpasing, restore information from DUMARAY.
+!-------------------------------------------------------------------------------
+
+  IF ( metlay /= nlays ) THEN
+
+    DO k = 1, metlay
+      DO r = 1, nrows_x+1
+        DO c = 1, ncols_x+1
+          xuhat_s (c,r,k) = dumaray1(c,r,k, 1)
+          xvhat_t (c,r,k) = dumaray1(c,r,k, 2)
+          xuu_d   (c,r,k) = dumaray1(c,r,k, 3)
+          xvv_d   (c,r,k) = dumaray1(c,r,k, 4)
+        ENDDO
+      ENDDO
+    ENDDO
+
+    IF ( luvbout > 0 ) THEN
+      DO k = 1, metlay
+        DO r = 1, nrows_x+1
+          DO c = 1, ncols_x+1
+            xuu_s   (c,r,k) = dumaray1(c,r,k, 5)
+            xvv_t   (c,r,k) = dumaray1(c,r,k, 6)
+          ENDDO
+        ENDDO
+      ENDDO
+    ENDIF
+
+  ENDIF
 
 !-------------------------------------------------------------------------------
 ! Fill time-varying 3d fields (soil layers) at cell centers.

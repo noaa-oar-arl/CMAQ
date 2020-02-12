@@ -565,13 +565,24 @@ SUBROUTINE metvars2ctm
     xcldfras(:,:,:)  = cldfra_sh(sc:ec,sr:er,:)
   ENDIF
 
-       xwwind (:,:,0:) = wa(sc:ec,sr:er,1:) 
+      IF ( met_model == 2 )  THEN  ! WRF
 
+       xwwind (:,:,0:) = wa(sc:ec,sr:er,1:) !Vertical velocity on full-levels
+      
        IF ( ( iftke ) .AND. ( .NOT. iftkef ) ) THEN  ! TKE on half-layers
         xtke   (:,:, :) = tke(sc:ec,sr:er, :)
        ELSE IF ( ( iftke ) .AND. ( iftkef ) ) THEN   ! TKE on full-levels
         xtke   (:,:,0:) = tke(sc:ec,sr:er,1:)
        ENDIF
+
+     ENDIF
+        
+     IF ( met_model == 3 )  THEN  ! FV3
+       xwwind (:,:,1:) = wa(sc:ec,sr:er,1:)  !Vertical velocity on full-levels
+        IF ( iftke ) THEN 
+         xtke   (:,:,1:) = tke(sc:ec,sr:er,1:) !TKE on full levels
+        ENDIF
+     ENDIF
 
   ! Ensure that very small (and sometimes negative!) values from WRF moisture
   ! fields are not used.  Here, EPSILONQ is the same minimum value as is set
