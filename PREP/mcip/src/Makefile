@@ -52,7 +52,12 @@ FC      = ifort
 #...NetCDF/HDF5 Settings
 #NETCDF = /usr/local/apps/netcdf-4.6.3/intel-18.0
 #...Serial netCDF I/O
-NETCDF =  /opt/cray/netcdf/4.3.2/INTEL/140/
+
+#WCOSS-Cray
+#NETCDF =  /opt/cray/netcdf/4.3.2/INTEL/140/
+#ARL-AAQEST-Local
+NETCDF =  /opt/netcdf4
+
 #...Parallel netCDF I/O with HDF5
 #NETCDF =  /opt/cray/netcdf-hdf5parallel/4.4.1.1/INTEL/150
 #NETCDF  = /gpfs/hps/usrx/local/prod/NetCDF/4.2/intel/sandybridge
@@ -65,7 +70,11 @@ NETCDF =  /opt/cray/netcdf/4.3.2/INTEL/140/
 #...IOAPI Settings
 #IOAPI_ROOT = /gpfs/hps3/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.1.8/lib/
 #IOAPI_ROOT = /gpfs/hps/nco/ops/nwprod/cmaq.v5.1.4/lib/
-IOAPI_ROOT = /gpfs/hps3/emc/naqfc/noscrub/Youhua.Tang/CMAQ/ioapi-3.2/Linux2_x86_64ifort
+
+#WCOSS-Cray
+#IOAPI_ROOT = /gpfs/hps3/emc/naqfc/noscrub/Youhua.Tang/CMAQ/ioapi-3.2/Linux2_x86_64ifort
+#ARL-AAQEST-Local
+IOAPI_ROOT = /data/aqf/youhuat/CMAQ/ioapi-3.2/Linux2_x86_64ifort
 
 #...MPI Settings
 #MPI_ROOT = /opt/cray/mpt/7.2.0/gni/mpich2-intel/140
