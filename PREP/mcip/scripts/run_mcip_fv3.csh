@@ -129,14 +129,21 @@ set GridName   = FV3_CONUS         # 16-character maximum
 #WCOSS-Cray
 #set DataPath   = /gpfs/hps2/ptmp/Patrick.C.Campbell
 #ARL-AAQEST
-set DataPath   = /data/aqf/patrickc
+#set DataPath   = /data/aqf/patrickc
+#Hera=Princeton
+set DataPath   = /scratch2/NAGAPE/arl/Patrick.C.Campbell
+
 set InMetDir   = $DataPath/fv3gfs_v16_test/12z_hourly
 set InGeoDir   = $DataPath/fv3gfs_v16_test/12z_hourly
 set OutDir     = $DataPath/fv3gfs_v16_test/12z_hourly
+
 #WCOSS-Cray
 #set ProgDir    = /gpfs/hps3/emc/naqfc/noscrub/Patrick.C.Campbell/CMAQ_REPO/PREP/mcip/src
 #ARL-AAQEST
-set ProgDir    = /data/aqf/patrickc/models/CMAQ_REPO/PREP/mcip/src
+#set ProgDir    = /data/aqf/patrickc/models/CMAQ_REPO/PREP/mcip/src
+#Hera=Princeton
+set ProgDir    = /scratch2/NAGAPE/arl/Patrick.C.Campbell/models/CMAQ_REPO/PREP/mcip/src
+
 set WorkDir    = $OutDir
 
 #-----------------------------------------------------------------------

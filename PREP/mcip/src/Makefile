@@ -56,7 +56,9 @@ FC      = ifort
 #WCOSS-Cray
 #NETCDF =  /opt/cray/netcdf/4.3.2/INTEL/140/
 #ARL-AAQEST-Local
-NETCDF =  /opt/netcdf4
+#NETCDF =  /opt/netcdf4
+#Hera-Princeton
+NETCDF = /apps/netcdf/4.7.0/intel/18.0.5.274
 
 #...Parallel netCDF I/O with HDF5
 #NETCDF =  /opt/cray/netcdf-hdf5parallel/4.4.1.1/INTEL/150
@@ -74,7 +76,9 @@ NETCDF =  /opt/netcdf4
 #WCOSS-Cray
 #IOAPI_ROOT = /gpfs/hps3/emc/naqfc/noscrub/Youhua.Tang/CMAQ/ioapi-3.2/Linux2_x86_64ifort
 #ARL-AAQEST-Local
-IOAPI_ROOT = /data/aqf/youhuat/CMAQ/ioapi-3.2/Linux2_x86_64ifort
+#IOAPI_ROOT = /data/aqf/youhuat/CMAQ/ioapi-3.2/Linux2_x86_64ifort
+#Hera-Princeton
+IOAPI_ROOT = /scratch2/NCEPDEV/naqfc/Youhua.Tang/CMAQ/ioapi-3.2/Linux2_x86_64ifort
 
 #...MPI Settings
 #MPI_ROOT = /opt/cray/mpt/7.2.0/gni/mpich2-intel/140
@@ -99,8 +103,13 @@ FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)
           -L$(NETCDF)/lib -lnetcdf -lnetcdff -openmp
 
 #ARL-AAQEST-Local
+#LIBS    = -L$(IOAPI_ROOT) -lioapi \
+          -L$(NETCDF)/lib -lnetcdf -lnetcdff -qopenmp
+
+#Hera-Princeton
 LIBS    = -L$(IOAPI_ROOT) -lioapi \
           -L$(NETCDF)/lib -lnetcdf -lnetcdff -qopenmp
+
 
 #          -L$(HDF5)/lib -lhdf5
 #          -L$(NETCDF_FORTRAN) -lnetcdff
