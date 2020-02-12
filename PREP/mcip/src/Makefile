@@ -148,6 +148,7 @@ OBJS =\
  chkwrfhdr.o \
  chkfv3hdr.o \
  close_files.o \
+ collapx.o \
  comheader.o \
  comheader_lufrac.o \
  comheader_mos.o \

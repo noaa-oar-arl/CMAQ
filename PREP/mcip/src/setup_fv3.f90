@@ -560,13 +560,13 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
   met_tlp   =     50.0 ! base state lapse rate d(T)/d(ln P) from 1000 to 300 mb
   met_tiso  = fillreal ! base state stratospheric isothermal T [K]  ! not used
 
-
 !-------------------------------------------------------------------------------
-! Calculate the CTMLAYS, sigma levels, using FV3 pressure.
+! If layer structure was not defined in user namelist, use use FV3 pressure
+! to calculate ctmlays.
 !-------------------------------------------------------------------------------
-  ctmlays(:) = 0.0 !Initialize
   IF ( needlayers ) THEN
-     ctmlays = (phalf_lays - phalf_lays(nlays)) / ((phalf_lays(1)) - phalf_lays(nlays))
+     ctmlays(:) = 0.0 !Initialize
+     ctmlays = (pfull_lays(1:nlays+1) - pfull_lays(nlays+1)) / ((pfull_lays(1)) - phalf_lays(nlays+1))
   ENDIF
 !-------------------------------------------------------------------------------
 ! Determine FV3 release.
