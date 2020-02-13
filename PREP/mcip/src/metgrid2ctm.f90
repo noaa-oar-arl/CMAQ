@@ -54,7 +54,6 @@ SUBROUTINE metgrid2ctm
   USE mcipparm
   USE xvars
   USE metvars
-  USE metinfo
 
   IMPLICIT NONE
 
@@ -79,7 +78,7 @@ SUBROUTINE metgrid2ctm
   lbndface = LBOUND(xx3face,1)
   ubndsigf = UBOUND(sigmaf,1)
   maxface  = lbndface + SIZE(sigmaf) - 1
-  
+
   ALLOCATE ( x3workf ( lbndsigf:ubndsigf ) )
 
   IF ( sigmaf(lbndsigf) > sigmaf(ubndsigf) ) THEN  ! NOT monotonic increase
@@ -94,15 +93,16 @@ SUBROUTINE metgrid2ctm
 
   xx3face(lbndface:maxface) = x3workf(lbndsigf:ubndsigf)
 
-   DO jw = 1, SIZE(sigmah)
-     xx3midl(jw) = 0.5 * ( xx3face(jw-1) + xx3face(jw) )
-   ENDDO
+  DO jw = 1, SIZE(sigmah)
+    xx3midl(jw) = 0.5 * ( xx3face(jw-1) + xx3face(jw) )
+  ENDDO
 
   DEALLOCATE ( x3workf )
 
 !-------------------------------------------------------------------------------
 ! Put time-invariant cross-point arrays on MCIP_X grid.
 !-------------------------------------------------------------------------------
+
   sc = x0
   ec = x0 + ncols_x - 1
   sr = y0
@@ -121,6 +121,7 @@ SUBROUTINE metgrid2ctm
 ! on the physical grid, but the face arrays are oversized to the dot-point
 ! array space in MCIP out of convenience.
 !-------------------------------------------------------------------------------
+
   sc = x0
   ec = x0 + ncols_x
   sr = y0
