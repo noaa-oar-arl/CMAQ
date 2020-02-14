@@ -678,9 +678,10 @@ SUBROUTINE metvars2ctm
 
         DO k = 1, metlay
          xgeof (:,:,k) = xgeof (:,:,k-1) + ((1.0/giwrf) * delz(:,:,k))
-         xpresf(:,:,k) = xpresf(:,:,k-1) *  &
-                      EXP( (xgeof(:,:,k-1) - xgeof(:,:,k)) /  &
-                           (rdwrf * xtempm(:,:,k)) )
+         xpresf(:,:,k) = xpresf(:,:,k-1) - dpres(:,:,k)
+!         xpresf(:,:,k) = xpresf(:,:,k-1) *  &
+!                      EXP( (xgeof(:,:,k-1) - xgeof(:,:,k)) /  &
+!                           (rdwrf * xtempm(:,:,k)) )
          xpresm(:,:,k) = 0.5 * ( xpresf(:,:,k) + xpresf(:,:,k-1) )
        ENDDO
   ENDIF
@@ -743,19 +744,22 @@ SUBROUTINE metvars2ctm
 !-------------------------------------------------------------------------------
   IF ( met_model == 2 .OR. met_model == 3 ) THEN
 
-
-    IF ( met_hybrid >= 0 ) THEN
-      DO k = 0, metlay
+!***NOTE:  Skipping Hybrid calculation of Jacobian, as hybrid
+!          collapsing issues can be avoided with assumed minimal impact for 
+!          CMAQv5.0.2 --->  Will need implement hybrid Jacobian for updating to 
+!          later versions of CMAQ, e.g., CMAQv5.3 etc.
+!    IF ( met_hybrid >= 0 ) THEN
+!      DO k = 0, metlay
         ! Adjust mu (a.k.a., ps - ptop) for hybrid coordinate.
         ! Calculate Jacobian from WRF relation:
         !   J*g = - d(phi)/d(eta) = - d(g z)/d(eta) = mu alpha = mu/rho
-        xmuhyb(:,:)     = c1f(k+1) * xmu(:,:) + c2f(k+1)
-        x3jacobf(:,:,k) = giwrf  * xmuhyb(:,:) / xdensaf(:,:,k)
-        IF ( k == 0 ) CYCLE
-        xmuhyb(:,:)     = c1h(k) * xmu(:,:) + c2h(k)
-        x3jacobm(:,:,k) = giwrf  * xmuhyb(:,:) / xdensam(:,:,k)
-      ENDDO
-    ELSE
+!        xmuhyb(:,:)     = c1f(k+1) * xmu(:,:) + c2f(k+1)
+!        x3jacobf(:,:,k) = giwrf  * xmuhyb(:,:) / xdensaf(:,:,k)
+!        IF ( k == 0 ) CYCLE
+!        xmuhyb(:,:)     = c1h(k) * xmu(:,:) + c2h(k)
+!        x3jacobm(:,:,k) = giwrf  * xmuhyb(:,:) / xdensam(:,:,k)
+!      ENDDO
+!    ELSE
       DO k = 0, metlay
         ! Calculate Jacobian from WRF relation:
         !   J*g = - d(phi)/d(eta) = - d(g z)/d(eta) = mu alpha = mu/rho
@@ -763,7 +767,7 @@ SUBROUTINE metvars2ctm
         IF ( k == 0 ) CYCLE
         x3jacobm(:,:,k) = giwrf * xmu(:,:) / xdensam(:,:,k)
       ENDDO
-    ENDIF
+!    ENDIF
 
     CALL layht (xx3face, xx3midl, x3jacobf, x3jacobm, x3htf, x3htm)
 

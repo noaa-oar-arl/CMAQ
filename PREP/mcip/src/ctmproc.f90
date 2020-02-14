@@ -521,7 +521,6 @@ SUBROUTINE ctmproc
     DO k = 0, metlay
       DO r = 1, nrows_x
         DO c = 1, ncols_x
-
           dumaray0(c,r,k,1) = xrhojf  (c,r,k)
           dumaray0(c,r,k,2) = xwhat   (c,r,k)
           dumaray0(c,r,k,3) = x3htf   (c,r,k)
@@ -543,7 +542,7 @@ SUBROUTINE ctmproc
     IF ( ( iftke ) .AND. ( iftkef ) ) THEN  ! TKE on full-levels
       dumaray0(:,:,0:,5+iwout) = xtke (:,:,0:)
     ENDIF
-   
+    
     CALL collapx (xrhojm,       xx3midl, x3midl)
     CALL collapx (xdensam,      xx3midl, x3midl)
     CALL collapx (xpresm,       xx3midl, x3midl)
@@ -552,9 +551,10 @@ SUBROUTINE ctmproc
     CALL collapx (x3htm,        xx3midl, x3midl)
 
     IF ( nqspecies >= 2 ) THEN
-      CALL collapx (xcldwtr, xx3midl, x3midl)
-      CALL collapx (xranwtr, xx3midl, x3midl)
-      IF ( nqspecies >= 4 ) THEN
+       CALL collapx (xcldwtr, xx3midl, x3midl)
+       CALL collapx (xranwtr, xx3midl, x3midl)
+ 
+     IF ( nqspecies >= 4 ) THEN
         CALL collapx (xqice,   xx3midl, x3midl)
         CALL collapx (xqsnow,  xx3midl, x3midl)
         IF ( nqspecies == 5 ) THEN
@@ -564,7 +564,7 @@ SUBROUTINE ctmproc
     ENDIF
 
     IF ( ( iftke ) .AND. ( .NOT. iftkef ) ) THEN  ! TKE on half-layers
-      CALL collapx (xtke,  xx3midl, x3midl)
+       CALL collapx (xtke,  xx3midl, x3midl)
     ENDIF
 
     IF ( lpv > 0 ) THEN  ! Output potential vorticity
@@ -574,11 +574,12 @@ SUBROUTINE ctmproc
     IF ( ifcld3d ) THEN
       CALL collapx (xcfrac3d, xx3midl, x3midl)
     ENDIF
-
+    
     CALL collapx (xrhojf,     xx3face, x3face)
     CALL collapx (xwhat,      xx3face, x3face)
     CALL collapx (x3htf,      xx3face, x3face)
     CALL collapx (xdensaf,    xx3face, x3face)
+
 
     IF ( lwout > 0 ) THEN
       CALL collapx (xwwind,  xx3face, x3face)
@@ -1170,6 +1171,7 @@ SUBROUTINE ctmproc
     CALL collapx (xuu_d,   xx3midl, x3midl)
     CALL collapx (xvv_d,   xx3midl, x3midl)
 
+
     IF ( luvbout > 0 ) THEN
       DO k = 1, metlay
         DO r = 1, nrows_x+1
@@ -1179,8 +1181,8 @@ SUBROUTINE ctmproc
           ENDDO
         ENDDO
       ENDDO
-      CALL collapx (xuu_s,   xx3midl, x3midl)
-      CALL collapx (xvv_t,   xx3midl, x3midl)
+       CALL collapx (xuu_s,   xx3midl, x3midl)
+       CALL collapx (xvv_t,   xx3midl, x3midl)
     ENDIF
 
   ENDIF
