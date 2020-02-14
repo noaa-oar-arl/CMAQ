@@ -87,7 +87,8 @@ PROGRAM mcip
   LOGICAL                           :: first      = .TRUE.
   CHARACTER(LEN=24)                 :: mcip_next  ! YYYY-MO-DD-HH:MI:SS.SSSS
   CHARACTER(LEN=24)                 :: mcip_now   ! YYYY-MO-DD-HH:MI:SS.SSSS 
-
+  integer   :: nn
+  
 !-------------------------------------------------------------------------------
 ! Error, warning, and informational messages.
 !-------------------------------------------------------------------------------
@@ -152,12 +153,12 @@ PROGRAM mcip
 !-------------------------------------------------------------------------------
 ! Loop over time to get input, process fields, and write output.
 !-------------------------------------------------------------------------------
-
-  timeloop: DO
+  if(ntimes.le.0) ntimes=999999999 ! assign a large number
+  timeloop: DO nn=1,ntimes
 
     WRITE (*,f100) mcip_now
 
-    CALL getmet (mcip_now)            ! Read input meteorology file.
+    CALL getmet (mcip_now,nn)         ! Read input meteorology file.
 
     IF ( first ) THEN
       CALL statflds                   ! Put time-independent fields on MCIP grid

@@ -294,7 +294,7 @@ MODULE mcipparm
   CHARACTER(LEN=24) :: mcip_end   ! user input: YYYY-MO-DD-HH:MI:SS.SSSS
 
   INTEGER           :: intvl      ! user input: time interval for output [min]
-  INTEGER           :: grstep     ! calculated from INTVL (HHMMSS)
+  INTEGER           :: ntimes, grstep     ! calculated from INTVL (HHMMSS)
 
   CHARACTER(LEN=16) :: coordnam   ! user input: Coordinate name
   CHARACTER(LEN=16) :: grdnam     ! user input: Grid name 
@@ -322,4 +322,6 @@ MODULE mcipparm
   CHARACTER(LEN=10),  PARAMETER     :: vdate      = '07/15/2019'
   CHARACTER(LEN=8),   PARAMETER     :: ver        = 'V5.0'
 
+  real projparm(6)  ! map projection type, lat1,lat2,projlon, center_lon, center_lat
+  real domains(6)   ! xorig, yorig,xcell,ycell,ncols,nrows
 END MODULE mcipparm

@@ -158,9 +158,9 @@ SUBROUTINE ctmproc
   LOGICAL, SAVE                     :: first       = .TRUE.
   INTEGER                           :: ii  
   INTEGER                           :: idx
-  INTEGER                           :: icld
-  INTEGER                           :: ipv
-  INTEGER                           :: itke
+  INTEGER, SAVE                     :: icld
+  INTEGER, SAVE                     :: ipv
+  INTEGER, SAVE                     :: itke
   INTEGER                           :: iwout
   INTEGER                           :: iuvbout
   REAL,    SAVE,      ALLOCATABLE   :: jdenm       ( : , : , : )

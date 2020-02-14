@@ -186,6 +186,8 @@ MODULE coord
 !-------------------------------------------------------------------------------
 
   REAL,          ALLOCATABLE   :: x3face_gd  ( : )
+  real, save, allocatable :: fv3lat(:),fv3lon(:), xindex(:,:), yindex(:,:), xuindex(:,:), yuindex(:,:), &
+    xvindex(:,:),yvindex(:,:),xdindex(:,:),ydindex(:,:)
 
 !-------------------------------------------------------------------------------
 ! COORDNAM_GD:

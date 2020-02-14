@@ -166,6 +166,7 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
   USE metinfo
   USE date_pack
   USE mcipparm
+  USE coord
   USE files
   USE netcdf_io
   USE const, ONLY: pi180
@@ -210,7 +211,7 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
   INTEGER                           :: nxm
   INTEGER                           :: nym
   CHARACTER(LEN=16),  PARAMETER     :: pname      = 'SETUP_FV3'
-  INTEGER                           :: rcode, rcode2
+  INTEGER                           :: rcode, rcode2,imax2,jmax2
   REAL                              :: rval
   REAL,  ALLOCATABLE                :: times      ( : )
   INTEGER                           :: varid
@@ -331,6 +332,13 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
                     TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
+  
+  rcode2 = nf90_get_att (cdfid2, nf90_global, 'im', imax2)
+  IF ( rcode2 /= nf90_noerr ) THEN
+    WRITE (*,f9400) TRIM(pname), 'SFC WEST-EAST_GRID_DIMENSION',  &
+                    TRIM(nf90_strerror(rcode))
+    CALL graceful_stop (pname)
+  ENDIF
 
   rcode = nf90_get_att (cdfid, nf90_global, 'jm',  &
                         met_ny)
@@ -339,6 +347,19 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
                     TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
+
+  rcode2 = nf90_get_att (cdfid2, nf90_global,'jm',jmax2)
+  IF ( rcode2 /= nf90_noerr ) THEN
+    WRITE (*,f9400) TRIM(pname), 'SFC SOUTH-NORTH_GRID_DIMENSION',  &
+                    TRIM(nf90_strerror(rcode))
+    CALL graceful_stop (pname)
+  ENDIF
+  
+  if(met_nx.ne.imax2.or.met_ny.ne.jmax2) then
+   print*,'inconsistent i,j dimension between ATM and SFC files ',&
+     met_nx,imax2,met_ny,jmax2
+   call graceful_stop(pname)
+  endif   
 
   rcode = nf90_inq_dimid (cdfid, 'phalf', dimid)
   IF ( rcode /= nf90_noerr ) THEN
@@ -393,6 +414,22 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 
   DEALLOCATE (dum1d)
   ENDIF
+!
+!---Read FV3 Lat/lon
+
+  allocate(fv3lat(met_ny),fv3lon(met_nx))
+  
+  CALL get_var_1d_double_cdf (cdfid, 'grid_yt', fv3lat, 1, rcode)
+  IF ( rcode /= nf90_noerr ) THEN
+    WRITE (*,f9400) TRIM(pname), 'grid_yt', TRIM(nf90_strerror(rcode))
+    CALL graceful_stop (pname)
+  ENDIF
+  CALL get_var_1d_double_cdf (cdfid, 'grid_xt', fv3lon, 1, rcode)
+  IF ( rcode /= nf90_noerr ) THEN
+    WRITE (*,f9400) TRIM(pname), 'grid_xt', TRIM(nf90_strerror(rcode))
+    CALL graceful_stop (pname)
+  ENDIF
+
 !-------------------------------------------------------------------------------
 ! Extract domain attributes.
 !-------------------------------------------------------------------------------
@@ -422,18 +459,17 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 
 !     FV3 Gaussian Global Grid
       met_mapproj    = 4                      ! FV3 Gaussian Map Projection      
-      met_proj_clon  = 0.0
-      met_p_alp_d  = 0.0                      ! lat of coord origin [deg]
-      met_p_bet_d  = 0.0                      ! (not used)
-      met_p_gam_d  = met_proj_clon            ! lon of coord origin [deg]
-      met_cone_fac = 0.0                      ! cone factor
-      met_ref_lat  = -999.0                   ! not used
+!      met_proj_clon  = 0.0
+!      met_p_alp_d  = 0.0                      ! lat of coord origin [deg]
+!      met_p_bet_d  = 0.0                      ! (not used)
+!      met_p_gam_d  = met_proj_clon            ! lon of coord origin [deg]
+!      met_cone_fac = 0.0                      ! cone factor
+!      met_ref_lat  = -999.0                   ! not used
       
-      met_cen_lat  = met_cen_lat_in          ! set from namelist
-      met_cen_lon  = met_cen_lon_in          ! set from namelist                  
-
-      CALL ll2xy_gau (met_cen_lat, met_cen_lon, met_proj_clon,  &
-                       met_xxctr, met_yyctr)
+!      met_cen_lat  = met_cen_lat_in          ! set from namelist
+!      met_cen_lon  = met_cen_lon_in          ! set from namelist                  
+!      CALL ll2xy_gau (met_cen_lat, met_cen_lon, met_proj_clon,  &
+!                       met_xxctr, met_yyctr)
 
 !-------------------------------------------------------------------------------
 ! Extract model run options.
