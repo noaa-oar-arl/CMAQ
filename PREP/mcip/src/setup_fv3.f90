@@ -561,7 +561,7 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 !        stored in the FV3 I/O API.
 !-------------------------------------------------------------------------------
 
-  met_ptop  = pfull_lays(nlays+1)*100.0
+  met_ptop  = pfull_lays(met_nz+1)*100.0
   met_p00   = 100000.0 ! base state sea-level pressure [Pa]
   met_ts0   =    290.0 ! base state sea-level temperature [K]
   met_tlp   =     50.0 ! base state lapse rate d(T)/d(ln P) from 1000 to 300 mb
