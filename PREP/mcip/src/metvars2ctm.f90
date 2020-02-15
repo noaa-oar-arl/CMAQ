@@ -743,10 +743,6 @@ SUBROUTINE metvars2ctm
 !-------------------------------------------------------------------------------
   IF ( met_model == 2 .OR. met_model == 3 ) THEN
 
-!***NOTE:  Skipping Hybrid calculation of Jacobian, as hybrid
-!          collapsing issues can be avoided with assumed minimal impact for 
-!          CMAQv5.0.2 --->  Will need implement hybrid Jacobian for updating to 
-!          later versions of CMAQ, e.g., CMAQv5.3 etc.
     IF ( met_hybrid >= 0 ) THEN
       DO k = 0, metlay
         ! Adjust mu (a.k.a., ps - ptop) for hybrid coordinate.
