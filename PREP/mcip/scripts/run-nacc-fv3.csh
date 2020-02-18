@@ -1,11 +1,12 @@
 #/bin/csh -f
+
 set APPL=Test_FV3
 set CoordName=FV3_RPO	      # 16-character maximum
 set GridName=FV3_CONUS	      # 16-character maximum
 
-set InMetDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly
-set OutDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/fv3gfs_v16_test/output
-set ProgDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/models/CMAQ_REPO/PREP/mcip/src
+set InMetDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly
+set OutDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test
+set ProgDir=/gpfs/hps3/emc/naqfc/noscrub/Patrick.C.Campbell/CMAQ_REPO/PREP/mcip/src
 set WorkDir=$OutDir
 
 if ( ! -s $InMetDir ) then
@@ -28,6 +29,7 @@ if ( ! -d $ProgDir ) then
 endif
 
 cd $OutDir
+
 cat>namelist.mcip<<!
 &FILENAMES
   file_gd    = 'GRIDDESC'
@@ -87,5 +89,6 @@ setenv LUFRAC_CRO LUFRAC_CRO_${APPL}.nc
 setenv SOI_CRO SOI_CRO_${APPL}.nc
 setenv MOSAIC_CRO MOSAIC_CRO_${APPL}.nc
 
-rm -f *.nc 
+rm -f *.nc
 $ProgDir/mcip.exe
+

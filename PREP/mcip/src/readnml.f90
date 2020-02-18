@@ -333,8 +333,8 @@ SUBROUTINE readnml (ctmlays)
     CALL graceful_stop (pname)
   ENDIF
   REWIND (iutnml)
-  write(*,*)'0 namelist intvl,projparm=',intvl,projparm
-  write(*,*)'0 domains=',domains
+!  write(*,*)'0 namelist intvl,projparm=',intvl,projparm
+!  write(*,*)'0 domains=',domains
   IF ( btrim < 0 ) THEN
     READ (iutnml, windowdefs, IOSTAT=istat)
     IF ( istat > 0 ) THEN
@@ -515,7 +515,7 @@ SUBROUTINE readnml (ctmlays)
 !-------------------------------------------------------------------------------
 ! Close namelist file.
 !-------------------------------------------------------------------------------
-  write(*,*)'namelist intvl=',intvl
+!  write(*,*)'namelist intvl=',intvl
   CLOSE (iutnml)
 
 END SUBROUTINE readnml

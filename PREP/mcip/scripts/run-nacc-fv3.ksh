@@ -3,9 +3,9 @@ APPL=Test_FV3
 CoordName=FV3_RPO	      # 16-character maximum
 GridName=FV3_CONUS	      # 16-character maximum
 
-InMetDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly
-OutDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/fv3gfs_v16_test
-ProgDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/models/CMAQ_REPO/PREP/mcip/src
+InMetDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly
+OutDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test
+ProgDir=/gpfs/hps3/emc/naqfc/noscrub/Patrick.C.Campbell/CMAQ_REPO/PREP/mcip/src
 WorkDir=$OutDir
 
 if [ ! -s $InMetDir ]; then
@@ -46,7 +46,7 @@ cat>namelist.mcip<<!
   lwout      =  0
   luvbout    =  1
   mcip_start = "2020-01-12-12:00:00.0000"
-  mcip_end   = "2020-01-12-13:00:00.0000"
+  mcip_end   = "2020-01-15-13:00:00.0000"
   intvl      =  60
   coordnam   = "FV3_RPO"
   grdnam     = "FV3_CONUS"
