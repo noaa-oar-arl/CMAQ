@@ -108,25 +108,19 @@ SUBROUTINE setup (ctmlays)
 !-------------------------------------------------------------------------------
   met_model=inmetmodel
 
-  rcode = nf90_open (file_mm(1), nf90_nowrite, cdfid)
-  
-  IF ( met_model == 2 ) THEN !WRF
-   rcode2 = nf90_open (file_mm(1), nf90_nowrite, cdfid)
-  ENDIF
-  
-  IF ( met_model == 3 ) THEN !FV3
-   rcode2 = nf90_open (file_sfc(1), nf90_nowrite, cdfid2)
-  ENDIF
-
-  IF ( rcode == nf90_noerr .and. rcode2 == nf90_noerr ) THEN  ! successfully opened NetCDF file(s); assume WRF or FV3
-  
     !---------------------------------------------------------------------------
     ! If WRF, determine whether or not the Advanced Research WRF, ARW, formerly
     ! known as Eulerian mass, EM) version was used.
     !---------------------------------------------------------------------------
 
-   IF ( met_model == 2 ) THEN !WRF
+   IF ( met_model == 2 ) THEN
 
+    rcode = nf90_open (file_mm(1), nf90_nowrite, cdfid)
+    IF ( rcode .ne. nf90_noerr) then
+      WRITE (*,f9000) TRIM(pname), TRIM(file_mm(1)), TRIM(nf90_strerror(rcode))
+      CALL graceful_stop (pname)
+    ENDIF
+    
     rcode = nf90_get_att (cdfid, nf90_global, 'DYN_OPT', met_iversion)
     IF ( rcode /= nf90_noerr ) THEN
       rcode = nf90_get_att (cdfid, nf90_global, 'TITLE', wrfversion)
@@ -162,6 +156,15 @@ SUBROUTINE setup (ctmlays)
     ENDIF
 
    ELSE  ! FV3
+    rcode = nf90_open (trim(file_mm(1))//'000'//trim(file_mm(2)), nf90_nowrite, cdfid)    
+    rcode2 = nf90_open (trim(file_sfc(1))//'000'//trim(file_sfc(2)), nf90_nowrite, cdfid2)
+    IF ( rcode.ne.nf90_noerr .or. rcode2.ne.nf90_noerr ) then
+     print*,'open error rcode,rcode2=',rcode,rcode2
+     print*,'file_mm=',trim(file_mm(1))//'000'//trim(file_mm(2))
+     print*,'file_src=',trim(file_sfc(1))//'000'//trim(file_sfc(2))
+     stop
+    endif 
+     
     rcode = nf90_get_att (cdfid, nf90_global, 'source', fv3_version)
 
     IF ( rcode /= nf90_noerr ) THEN
@@ -184,12 +187,5 @@ SUBROUTINE setup (ctmlays)
 
 
    END IF
-
-  ELSE  ! error opening file as NetCDF
-
-    WRITE (*,f9000) TRIM(pname), TRIM(file_mm(1)), TRIM(nf90_strerror(rcode))
-    CALL graceful_stop (pname)
-
-  ENDIF
 
 END SUBROUTINE setup
