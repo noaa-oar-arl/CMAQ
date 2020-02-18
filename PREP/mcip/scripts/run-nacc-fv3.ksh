@@ -60,7 +60,7 @@ cat>namelist.mcip<<!
   btrim      =  -1
   lprt_col   =  0
   lprt_row   =  0
-  ntimes     = 2
+  ntimes     = 72
   wrf_lc_ref_lat = 40.0
   projparm = 2., 33.,45., -97., -97., 40.
   domains = -2508000., -1716000., 12000., 12000., 442, 265
