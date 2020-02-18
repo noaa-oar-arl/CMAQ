@@ -1,5 +1,14 @@
-#!/bin/csh -f 
-
+#
+#
+#------------------------------------------------------------------------------#
+#    This new README file is a commented version of the original CMAQ MCIPv5.0 script
+#    to serve as a guide for the new options in the  simplified FV3GFSv16 script of the
+#    NOAA-ARL Atmosphere-Chemistry Coupler (NACC), version 1.0 , "run-nacc-fv3.ksh"
+#    February 18, 2020
+#    Patrick C. Campbell, Patrick.C.Campbell@noaa.gov
+#------------------------------------------------------------------------------#
+#
+#
 #------------------------------------------------------------------------------#
 #  The Community Multiscale Air Quality (CMAQ) system software is in           #
 #  continuous development by various groups and is based on information        #
@@ -120,31 +129,16 @@
 #   WorkDir    = Working Directory for Fortran links and namelist
 #-----------------------------------------------------------------------
 
+#Example:
 #source $CMAQ_HOME/config_cmaq.csh
-
-set APPL       = Test_FV3
-set CoordName  = FV3_RPO           # 16-character maximum
-set GridName   = FV3_CONUS         # 16-character maximum
-
-#WCOSS-Cray
-#set DataPath   = /gpfs/hps2/ptmp/Patrick.C.Campbell
-#ARL-AAQEST
-#set DataPath   = /data/aqf/patrickc
-#Hera=Princeton
-set DataPath   = /scratch2/NAGAPE/arl/Patrick.C.Campbell
-
-set InMetDir   = $DataPath/fv3gfs_v16_test/12z_hourly
-set InGeoDir   = $DataPath/fv3gfs_v16_test/12z_hourly
-set OutDir     = $DataPath/fv3gfs_v16_test/12z_hourly
-
-#WCOSS-Cray
-#set ProgDir    = /gpfs/hps3/emc/naqfc/noscrub/Patrick.C.Campbell/CMAQ_REPO/PREP/mcip/src
-#ARL-AAQEST
-#set ProgDir    = /data/aqf/patrickc/models/CMAQ_REPO/PREP/mcip/src
-#Hera=Princeton
-set ProgDir    = /scratch2/NAGAPE/arl/Patrick.C.Campbell/models/CMAQ_REPO/PREP/mcip/src
-
-set WorkDir    = $OutDir
+#set APPL       = Test_FV3
+#set CoordName  = FV3_RPO           # 16-character maximum
+#set GridName   = FV3_CONUS         # 16-character maximum
+#set InMetDir   = $DataPath/
+#set InGeoDir   = $DataPath/
+#set OutDir     = $DataPath/
+#set ProgDir    = $DataPath/
+#set WorkDir    = $OutDir
 
 #-----------------------------------------------------------------------
 # Set name(s) of input meteorology file(s)
@@ -160,39 +154,34 @@ set WorkDir    = $OutDir
 #   in MAX_MM in file_mod.F (default is 367).
 #
 #   Example:
-#     set InMetFiles = ( $InMetDir/wrfout_d01_date1 \
-#                        $InMetDir/wrfout_d01_date2 )
+#     set InMetFiles = ( $InMetDir/gfs*atm*date1 \
+#                        $InMetDir/gfs*sfd*date2 )
+#     
 #
 #   Current FV3 setup requires that the InMetFiles time match exactly
 #   to the valid times set below (i.e., mcip_start and mcip_end).
 #-----------------------------------------------------------------------
 
-#WRF
-#set InMetFiles = ( $InMetDir/wrfout_d01_2018-01-10_00:00:00  $InMetDir/wrfout_d01_2018-01-10_01:00:00 ) 
-
-#FV3, also need separate surface input pfiles
-set InMetFiles = ( $InMetDir/gfs.t12z.atmf000.nc $InMetDir/gfs.t12z.atmf001.nc $InMetDir/gfs.t12z.atmf002.nc $InMetDir/gfs.t12z.atmf003.nc)
-set InSfcFiles = ( $InMetDir/gfs.t12z.sfcf000.nc $InMetDir/gfs.t12z.sfcf001.nc $InMetDir/gfs.t12z.sfcf002.nc $InMetDir/gfs.t12z.sfcf003.nc) 
-
-set IfGeo      = "F"
-set InGeoFile  = $InGeoDir/geo_em_d01.nc
+#For WRF
+#set IfGeo      = "F"
+#set InGeoFile  = $InGeoDir/geo_em_d01.nc
 
 #-----------------------------------------------------------------------
 # Set input meteorological model (2 = WRF or 3 = FV3). (Default = 2)
 #
 #set InMetModel = 2
-set InMetModel = 3
+#set InMetModel = 3
 #-----------------------------------------------------------------------
 
 # FV3 Define input native FV3 grid resolution, dx = dy (m).
-set DX_IN    = 13000
-set DY_IN    = 13000
+#set DX_IN    = 13000
+#set DY_IN    = 13000
 
 
 #FV3 user define the met_cen_lat and met_cen_lon, which also determines hemisphere season.
 #met_cen_lat >= 0.0 for Northern Hemisphere
-set MET_CEN_LAT_IN = 0.0
-set MET_CEN_LON_IN = 0.0
+#set MET_CEN_LAT_IN = 0.0
+#set MET_CEN_LON_IN = 0.0
 
 #FV3 Set explicitly the soil layer thicknesses DZS (must = n_soil_layers)
 #set DZS_IN = (0.1 0.3 0.6 1)
@@ -211,9 +200,10 @@ set MET_CEN_LON_IN = 0.0
 #                in addition to the C-grid (cell face) output
 #-----------------------------------------------------------------------
 
-set LPV     = 0
-set LWOUT   = 1
-set LUVBOUT = 1
+#Example:
+#set LPV     = 0
+#set LWOUT   = 1
+#set LUVBOUT = 1
 
 #-----------------------------------------------------------------------
 # Set run start and end date.  (YYYY-MO-DD-HH:MI:SS.SSSS)
@@ -221,18 +211,18 @@ set LUVBOUT = 1
 #   MCIP_END:    Last date and time to be output  [UTC]
 #   INTVL:       Frequency of output [minutes]
 #-----------------------------------------------------------------------
-set MCIP_START = 2020-01-12-12:00:00.0000  # [UTC]
-set MCIP_END   = 2020-01-12-12:00:00.0000  # [UTC]
-
-set INTVL      = 60 # [min]
+#Example
+#set MCIP_START = 2020-01-12-12:00:00.0000  # [UTC]
+#set MCIP_END   = 2020-01-12-12:00:00.0000  # [UTC]
+#set INTVL      = 60 # [min]
 
 #-----------------------------------------------------------------------
 # Choose output format.
 #   1 = Models-3 I/O API
 #   2 = netCDF
 #-----------------------------------------------------------------------
-
-set IOFORM = 1
+#Example (Only IOAPI right now)
+#set IOFORM = 1
 
 #-----------------------------------------------------------------------
 # Set number of meteorology "boundary" points to remove on each of four
@@ -247,8 +237,8 @@ set IOFORM = 1
 #     BTRIM = -1, and BTRIM will be ignored in favor of specific window
 #     information in X0, Y0, NCOLS, and NROWS.
 #-----------------------------------------------------------------------
-
-set BTRIM = -1
+#Example, BTRIM = -1 only option right now
+#set BTRIM = -1
 
 #-----------------------------------------------------------------------
 # Define MCIP subset domain.  (Only used if BTRIM = -1.  Otherwise,
@@ -265,12 +255,11 @@ set BTRIM = -1
 #   NROWS:  Number of rows in output MCIP domain (excluding MCIP
 #           lateral boundaries).
 #-----------------------------------------------------------------------
-
-set X0    =  2000
-set Y0    =  750
-set NCOLS =  500
-set NROWS =  500
-
+#Only for WRF Right now
+#set X0    =  2000
+#set Y0    =  750
+#set NCOLS =  500
+#set NROWS =  500
 
 #-----------------------------------------------------------------------
 # Set CTM subset layers to collapse/interpolate to.
@@ -279,18 +268,18 @@ set NROWS =  500
 # explicitly collapsing, set CTMLAYS = -1.0.
 #-----------------------------------------------------------------------
 
+#Example:
 #set CTMLAYS = "-1.0"
-
 #Set 35 from PreMAQ NLAYS=35
 #WRF
-set CTMLAYS=" 1.000000, 0.995253, 0.990479, 0.985679, 0.980781, \
-              0.975782, 0.970684, 0.960187, 0.954689, 0.936895, \
-              0.930397, 0.908404, 0.888811, 0.862914, 0.829314, \
-              0.786714, 0.735314, 0.645814, 0.614214, 0.582114, \
-              0.549714, 0.511711, 0.484394, 0.451894, 0.419694, \
-              0.388094, 0.356994, 0.326694, 0.297694, 0.270694, \
-              0.245894, 0.223694, 0.203594, 0.154394, 0.127094, \
-              0.000000"
+#set CTMLAYS=" 1.000000, 0.995253, 0.990479, 0.985679, 0.980781, \
+#              0.975782, 0.970684, 0.960187, 0.954689, 0.936895, \
+#              0.930397, 0.908404, 0.888811, 0.862914, 0.829314, \
+#              0.786714, 0.735314, 0.645814, 0.614214, 0.582114, \
+#              0.549714, 0.511711, 0.484394, 0.451894, 0.419694, \
+#              0.388094, 0.356994, 0.326694, 0.297694, 0.270694, \
+#              0.245894, 0.223694, 0.203594, 0.154394, 0.127094, \
+#              0.000000"
 
 #-----------------------------------------------------------------------
 # Define output CMAQ resolution to be interpolated to, dx = dy (m).
@@ -303,8 +292,8 @@ set CTMLAYS=" 1.000000, 0.995253, 0.990479, 0.985679, 0.980781, \
 # If coordinate is set to 0, domain center cell will be used.
 #-----------------------------------------------------------------------
 
-set LPRT_COL = 0
-set LPRT_ROW = 0
+#set LPRT_COL = 0
+#set LPRT_ROW = 0
 
 #-----------------------------------------------------------------------
 # Optional:  Set WRF Lambert conformal reference latitude.
@@ -314,8 +303,8 @@ set LPRT_ROW = 0
 # Alternatively, if the script variable is removed here, remove it
 # from the setting of the namelist (toward the end of the script).
 #-----------------------------------------------------------------------
-
-set WRF_LC_REF_LAT = 40.0
+#Example for WRF Only:
+#set WRF_LC_REF_LAT = 40.0
 
 #=======================================================================
 #=======================================================================
@@ -323,242 +312,242 @@ set WRF_LC_REF_LAT = 40.0
 #   Should not need to change anything below here.
 #=======================================================================
 #=======================================================================
+#
+#set PROG = mcip
 
-set PROG = mcip
-
-date
+#date
 
 #-----------------------------------------------------------------------
 # Make sure directories exist.
 #-----------------------------------------------------------------------
 
-if ( ! -d $InMetDir ) then
-  echo "No such input directory $InMetDir"
-  exit 1
-endif
-
-if ( ! -d $OutDir ) then
-  echo "No such output directory...will try to create one"
-  mkdir -p $OutDir
-  if ( $status != 0 ) then
-    echo "Failed to make output directory, $OutDir"
-    exit 1
-  endif
-endif
-
-if ( ! -d $ProgDir ) then
-  echo "No such program directory $ProgDir"
-  exit 1
-endif
-
-#-----------------------------------------------------------------------
-# Make sure the input files exist.
-#-----------------------------------------------------------------------
-
-if ( $IfGeo == "T" ) then
-  if ( ! -f $InGeoFile ) then
-    echo "No such input file $InGeoFile"
-    exit 1
-  endif
-endif
-
-foreach fil ( $InMetFiles )
-  if ( ! -f $fil ) then
-    echo "No such input file $fil"
-    exit 1
-  endif
-end
-
-#-----------------------------------------------------------------------
-# Make sure the executable exists.
-#-----------------------------------------------------------------------
-
-if ( ! -f $ProgDir/${PROG}.exe ) then
-  echo "Could not find ${PROG}.exe"
-  exit 1
-endif
-
-#-----------------------------------------------------------------------
-# Create a work directory for this job.
-#-----------------------------------------------------------------------
-
-if ( ! -d $WorkDir ) then
-  mkdir -p $WorkDir
-  if ( $status != 0 ) then
-    echo "Failed to make work directory, $WorkDir"
-    exit 1
-  endif
-endif
-
-cd $WorkDir
-
-#-----------------------------------------------------------------------
-# Set up script variables for input files.
-#-----------------------------------------------------------------------
-
-if ( $IfGeo == "T" ) then
-  if ( -f $InGeoFile ) then
-    set InGeo = $InGeoFile
-  else
-    set InGeo = "no_file"
-  endif
-else
-  set InGeo = "no_file"
-endif
-
-set FILE_GD  = $OutDir/GRIDDESC
-
-#-----------------------------------------------------------------------
-# Create namelist with user definitions.
-#-----------------------------------------------------------------------
-
-set MACHTYPE = `uname`
-if ( ( $MACHTYPE == "AIX" ) || ( $MACHTYPE == "Darwin" ) ) then
-  set Marker = "/"
-else
-  set Marker = "&END"
-endif
-
-cat > $WorkDir/namelist.${PROG} << !
-
- &FILENAMES
-  file_gd    = "$FILE_GD"
-  file_mm    = "$InMetFiles[1]",
-!
-
-if ( $#InMetFiles > 1 ) then
-  @ nn = 2
-  while ( $nn <= $#InMetFiles )
-    cat >> $WorkDir/namelist.${PROG} << !
-               "$InMetFiles[$nn]",
-!
-    @ nn ++
-  end
-endif
-
-if ( $InMetModel == 3 ) then
-cat >> $WorkDir/namelist.${PROG} << !
-  file_sfc   = "$InSfcFiles[1]",
-!
-if ( $#InSfcFiles > 1 ) then
-  @ nn = 2
-  while ( $nn <= $#InSfcFiles )
-    cat >> $WorkDir/namelist.${PROG} << !
-               "$InSfcFiles[$nn]",
-!
-    @ nn ++
-  end
-endif
-endif
-
-if ( $IfGeo == "T" ) then
-cat >> $WorkDir/namelist.${PROG} << !
-  file_ter   = "$InGeo"
-!
-endif
-
-cat >> $WorkDir/namelist.${PROG} << !
-  ioform     =  $IOFORM
- $Marker
-
- &USERDEFS
-  inmetmodel =  $InMetModel
-  dx_in      =  $DX_IN
-  dy_in      =  $DY_IN
-  met_cen_lat_in =  $MET_CEN_LAT_IN
-  met_cen_lon_in =  $MET_CEN_LON_IN
-  lpv        =  $LPV
-  lwout      =  $LWOUT
-  luvbout    =  $LUVBOUT
-  mcip_start = "$MCIP_START"
-  mcip_end   = "$MCIP_END"
-  intvl      =  $INTVL
-  coordnam   = "$CoordName"
-  grdnam     = "$GridName"
-  ctmlays    =  $CTMLAYS
-  btrim      =  $BTRIM
-  lprt_col   =  $LPRT_COL
-  lprt_row   =  $LPRT_ROW
-  wrf_lc_ref_lat = $WRF_LC_REF_LAT
- $Marker
-
- &WINDOWDEFS
-  x0         =  $X0
-  y0         =  $Y0
-  ncolsin    =  $NCOLS
-  nrowsin    =  $NROWS
- $Marker
-
-!
-
-#-----------------------------------------------------------------------
-# Set links to FORTRAN units.
-#-----------------------------------------------------------------------
-
-rm fort.*
-if ( -f $FILE_GD ) rm -f $FILE_GD
-
-ln -s $FILE_GD                   fort.4
-ln -s $WorkDir/namelist.${PROG}  fort.8
-
-set NUMFIL = 0
-foreach fil ( $InMetFiles )
-  @ NN = $NUMFIL + 10
-  ln -s $fil fort.$NN
-  @ NUMFIL ++
-end
-
-if ( $InMetModel == 3 ) then
-set NUMFIL = 0
-foreach fil ( $InSfcFiles )
-  @ NN = $NUMFIL + 20
-  ln -s $fil fort.$NN
-  @ NUMFIL ++
-end
-endif
-
-#-----------------------------------------------------------------------
-# Set output file names and other miscellaneous environment variables.
-#-----------------------------------------------------------------------
-
-setenv IOAPI_CHECK_HEADERS  T
-setenv EXECUTION_ID         $PROG
-
-setenv GRID_BDY_2D          $OutDir/GRIDBDY2D_${APPL}.nc
-setenv GRID_CRO_2D          $OutDir/GRIDCRO2D_${APPL}.nc
-setenv GRID_DOT_2D          $OutDir/GRIDDOT2D_${APPL}.nc
-setenv MET_BDY_3D           $OutDir/METBDY3D_${APPL}.nc
-setenv MET_CRO_2D           $OutDir/METCRO2D_${APPL}.nc
-setenv MET_CRO_3D           $OutDir/METCRO3D_${APPL}.nc
-setenv MET_DOT_3D           $OutDir/METDOT3D_${APPL}.nc
-setenv LUFRAC_CRO           $OutDir/LUFRAC_CRO_${APPL}.nc
-setenv SOI_CRO              $OutDir/SOI_CRO_${APPL}.nc
-setenv MOSAIC_CRO           $OutDir/MOSAIC_CRO_${APPL}.nc
-
-if ( -f $GRID_BDY_2D ) rm -f $GRID_BDY_2D
-if ( -f $GRID_CRO_2D ) rm -f $GRID_CRO_2D
-if ( -f $GRID_DOT_2D ) rm -f $GRID_DOT_2D
-if ( -f $MET_BDY_3D  ) rm -f $MET_BDY_3D
-if ( -f $MET_CRO_2D  ) rm -f $MET_CRO_2D
-if ( -f $MET_CRO_3D  ) rm -f $MET_CRO_3D
-if ( -f $MET_DOT_3D  ) rm -f $MET_DOT_3D
-if ( -f $LUFRAC_CRO  ) rm -f $LUFRAC_CRO
-if ( -f $SOI_CRO     ) rm -f $SOI_CRO
-if ( -f $MOSAIC_CRO  ) rm -f $MOSAIC_CRO
-
-if ( -f $OutDir/mcip.nc      ) rm -f $OutDir/mcip.nc
-if ( -f $OutDir/mcip_bdy.nc  ) rm -f $OutDir/mcip_bdy.nc
-
-#-----------------------------------------------------------------------
-# Execute MCIP.
-#-----------------------------------------------------------------------
-
-$ProgDir/${PROG}.exe
-
-if ( $status == 0 ) then
-  rm fort.*
-  exit 0
-else
-  echo "Error running $PROG"
-  exit 1
-endif
+#if ( ! -d $InMetDir ) then
+#  echo "No such input directory $InMetDir"
+#  exit 1
+#endif
+#
+#if ( ! -d $OutDir ) then
+#  echo "No such output directory...will try to create one"
+#  mkdir -p $OutDir
+#  if ( $status != 0 ) then
+#    echo "Failed to make output directory, $OutDir"
+#    exit 1
+#  endif
+#endif
+#
+#if ( ! -d $ProgDir ) then
+#  echo "No such program directory $ProgDir"
+#  exit 1
+#endif
+#
+##-----------------------------------------------------------------------
+## Make sure the input files exist.
+##-----------------------------------------------------------------------
+#
+#if ( $IfGeo == "T" ) then
+#  if ( ! -f $InGeoFile ) then
+#    echo "No such input file $InGeoFile"
+#    exit 1
+#  endif
+#endif
+#
+#foreach fil ( $InMetFiles )
+#  if ( ! -f $fil ) then
+#    echo "No such input file $fil"
+#    exit 1
+#  endif
+#end
+#
+##-----------------------------------------------------------------------
+## Make sure the executable exists.
+##-----------------------------------------------------------------------
+#
+#if ( ! -f $ProgDir/${PROG}.exe ) then
+#  echo "Could not find ${PROG}.exe"
+#  exit 1
+#endif
+#
+##-----------------------------------------------------------------------
+## Create a work directory for this job.
+##-----------------------------------------------------------------------
+#
+#if ( ! -d $WorkDir ) then
+#  mkdir -p $WorkDir
+#  if ( $status != 0 ) then
+#    echo "Failed to make work directory, $WorkDir"
+#    exit 1
+#  endif
+#endif
+#
+#cd $WorkDir
+#
+##-----------------------------------------------------------------------
+## Set up script variables for input files.
+##-----------------------------------------------------------------------
+#
+#if ( $IfGeo == "T" ) then
+#  if ( -f $InGeoFile ) then
+#    set InGeo = $InGeoFile
+#  else
+#    set InGeo = "no_file"
+#  endif
+#else
+#  set InGeo = "no_file"
+#endif
+#
+#set FILE_GD  = $OutDir/GRIDDESC
+#
+##-----------------------------------------------------------------------
+## Create namelist with user definitions.
+##-----------------------------------------------------------------------
+#
+#set MACHTYPE = `uname`
+#if ( ( $MACHTYPE == "AIX" ) || ( $MACHTYPE == "Darwin" ) ) then
+#  set Marker = "/"
+#else
+#  set Marker = "&END"
+#endif
+#
+#cat > $WorkDir/namelist.${PROG} << !
+#
+# &FILENAMES
+#  file_gd    = "$FILE_GD"
+#  file_mm    = "$InMetFiles[1]",
+#!
+#
+#if ( $#InMetFiles > 1 ) then
+#  @ nn = 2
+#  while ( $nn <= $#InMetFiles )
+#    cat >> $WorkDir/namelist.${PROG} << !
+#               "$InMetFiles[$nn]",
+#!
+#    @ nn ++
+#  end
+#endif
+#
+#if ( $InMetModel == 3 ) then
+#cat >> $WorkDir/namelist.${PROG} << !
+#  file_sfc   = "$InSfcFiles[1]",
+#!
+#if ( $#InSfcFiles > 1 ) then
+#  @ nn = 2
+#  while ( $nn <= $#InSfcFiles )
+#    cat >> $WorkDir/namelist.${PROG} << !
+#               "$InSfcFiles[$nn]",
+#!
+#    @ nn ++
+#  end
+#endif
+#endif
+#
+#if ( $IfGeo == "T" ) then
+#cat >> $WorkDir/namelist.${PROG} << !
+#  file_ter   = "$InGeo"
+#!
+#endif
+#
+#cat >> $WorkDir/namelist.${PROG} << !
+#  ioform     =  $IOFORM
+# $Marker
+#
+# &USERDEFS
+#  inmetmodel =  $InMetModel
+#  dx_in      =  $DX_IN
+#  dy_in      =  $DY_IN
+#  met_cen_lat_in =  $MET_CEN_LAT_IN
+#  met_cen_lon_in =  $MET_CEN_LON_IN
+#  lpv        =  $LPV
+#  lwout      =  $LWOUT
+#  luvbout    =  $LUVBOUT
+#  mcip_start = "$MCIP_START"
+#  mcip_end   = "$MCIP_END"
+#  intvl      =  $INTVL
+#  coordnam   = "$CoordName"
+#  grdnam     = "$GridName"
+#  ctmlays    =  $CTMLAYS
+#  btrim      =  $BTRIM
+#  lprt_col   =  $LPRT_COL
+#  lprt_row   =  $LPRT_ROW
+#  wrf_lc_ref_lat = $WRF_LC_REF_LAT
+# $Marker
+#
+# &WINDOWDEFS
+#  x0         =  $X0
+#  y0         =  $Y0
+#  ncolsin    =  $NCOLS
+#  nrowsin    =  $NROWS
+# $Marker
+#
+#!
+#
+##-----------------------------------------------------------------------
+## Set links to FORTRAN units.
+##-----------------------------------------------------------------------
+#
+#rm fort.*
+#if ( -f $FILE_GD ) rm -f $FILE_GD
+#
+#ln -s $FILE_GD                   fort.4
+#ln -s $WorkDir/namelist.${PROG}  fort.8
+#
+#set NUMFIL = 0
+#foreach fil ( $InMetFiles )
+#  @ NN = $NUMFIL + 10
+#  ln -s $fil fort.$NN
+#  @ NUMFIL ++
+#end
+#
+#if ( $InMetModel == 3 ) then
+#set NUMFIL = 0
+#foreach fil ( $InSfcFiles )
+#  @ NN = $NUMFIL + 20
+#  ln -s $fil fort.$NN
+#  @ NUMFIL ++
+#end
+#endif
+#
+##-----------------------------------------------------------------------
+## Set output file names and other miscellaneous environment variables.
+##-----------------------------------------------------------------------
+#
+#setenv IOAPI_CHECK_HEADERS  T
+#setenv EXECUTION_ID         $PROG
+#
+#setenv GRID_BDY_2D          $OutDir/GRIDBDY2D_${APPL}.nc
+#setenv GRID_CRO_2D          $OutDir/GRIDCRO2D_${APPL}.nc
+#setenv GRID_DOT_2D          $OutDir/GRIDDOT2D_${APPL}.nc
+#setenv MET_BDY_3D           $OutDir/METBDY3D_${APPL}.nc
+#setenv MET_CRO_2D           $OutDir/METCRO2D_${APPL}.nc
+#setenv MET_CRO_3D           $OutDir/METCRO3D_${APPL}.nc
+#setenv MET_DOT_3D           $OutDir/METDOT3D_${APPL}.nc
+#setenv LUFRAC_CRO           $OutDir/LUFRAC_CRO_${APPL}.nc
+#setenv SOI_CRO              $OutDir/SOI_CRO_${APPL}.nc
+#setenv MOSAIC_CRO           $OutDir/MOSAIC_CRO_${APPL}.nc
+#
+#if ( -f $GRID_BDY_2D ) rm -f $GRID_BDY_2D
+#if ( -f $GRID_CRO_2D ) rm -f $GRID_CRO_2D
+#if ( -f $GRID_DOT_2D ) rm -f $GRID_DOT_2D
+#if ( -f $MET_BDY_3D  ) rm -f $MET_BDY_3D
+#if ( -f $MET_CRO_2D  ) rm -f $MET_CRO_2D
+#if ( -f $MET_CRO_3D  ) rm -f $MET_CRO_3D
+#if ( -f $MET_DOT_3D  ) rm -f $MET_DOT_3D
+#if ( -f $LUFRAC_CRO  ) rm -f $LUFRAC_CRO
+#if ( -f $SOI_CRO     ) rm -f $SOI_CRO
+#if ( -f $MOSAIC_CRO  ) rm -f $MOSAIC_CRO
+#
+#if ( -f $OutDir/mcip.nc      ) rm -f $OutDir/mcip.nc
+#if ( -f $OutDir/mcip_bdy.nc  ) rm -f $OutDir/mcip_bdy.nc
+#
+##-----------------------------------------------------------------------
+## Execute MCIP.
+##-----------------------------------------------------------------------
+#
+#$ProgDir/${PROG}.exe
+#
+#if ( $status == 0 ) then
+#  rm fort.*
+#  exit 0
+#else
+#  echo "Error running $PROG"
+#  exit 1
+#endif

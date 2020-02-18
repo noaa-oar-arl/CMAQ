@@ -159,9 +159,9 @@ SUBROUTINE setup (ctmlays)
     rcode = nf90_open (trim(file_mm(1))//'000'//trim(file_mm(2)), nf90_nowrite, cdfid)    
     rcode2 = nf90_open (trim(file_sfc(1))//'000'//trim(file_sfc(2)), nf90_nowrite, cdfid2)
     IF ( rcode.ne.nf90_noerr .or. rcode2.ne.nf90_noerr ) then
-     print*,'open error rcode,rcode2=',rcode,rcode2
-     print*,'file_mm=',trim(file_mm(1))//'000'//trim(file_mm(2))
-     print*,'file_src=',trim(file_sfc(1))//'000'//trim(file_sfc(2))
+!     print*,'open error rcode,rcode2=',rcode,rcode2
+!     print*,'file_mm=',trim(file_mm(1))//'000'//trim(file_mm(2))
+!     print*,'file_src=',trim(file_sfc(1))//'000'//trim(file_sfc(2))
      stop
     endif 
      

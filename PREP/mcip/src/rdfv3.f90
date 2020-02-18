@@ -793,7 +793,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
    write(*,*)'error getting time in ATM file',str3
    CALL graceful_stop (pname)
   ENDIF
-  print*,'process ATM file date ',mcip_rd,rdtime,intvl
+ ! print*,'process ATM file date ',mcip_rd,rdtime,intvl
   CALL geth_newdate (mcip_next, mcip_rd, int(rdtime)*intvl*60)
   if(mcip_next.ne.mcip_now) then
    write(*,*)'time mismatch in ATM file ',mcip_now,mcip_next,mcip_rd,date_init,rdtime

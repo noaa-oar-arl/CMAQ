@@ -3,13 +3,9 @@ APPL=Test_FV3
 CoordName=FV3_RPO	      # 16-character maximum
 GridName=FV3_CONUS	      # 16-character maximum
 
-# set DataPath   = /gpfs/hps2/ptmp/Patrick.C.Campbell
-DataPath=/gpfs/hps3/ptmp/Youhua.Tang/20200112-12z
-InMetDir=$DataPath
-InGeoDir=$DataPath
-OutDir=$HOME/ptmp/fv3gfs_v16_test
-#set ProgDir    = /gpfs/hps3/emc/naqfc/noscrub/Patrick.C.Campbell/CMAQ_REPO/PREP/mcip/src
-ProgDir=/gpfs/hps3/emc/naqfc/noscrub/Youhua.Tang/CMAQ/fv3-mcip/src2
+InMetDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly
+OutDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/fv3gfs_v16_test
+ProgDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/models/CMAQ_REPO/PREP/mcip/src
 WorkDir=$OutDir
 
 if [ ! -s $InMetDir ]; then
@@ -35,8 +31,8 @@ cd $OutDir
 cat>namelist.mcip<<!
 &FILENAMES
   file_gd    = 'GRIDDESC'
-  file_mm    = '$DataPath/gfs.t12z.atmf','.nc'
-  file_sfc   = '$DataPath/gfs.t12z.sfcf','.nc'
+  file_mm    = '$InMetDir/gfs.t12z.atmf','.nc'
+  file_sfc   = '$InMetDir/gfs.t12z.sfcf','.nc'
   ioform     =  1
  &END
 
