@@ -341,6 +341,14 @@ SUBROUTINE setgriddefs
                    x0+2*nthik+ncols-1, y0+2*nthik+nrows-1
     CALL graceful_stop (pname)
   ENDIF
+  
+  if( met_model.eq.3) then  ! fv3 interpolated
+    ncols=int(domains(5))
+    nrows=int(domains(6))
+    nrows_x = nrows + 2 * nthik
+    ncols_x = ncols + 2 * nthik
+    nbndy   = 2 * nthik * (ncols + nrows + 2*nthik)
+  endif  
 
 !-------------------------------------------------------------------------------
 ! Calculate window domain size in terms of MET grid.
@@ -371,7 +379,7 @@ SUBROUTINE setgriddefs
   ELSE IF ( met_mapproj == 3 ) THEN  ! equatorial Mercator
     gdtyp_gd = eqmgrd3
    ELSE IF ( met_mapproj == 4 ) THEN  ! Gaussian (FV3) currently set to equatorial mercator, wrong.
-    gdtyp_gd = eqmgrd3
+    gdtyp_gd = int(projparm(1))
   ELSE
     WRITE (*,f9275) TRIM(pname), met_mapproj
     CALL graceful_stop (pname)
@@ -412,6 +420,13 @@ SUBROUTINE setgriddefs
   IF ( ( met_model == 2 ) .AND. ( gdtyp_gd == lamgrd3 ) ) THEN
     xcent_gd = DBLE(met_proj_clon)  ! [degrees longitude]
     ycent_gd = DBLE(met_ref_lat)    ! [degrees latitude]
+  ELSE IF ( met_model.eq.3 ) then ! if FV3, using interpolation
+    gdtyp_gd=int(projparm(1))
+    p_alp_gd=dble(projparm(2)) ! lat1,lat2,projlon, center_lon, center_lat 
+    p_bet_gd=dble(projparm(3))
+    p_gam_gd=dble(projparm(4))
+    xcent_gd=dble(projparm(5)) 
+    ycent_gd=dble(projparm(6)) 
   ELSE IF ( gdtyp_gd == eqmgrd3 ) THEN
     xcent_gd = DBLE(met_proj_clon)  ! [degrees longitude]
     ycent_gd = 0.0d0                ! [degrees latitude]
@@ -420,16 +435,6 @@ SUBROUTINE setgriddefs
     ycent_gd = DBLE(met_proj_clat)  ! [degrees latitude]
   ENDIF
 
-  IF ( ( met_model == 3 ) .AND. ( gdtyp_gd == lamgrd3 ) ) THEN
-    xcent_gd = DBLE(met_proj_clon)  ! [degrees longitude]
-    ycent_gd = DBLE(met_ref_lat)    ! [degrees latitude]
-  ELSE IF ( gdtyp_gd == eqmgrd3 ) THEN
-    xcent_gd = DBLE(met_proj_clon)  ! [degrees longitude]
-    ycent_gd = 0.0d0                ! [degrees latitude]
-  ELSE                              !WRF polar stereographic or FV3 Gaussian
-    xcent_gd = DBLE(met_proj_clon)  ! [degrees longitude]
-    ycent_gd = DBLE(met_proj_clat)  ! [degrees latitude]
-  ENDIF
 
 !-------------------------------------------------------------------------------
 ! (XCELL_GD, YCELL_GD):
@@ -518,7 +523,7 @@ SUBROUTINE setgriddefs
 !            to increments of half-delta-X if a user-defined reference
 !            latitude was specified.
 !-------------------------------------------------------------------------------
-  IF ( ( met_model == 2 ) .OR. ( met_model == 3 ) .OR. ( gdtyp_gd == eqmgrd3 ) ) THEN  ! WRF, FV3, or Mercator
+  IF ( ( met_model == 2 ) .OR. ( gdtyp_gd == eqmgrd3 ) ) THEN  ! WRF, FV3, or Mercator
 
     xorig_ctm = met_xxctr - ( met_rictr_dot - FLOAT(x0+nthik) ) * met_resoln
     yorig_ctm = met_yyctr - ( met_rjctr_dot - FLOAT(y0+nthik) ) * met_resoln
@@ -543,16 +548,21 @@ SUBROUTINE setgriddefs
 ! For Lat-Lon: units are degrees - unused
 !-------------------------------------------------------------------------------
 
-  IF ( ( met_model == 2 ) .OR. ( met_model == 3) ) THEN  ! WRF or FV3 -- Allow trailing digits.
+  IF ( met_model == 2 ) THEN  ! WRF or FV3 -- Allow trailing digits.
     xorig_gd   = DBLE(xorig_ctm)        ! X-origin [m]
     yorig_gd   = DBLE(yorig_ctm)        ! Y-origin [m]
+  else if (met_model.eq.3) then ! fv3 interpolated
+    xorig_gd  = DBLE(domains(1))       ! xorig, yorig,xcell,ycell,ncols,nrows,nthik
+    yorig_gd  = DBLE(domains(2))
+    xcell_gd  = DBLE(domains(3))
+    ycell_gd  = DBLE(domains(4))    
   ENDIF
 
 !-------------------------------------------------------------------------------
 ! Check user-defined MCIP output time info against input meteorology.
 !-------------------------------------------------------------------------------
 
-  IF ( ABS( intvl - NINT(met_tapfrq) ) > ttol_min ) THEN
+  IF ( ABS( intvl - NINT(met_tapfrq) ) > ttol_min .and. (met_model.ne.3) ) THEN
     WRITE (*,f9300) TRIM(pname), intvl, met_tapfrq
     CALL graceful_stop (pname)
   ENDIF

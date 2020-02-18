@@ -48,7 +48,7 @@ SUBROUTINE gridout (sdate, stime)
 ! Write GRIDDESC file.
 !-------------------------------------------------------------------------------
 
-  if(met_model.ne.3) CALL wrgdesc
+  CALL wrgdesc
 
 !-------------------------------------------------------------------------------
 ! Print sample output to log file.

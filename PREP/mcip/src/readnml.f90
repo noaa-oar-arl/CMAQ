@@ -109,10 +109,10 @@ SUBROUTINE readnml (ctmlays)
 
   NAMELIST /userdefs/    inmetmodel, dx_in, dy_in, met_cen_lat_in, met_cen_lon_in, &
                          lpv, lwout, luvbout,     &
-                         eradm, mcip_start, mcip_end, intvl,  &
+                         eradm, mcip_start, mcip_end, ntimes, intvl,  &
                          coordnam, grdnam, ctmlays,           &
                          btrim, lprt_col, lprt_row,           &
-                         wrf_lc_ref_lat
+                         wrf_lc_ref_lat, projparm, domains
 
   NAMELIST /windowdefs/  x0, y0, ncolsin, nrowsin
 
@@ -215,7 +215,6 @@ SUBROUTINE readnml (ctmlays)
   file_mm(:)  = " "
   file_geo    = " "
   file_sfc(:)  = " "
-
 !-------------------------------------------------------------------------------
 ! Set default value for user-selected model (2 = WRF, 3 = FV3).
   inmetmodel = 2
@@ -269,7 +268,7 @@ SUBROUTINE readnml (ctmlays)
   mcip_start = '0000-00-00-00:00:00.0000'
   mcip_end   = '0000-00-00-00:00:00.0000'
   intvl      =  0
- 
+  ntimes     = 0
 !-------------------------------------------------------------------------------
 ! Set coordinates for cell to print diagnostic output.  If 0 is set,
 ! domain center cell will be used.
@@ -334,7 +333,8 @@ SUBROUTINE readnml (ctmlays)
     CALL graceful_stop (pname)
   ENDIF
   REWIND (iutnml)
-
+  write(*,*)'0 namelist intvl,projparm=',intvl,projparm
+  write(*,*)'0 domains=',domains
   IF ( btrim < 0 ) THEN
     READ (iutnml, windowdefs, IOSTAT=istat)
     IF ( istat > 0 ) THEN
@@ -515,7 +515,7 @@ SUBROUTINE readnml (ctmlays)
 !-------------------------------------------------------------------------------
 ! Close namelist file.
 !-------------------------------------------------------------------------------
-
+  write(*,*)'namelist intvl=',intvl
   CLOSE (iutnml)
 
 END SUBROUTINE readnml
