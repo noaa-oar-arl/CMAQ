@@ -1,6 +1,6 @@
 #/bin/csh -f
 
-set APPL=Test_FV3
+set APPL=aqm.t12z
 set CoordName=FV3_RPO	      # 16-character maximum
 set GridName=FV3_CONUS	      # 16-character maximum
 
