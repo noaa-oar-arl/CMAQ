@@ -1,5 +1,5 @@
 #/bin/ksh -x
-APPL=Test_FV3
+APPL=aqm.t12z
 CoordName=FV3_RPO	      # 16-character maximum
 GridName=FV3_CONUS	      # 16-character maximum
 
