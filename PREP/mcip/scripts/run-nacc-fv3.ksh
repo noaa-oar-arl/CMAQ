@@ -1,6 +1,6 @@
 #/bin/ksh -x
 
-APPL=Test_FV3
+APPL=aqm.t12z
 InMetDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly
 OutDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test
 ProgDir=/gpfs/hps3/emc/naqfc/noscrub/Patrick.C.Campbell/CMAQ_REPO/PREP/mcip/src
