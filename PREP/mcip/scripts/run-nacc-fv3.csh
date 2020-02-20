@@ -1,13 +1,9 @@
 #/bin/csh -f
 
-set APPL=Test_FV3
-set CoordName=FV3_RPO	      # 16-character maximum
-set GridName=FV3_CONUS	      # 16-character maximum
-
+set APPL=aqm.t12z
 set InMetDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly
 set OutDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test
 set ProgDir=/gpfs/hps3/emc/naqfc/noscrub/Patrick.C.Campbell/CMAQ_REPO/PREP/mcip/src
-set WorkDir=$OutDir
 
 if ( ! -s $InMetDir ) then
   echo "No such input directory $InMetDir"
@@ -78,17 +74,17 @@ cat>namelist.mcip<<!
 
 setenv IOAPI_CHECK_HEADERS T
 
-setenv GRID_BDY_2D GRIDBDY2D_${APPL}.nc
-setenv GRID_CRO_2D GRIDCRO2D_${APPL}.nc
-setenv GRID_DOT_2D GRIDDOT2D_${APPL}.nc
-setenv MET_BDY_3D METBDY3D_${APPL}.nc
-setenv MET_CRO_2D METCRO2D_${APPL}.nc
-setenv MET_CRO_3D METCRO3D_${APPL}.nc
-setenv MET_DOT_3D METDOT3D_${APPL}.nc
-setenv LUFRAC_CRO LUFRAC_CRO_${APPL}.nc
-setenv SOI_CRO SOI_CRO_${APPL}.nc
-setenv MOSAIC_CRO MOSAIC_CRO_${APPL}.nc
+setenv GRID_BDY_2D ${APPL}.gridbdy.ncf
+setenv GRID_CRO_2D ${APPL}.grdcro2d.ncf
+setenv GRID_DOT_2D ${APPL}.grddot2d.ncf
+setenv MET_BDY_3D  ${APPL}.metbdy3d.ncf
+setenv MET_CRO_2D  ${APPL}.metcro2d.ncf
+setenv MET_CRO_3D  ${APPL}.metcro3d.ncf
+setenv MET_DOT_3D  ${APPL}.metdot3d.ncf
+setenv LUFRAC_CRO  ${APPL}.lufraccro.ncf
+setenv SOI_CRO     ${APPL}.soicro.ncf
+setenv MOSAIC_CRO  ${APPL}.mosaiccro.ncf
 
-rm -f *.nc
+rm -f *.ncf
 $ProgDir/mcip.exe
 

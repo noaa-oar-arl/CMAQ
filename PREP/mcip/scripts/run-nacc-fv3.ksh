@@ -1,12 +1,9 @@
 #/bin/ksh -x
-APPL=Test_FV3
-CoordName=FV3_RPO	      # 16-character maximum
-GridName=FV3_CONUS	      # 16-character maximum
 
+APPL=Test_FV3
 InMetDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly
 OutDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test
 ProgDir=/gpfs/hps3/emc/naqfc/noscrub/Patrick.C.Campbell/CMAQ_REPO/PREP/mcip/src
-WorkDir=$OutDir
 
 if [ ! -s $InMetDir ]; then
   echo "No such input directory $InMetDir"
@@ -77,16 +74,16 @@ cat>namelist.mcip<<!
 export IOAPI_CHECK_HEADERS=T
 export EXECUTION_ID=$PROG
 
-export GRID_BDY_2D=GRIDBDY2D_${APPL}.nc
-export GRID_CRO_2D=GRIDCRO2D_${APPL}.nc
-export GRID_DOT_2D=GRIDDOT2D_${APPL}.nc
-export MET_BDY_3D=METBDY3D_${APPL}.nc
-export MET_CRO_2D=METCRO2D_${APPL}.nc
-export MET_CRO_3D=METCRO3D_${APPL}.nc
-export MET_DOT_3D=METDOT3D_${APPL}.nc
-export LUFRAC_CRO=LUFRAC_CRO_${APPL}.nc
-export SOI_CRO=SOI_CRO_${APPL}.nc
-export MOSAIC_CRO=MOSAIC_CRO_${APPL}.nc
+export GRID_BDY_2D=${APPL}.gridbdy.ncf
+export GRID_CRO_2D=${APPL}.grdcro2d.ncf
+export GRID_DOT_2D=${APPL}.grddot2d.ncf
+export MET_BDY_3D=${APPL}.metbdy3d.ncf
+export MET_CRO_2D=${APPL}.metcro2d.ncf
+export MET_CRO_3D=${APPL}.metcro3d.ncf
+export MET_DOT_3D=${APPL}.metdot3d.ncf
+export LUFRAC_CRO=${APPL}.lufraccro.ncf
+export SOI_CRO=${APPL}.soicro.ncf
+export MOSAIC_CRO=${APPL}.mosaiccro.ncf
 
-rm -f *.nc 
+rm -f *.ncf 
 $ProgDir/mcip.exe
