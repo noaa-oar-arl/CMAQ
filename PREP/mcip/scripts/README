@@ -5,7 +5,8 @@
 #    to serve as a guide for the new options in the  simplified FV3GFSv16 script of the
 #    NOAA-ARL Atmosphere-Chemistry Coupler (NACC), version 1.0 , "run-nacc-fv3.ksh"
 #    February 18, 2020
-#    Patrick C. Campbell, Patrick.C.Campbell@noaa.gov
+#    Created by Patrick C. Campbell and Youhua Tang (NOAA/ARL)
+#    Patrick.C.Campbell@noaa.gov
 #------------------------------------------------------------------------------#
 #
 #
