@@ -160,7 +160,7 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 !                        feedbacks.  Added a flag (IFKFRADEXTRAS) for extra
 !                        variables available with KF convective scheme with
 !                        radiative feedbacks.  (T. Spero)
-!           18 Nov 2019  Modified for FV3GFS Capability. (P. C. Campbell)
+!           24 Feb 2020  Adapted for FV3GFSv16 at NOAA-ARL (P. C. Campbell)
 !-------------------------------------------------------------------------------
 
   USE metinfo

@@ -1,9 +1,9 @@
 #/bin/csh -f
 
 set APPL=aqm.t12z
-set InMetDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly
-set OutDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test
-set ProgDir=/gpfs/hps3/emc/naqfc/noscrub/Patrick.C.Campbell/CMAQ_REPO/PREP/mcip/src
+set InMetDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly
+set OutDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/fv3gfs_v16_test/output
+set ProgDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/models/CMAQ_REPO/PREP/mcip/src
 
 if ( ! -s $InMetDir ) then
   echo "No such input directory $InMetDir"
@@ -41,7 +41,7 @@ cat>namelist.mcip<<!
   met_cen_lat_in =  0.0
   met_cen_lon_in =  0.0
   lpv        =  0
-  lwout      =  1
+  lwout      =  0
   luvbout    =  1
   mcip_start = "2020-01-12-12:00:00.0000"
   mcip_end   = "2020-01-12-13:00:00.0000"

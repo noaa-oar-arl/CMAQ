@@ -69,6 +69,7 @@ SUBROUTINE alloc_met
 !                        improve dust simulation in CCTM.  Added optional
 !                        variables from KF convective scheme with radiative
 !                        feedbacks.  (T. Spero)
+!           24 Feb 2020  Adapted for FV3GFSv16 at NOAA-ARL (P. C. Campbell)
 !-------------------------------------------------------------------------------
 
   USE metinfo
@@ -96,18 +97,14 @@ SUBROUTINE alloc_met
   ALLOCATE ( mapdot   (met_nx, met_ny) )
   ALLOCATE ( mapu     (met_nx, met_ny) )
   ALLOCATE ( mapv     (met_nx, met_ny) )
-!  IF ( met_model == 2 ) THEN  ! WRF 
   ALLOCATE ( sigmaf                   (met_nz+1) )
   ALLOCATE ( sigmah                   (met_nz) )
-!  ENDIF
   IF ( met_model == 3 ) THEN  ! FV3
-!  ALLOCATE ( sigmaf                   (met_nz) )
-!  ALLOCATE ( sigmah                   (met_nz+1) )
-  ALLOCATE ( pfull                    (met_nz+1) )
-  ALLOCATE ( phalf                    (met_nz) )
-  ALLOCATE ( dpres                    (met_nx, met_ny,met_nz) )
-  ALLOCATE ( delz                     (met_nx, met_ny, met_nz) )
-  ALLOCATE ( b_k                      (met_nz+1) )
+   ALLOCATE ( pfull                    (met_nz+1) )
+   ALLOCATE ( phalf                    (met_nz) )
+   ALLOCATE ( dpres                    (met_nx, met_ny,met_nz) )
+   ALLOCATE ( delz                     (met_nx, met_ny, met_nz) )
+   ALLOCATE ( b_k                      (met_nz+1) )
   ENDIF
   ALLOCATE ( terrain  (met_nx, met_ny) )
   ALLOCATE ( znt      (met_nx, met_ny) )
@@ -124,25 +121,13 @@ SUBROUTINE alloc_met
     ALLOCATE ( coriolis (met_nx, met_ny) )
   ENDIF
 
-!  IF ( met_model == 2 ) THEN  ! WRF
    IF ( met_hybrid >= 0 ) THEN
     ALLOCATE ( c1f (met_nz+1) )
     ALLOCATE ( c1h (met_nz)   )
     ALLOCATE ( c2f (met_nz+1) )
     ALLOCATE ( c2h (met_nz)   )
    ENDIF
-!  ENDIF
-  
 
-!  IF ( met_model == 3 ) THEN  ! FV3
-!   IF ( met_hybrid >= 0 ) THEN
-!    ALLOCATE ( c1f (met_nz) )
-!    ALLOCATE ( c1h (met_nz+1)   )
-!    ALLOCATE ( c2f (met_nz) )
-!    ALLOCATE ( c2h (met_nz+1)   )
-!   ENDIF
-!  ENDIF
-  
   IF ( met_ns > 0 ) THEN
     ALLOCATE ( dzs (met_ns) )
   ENDIF

@@ -54,11 +54,11 @@ FC      = ifort
 #...Serial netCDF I/O
 
 #WCOSS-Cray
-NETCDF =  /opt/cray/netcdf/4.3.2/INTEL/140/
+#NETCDF =  /opt/cray/netcdf/4.3.2/INTEL/140/
 #ARL-AAQEST-Local
 #NETCDF =  /opt/netcdf4
 #Hera-Princeton
-#NETCDF = /apps/netcdf/4.7.0/intel/18.0.5.274
+NETCDF = /apps/netcdf/4.7.0/intel/18.0.5.274
 
 #...Parallel netCDF I/O with HDF5
 #NETCDF =  /opt/cray/netcdf-hdf5parallel/4.4.1.1/INTEL/150
@@ -74,11 +74,11 @@ NETCDF =  /opt/cray/netcdf/4.3.2/INTEL/140/
 #IOAPI_ROOT = /gpfs/hps/nco/ops/nwprod/cmaq.v5.1.4/lib/
 
 #WCOSS-Cray
-IOAPI_ROOT = /gpfs/hps3/emc/naqfc/noscrub/Youhua.Tang/CMAQ/ioapi-3.2/Linux2_x86_64ifort
+#IOAPI_ROOT = /gpfs/hps3/emc/naqfc/noscrub/Youhua.Tang/CMAQ/ioapi-3.2/Linux2_x86_64ifort
 #ARL-AAQEST-Local
 #IOAPI_ROOT = /data/aqf/youhuat/CMAQ/ioapi-3.2/Linux2_x86_64ifort
 #Hera-Princeton
-#IOAPI_ROOT = /scratch2/NCEPDEV/naqfc/Youhua.Tang/CMAQ/ioapi-3.2/Linux2_x86_64ifort
+IOAPI_ROOT = /scratch2/NCEPDEV/naqfc/Youhua.Tang/CMAQ/ioapi-3.2/Linux2_x86_64ifort
 
 #...MPI Settings
 #MPI_ROOT = /opt/cray/mpt/7.2.0/gni/mpich2-intel/140
@@ -91,8 +91,8 @@ IOAPI_ROOT = /gpfs/hps3/emc/naqfc/noscrub/Youhua.Tang/CMAQ/ioapi-3.2/Linux2_x86_
 #FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT)/include
 #FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/include 
 
-#FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT)
-FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)
+FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT)
+#FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)
 
 #...Parallel
 #FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/include -I$(MPI_ROOT)/include

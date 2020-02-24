@@ -41,6 +41,7 @@ SUBROUTINE collapx (aa, vertin, vertout)
 !           19 Jun 2006  Removed unused variables DY, K, and Y.  (T. Otte)
 !           29 Aug 2011  Improved error handling.  (T. Otte)
 !           07 Sep 2011  Updated disclaimer.  (T. Otte)
+!           24 Feb 2020  Adapted for FV3GFSv16 at NOAA-ARL (P. C. Campbell)
 !-------------------------------------------------------------------------------
 
   IMPLICIT NONE

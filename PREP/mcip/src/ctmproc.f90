@@ -142,6 +142,7 @@ SUBROUTINE ctmproc
 !                        Arakawa-B staggered grid.  Added optional variables
 !                        from KF convective scheme with radiative feedbacks.
 !                        (T. Spero)
+!           24 Feb 2020  Adapted for FV3GFSv16 at NOAA-ARL (P. C. Campbell)
 !-------------------------------------------------------------------------------
 
   USE mcipparm

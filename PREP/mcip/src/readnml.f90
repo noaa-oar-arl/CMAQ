@@ -86,7 +86,9 @@ SUBROUTINE readnml (ctmlays)
 !                        are on the Arakawa-C staggered grid, and the optional
 !                        additional 3D winds are now on the Arakawa-B staggered
 !                        grid.  (T. Spero)
-!           18 Nov 2019  Modified for FV3GFS Capability. (P. C. Campbell)
+!           24 Feb 2020  Adapted for FV3GFSv16 at NOAA-ARL (P. C. Campbell)
+!           24 Feb 2020  Added horiz LCC interpolation and wind rotation
+!                        Y. Tang)
 !-------------------------------------------------------------------------------
 
   USE mcipparm

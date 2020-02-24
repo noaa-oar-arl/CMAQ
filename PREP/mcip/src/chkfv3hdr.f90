@@ -47,7 +47,7 @@ SUBROUTINE chkfv3hdr (fl, cdfid)
 !                        with F90 protected intrinsic.  Updated netCDF commands
 !                        to F90, and improved error handling.  (T. Otte)
 !           07 Sep 2011  Updated disclaimer.  (T. Otte)
-!           21 Nov 2019  Modified for FV3GFS Capability. (P. C. Campbell)
+!           24 Feb 2020  Adapted for FV3GFSv16 at NOAA-ARL (P. C. Campbell)
 !-------------------------------------------------------------------------------
 
   USE files

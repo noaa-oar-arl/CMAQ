@@ -161,7 +161,7 @@ SUBROUTINE setgriddefs
 !                        write for IOFORM to log.  Added flag for optional
 !                        variable with KF convective scheme with radiative
 !                        feedbacks.  (T. Spero)
-!           19 Nov 2019  Modified for FV3GFS Capability. (P. C. Campbell)
+!           24 Feb 2020  Adapted for FV3GFSv16 at NOAA-ARL (P. C. Campbell)
 !-------------------------------------------------------------------------------
 
   USE mcipparm
