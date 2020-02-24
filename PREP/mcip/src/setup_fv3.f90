@@ -468,8 +468,6 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
       
 !      met_cen_lat  = met_cen_lat_in          ! set from namelist
 !      met_cen_lon  = met_cen_lon_in          ! set from namelist                  
-!      CALL ll2xy_gau (met_cen_lat, met_cen_lon, met_proj_clon,  &
-!                       met_xxctr, met_yyctr)
 
 !-------------------------------------------------------------------------------
 ! Extract model run options.

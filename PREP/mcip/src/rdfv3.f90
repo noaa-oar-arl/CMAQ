@@ -245,7 +245,6 @@ SUBROUTINE rdfv3 (mcip_now,nn)
   INTEGER, intent(in)               :: nn
   REAL,               EXTERNAL      :: mapfac_lam
   REAL,               EXTERNAL      :: mapfac_merc
-  REAL,               EXTERNAL      :: mapfac_gau
   REAL,               EXTERNAL      :: mapfac_ps
   CHARACTER(LEN=24),  INTENT(IN)    :: mcip_now
   CHARACTER(LEN=24)                 :: mcip_previous,mcip_rd,mcip_next

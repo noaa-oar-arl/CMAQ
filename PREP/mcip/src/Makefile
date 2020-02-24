@@ -182,11 +182,9 @@ OBJS =\
  ll2xy_lam_tan.o \
  ll2xy_merc.o \
  ll2xy_ps.o \
- ll2xy_gau.o \
  locate.o \
  mapfac_lam.o \
  mapfac_merc.o \
- mapfac_gau.o \
  mapfac_ps.o \
  metgrid2ctm.o \
  metvars2ctm.o \
@@ -220,7 +218,6 @@ OBJS =\
  wrgdesc.o \
  xy2ll_lam.o \
  xy2ll_merc.o \
- xy2ll_gau.o
 
 all:
 	@$(MAKE) $(MODULES)
