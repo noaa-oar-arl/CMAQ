@@ -139,6 +139,8 @@ SUBROUTINE metvars2ctm
 !                        variables from KF convective scheme with radiative
 !                        feedbacks.  (T. Spero)
 !           24 Feb 2020  Adapted for FV3GFSv16 at NOAA-ARL (P. C. Campbell)
+!           24 Feb 2020  Added horiz LCC interpolation and wind rotation/interp
+!                        Y. Tang)
 !-------------------------------------------------------------------------------
 
   USE mcipparm
@@ -609,8 +611,7 @@ SUBROUTINE metvars2ctm
   sr = y0
   er = y0 + nrows_x
 
-  IF ( met_model == 2 .OR. met_model == 3 ) THEN  ! WRF : UA and VA on C-grid (face points)
-
+  IF ( met_model == 2 ) THEN  ! WRF : UA and VA on C-grid (face points)
     xuu_d(:,1,        :) = ua(sc:ec,sr,:)
     xuu_d(:,2:nrows_x,:) = 0.5 * (ua(sc:ec,sr:er-2,:) + ua(sc:ec,sr+1:er-1,:))
     xuu_d(:,nrows_x+1,:) = ua(sc:ec,er-1,:)
@@ -621,7 +622,7 @@ SUBROUTINE metvars2ctm
     xuu_s(:,:,:)         = ua(sc:ec,sr:er,:)
     xvv_t(:,:,:)         = va(sc:ec,sr:er,:)
 
-  else if ( met_model == 3 ) THEN ! inerpolated Fv3 in B-grid
+  ELSE IF ( met_model == 3 ) THEN ! interpolated Fv3 in B-grid
     xuu_d(:,:,:)= ua(sc:ec,sr:er,:)
     xvv_d(:,:,:)= va(sc:ec,sr:er,:)
     

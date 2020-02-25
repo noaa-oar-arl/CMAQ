@@ -41,7 +41,7 @@ cat>namelist.mcip<<!
   met_cen_lat_in =  0.0
   met_cen_lon_in =  0.0
   lpv        =  0
-  lwout      =  0
+  lwout      =  1
   luvbout    =  1
   mcip_start = "2020-01-12-12:00:00.0000"
   mcip_end   = "2020-01-12-13:00:00.0000"
