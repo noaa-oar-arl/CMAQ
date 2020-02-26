@@ -168,6 +168,7 @@ OBJS =\
  getpblht.o \
  getpsih.o \
  getsdt.o \
+ getxyindex.o \
  graceful_stop.o \
  gridout.o \
  gridproc.o \
@@ -188,6 +189,7 @@ OBJS =\
  mapfac_ps.o \
  metgrid2ctm.o \
  metvars2ctm.o \
+ myinterp.o \
  outclog.o \
  outcm3io.o \
  outglog.o \

@@ -440,9 +440,41 @@ SUBROUTINE rdfv3 (mcip_now,nn)
 
 
 !-------------------------------------------------------------------------------
-! For FV3GFS Wind Rotation
+! Interfaces for FV3GFS getxyindex, horizontal interpolation, and wind rotation
 ! 
 !-------------------------------------------------------------------------------
+
+  INTERFACE
+
+    SUBROUTINE getxyindex (xlat,xlon,xi,yj,tlat,tlon,ix,jy)
+    IMPLICIT NONE
+    REAL,               INTENT(IN)    :: xlat
+    REAL,               INTENT(IN)    :: xlon
+    REAL,               INTENT(IN)    :: tlat ( : )
+    REAL,               INTENT(IN)    :: tlon ( : )
+    INTEGER,            INTENT(IN)    :: ix, jy
+    REAL,               INTENT(OUT)   :: xi
+    REAL,               INTENT(OUT)   :: yj
+
+    END SUBROUTINE getxyindex
+
+  END INTERFACE
+
+  INTERFACE
+
+    SUBROUTINE myinterp (ain,met_nx,met_ny,aout,xindex,yindex,iout,jout,iflag)
+    IMPLICIT NONE
+    REAL,               INTENT(IN)    :: ain        ( : , : )
+    REAL,               INTENT(IN)    :: xindex     ( : , : )
+    REAL,               INTENT(IN)    :: yindex     ( : , : )
+    INTEGER,            INTENT(IN)    :: met_nx, met_ny
+    INTEGER,            INTENT(IN)    :: iout, jout
+    INTEGER,            INTENT(IN)    :: iflag
+    REAL,               INTENT(OUT)   :: aout       ( : , : )
+
+    END SUBROUTINE myinterp
+
+  END INTERFACE
 
   INTERFACE
 
@@ -457,8 +489,6 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     END SUBROUTINE windrotation
 
   END INTERFACE
-
-
 
 !-------------------------------------------------------------------------------
 ! Define additional staggered grid dimensions. (***No staggered FV3 dimensions,e.g., nxm=met_nx***)
@@ -855,7 +885,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
   CALL get_var_3d_real_cdf (cdfid, 'ugrd', dum3d_u, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
    do k=1,met_nz
-    call myinterp(dum3d_u(1,1,k),met_nx,met_ny,utmp,xdindex,ydindex,ncols_x+1,nrows_x+1,2)  ! put it into Dot point for later rotation
+    call myinterp(dum3d_u(:,:,k),met_nx,met_ny,utmp,xdindex,ydindex,ncols_x+1,nrows_x+1,2)  ! put it into Dot point for later rotation
     kk=met_nz-k+1                                            ! flip to bottom up
     ua(1:ncols_x+1,1:nrows_x+1,kk) = utmp(1:ncols_x+1,1:nrows_x+1)
    enddo 
@@ -868,7 +898,8 @@ SUBROUTINE rdfv3 (mcip_now,nn)
   CALL get_var_3d_real_cdf (cdfid, 'vgrd', dum3d_v, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
    do k=1,met_nz
-    call myinterp(dum3d_v(1,1,k),met_nx,met_ny,utmp,xdindex,ydindex,ncols_x+1,nrows_x+1,2)
+    call myinterp(dum3d_v(:,:,k),met_nx,met_ny,utmp,xdindex,ydindex,ncols_x+1,nrows_x+1,2)
+    
     kk=met_nz-k+1
     va(1:ncols_x+1,1:nrows_x+1,kk) = utmp(1:ncols_x+1,1:nrows_x+1)
      call windrotation(ua(1:ncols_x+1,1:nrows_x+1,kk),va(1:ncols_x+1,1:nrows_x+1,kk),londot(1:ncols_x+1,1:nrows_x+1), &
@@ -883,7 +914,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
   CALL get_var_3d_real_cdf (cdfid, 'dzdt', dum3d_w, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
    do k=1,met_nz
-    call myinterp(dum3d_w(1,1,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
+    call myinterp(dum3d_w(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
     kk=met_nz-k+1
     wa(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
    enddo
@@ -925,7 +956,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
   CALL get_var_3d_real_cdf (cdfid, 'dpres', dum3d_t, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
    do k=1,met_nz
-    call myinterp(dum3d_t(1,1,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
+    call myinterp(dum3d_t(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
     kk=met_nz-k+1
     dpres(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
    enddo
@@ -938,7 +969,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
   CALL get_var_3d_real_cdf (cdfid, 'delz', dum3d_t, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
    do k=1,met_nz
-    call myinterp(dum3d_t(1,1,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
+    call myinterp(dum3d_t(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
     kk=met_nz-k+1
     delz(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
    enddo
@@ -951,7 +982,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
   CALL get_var_3d_real_cdf (cdfid, 'tmp', dum3d_t, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
    do k=1,met_nz
-    call myinterp(dum3d_t(1,1,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
+    call myinterp(dum3d_t(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
     kk=met_nz-k+1
     ta(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
    enddo
@@ -964,7 +995,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
   CALL get_var_3d_real_cdf (cdfid, 'spfh', dum3d_t, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
    do k=1,met_nz
-    call myinterp(dum3d_t(1,1,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
+    call myinterp(dum3d_t(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
     kk=met_nz-k+1
     qva(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
    enddo
@@ -977,7 +1008,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
   CALL get_var_3d_real_cdf (cdfid, 'clwmr', dum3d_t, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
    do k=1,met_nz
-    call myinterp(dum3d_t(1,1,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
+    call myinterp(dum3d_t(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
     kk=met_nz-k+1
     qca(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
    enddo
@@ -990,7 +1021,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
   CALL get_var_3d_real_cdf (cdfid, 'rwmr', dum3d_t, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
    do k=1,met_nz
-    call myinterp(dum3d_t(1,1,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
+    call myinterp(dum3d_t(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
     kk=met_nz-k+1
     qra(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
    enddo
@@ -1005,7 +1036,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     CALL get_var_3d_real_cdf (cdfid, 'icmr', dum3d_t, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
      do k=1,met_nz
-      call myinterp(dum3d_t(1,1,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
+      call myinterp(dum3d_t(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
       kk=met_nz-k+1
       qia(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
      enddo
@@ -1023,7 +1054,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     CALL get_var_3d_real_cdf (cdfid, 'snmr', dum3d_t, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
      do k=1,met_nz
-      call myinterp(dum3d_t(1,1,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
+      call myinterp(dum3d_t(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
       kk=met_nz-k+1
       qsa(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
      enddo
@@ -1041,7 +1072,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     CALL get_var_3d_real_cdf (cdfid, 'grle', dum3d_t, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
      do k=1,met_nz
-      call myinterp(dum3d_t(1,1,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
+      call myinterp(dum3d_t(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
       kk=met_nz-k+1
       qga(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
      enddo
@@ -1059,7 +1090,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     CALL get_var_3d_real_cdf (cdfid, 'TKE', dum3d_w, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
      do k=1,met_nz
-      call myinterp(dum3d_w(1,1,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
+      call myinterp(dum3d_w(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
       kk=met_nz-k+1
       tke(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
      enddo
@@ -1072,7 +1103,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     CALL get_var_3d_real_cdf (cdfid, 'TKE_MYJ', dum3d_t, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
       do k=1,met_nz
-       call myinterp(dum3d_t(1,1,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
+       call myinterp(dum3d_t(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
        kk=met_nz-k+1
        tke(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
       enddo
@@ -1087,7 +1118,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     CALL get_var_3d_real_cdf (cdfid, 'cld_amt', dum3d_t, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
      do k=1,met_nz
-      call myinterp(dum3d_t(1,1,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
+      call myinterp(dum3d_t(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
       kk=met_nz-k+1
       cldfra(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
      enddo
@@ -2071,53 +2102,3 @@ SUBROUTINE rdfv3 (mcip_now,nn)
 !-------------------------------------------------------------------------------
 
 END SUBROUTINE rdfv3
-
-! find the xyindex in the target domain
-subroutine getxyindex(xlat,xlon,xi,yj,tlat,tlon,ix,jy)  
-real xlon,xlat,xi,yj,tlat(jy),tlon(ix),xlontmp
-xlontmp=xlon
-if(xlontmp.lt.0) xlontmp=xlontmp+360
-do i=1,ix
- if(xlontmp.ge.tlon(i).and.xlontmp.le.tlon(i+1)) then
-  xi=i+(xlontmp-tlon(i))/(tlon(i+1)-tlon(i))
-  exit
- endif 
-enddo
-do j=1,jy
-  if(xlat.le.amax1(tlat(j),tlat(j+1)).and.xlat.ge.amin1(tlat(j),tlat(j+1))) then ! fv3 is from north to south
-   yj=j+(xlat-tlat(j))/(tlat(j+1)-tlat(j))
-  exit
- endif
- enddo 
-end subroutine getxyindex
-
-
-!! My interpolation (Youhua Tang)
-
-subroutine myinterp(ain,met_nx,met_ny,aout,xindex,yindex,iout,jout,iflag)  ! 1 for nearest neighbor, 2 for binear
-real, intent (in) :: ain(met_nx,met_ny),xindex(iout,jout),yindex(iout,jout)
-real, intent (out) :: aout(iout,jout)
-integer met_nx,met_ny,iout,jout
-
-! print*,'in myinterp met_nx,met_ny=',met_nx,met_ny
-! print*,'in myinterp iout,jout=',iout,jout
-do i=1,iout
- do j=1,jout
- if(iflag.eq.1) then ! nearest neighbor
-  aout(i,j)=ain(nint(xindex(i,j)),nint(yindex(i,j)))
- else if(iflag.eq.2) then ! binear
-  x=xindex(i,j) 
-  y=yindex(i,j)
-  xratio=x-int(x)
-  yratio=y-int(y)
-  aout(i,j)=(1-yratio)*(ain(int(x),int(y))*      &    
-          (1-xratio)+ain(int(x)+1,int(y))*xratio)+     &
-          yratio*(ain(int(x),int(y)+1)*(1-xratio)+     &
-          ain(int(x)+1,int(y)+1)*xratio)
- else
-  print*,'wrong iflag ',iflag
-  stop
- endif
- enddo
-enddo
-end subroutine myinterp 
