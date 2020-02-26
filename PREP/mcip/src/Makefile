@@ -214,6 +214,7 @@ OBJS =\
  vstamp.o \
  vtemp.o \
  wind.o \
+ windrotation.o \
  wrfemopts.o \
  wrgdesc.o \
  xy2ll_lam.o \

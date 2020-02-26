@@ -179,7 +179,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
 !                        feedbacks.  (T. Spero)
 !           24 Feb 2020  Adapted for FV3GFSv16 at NOAA-ARL (P. C. Campbell)
 !           24 Feb 2020  Added horiz LCC interpolation and wind rotation 
-!                        Y. Tang)
+!                        Y. Tang and P. C. Campbell)
 !-------------------------------------------------------------------------------
 
   USE date_pack
@@ -437,6 +437,27 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     & /, 1x, '***   DID NOT FIND ARRAY ', a, &
     & /, 1x, '***   WILL DEFINE FROM OTHER FIELDS LATER', &
     & /, 1x, 70('*'))"
+
+
+!-------------------------------------------------------------------------------
+! For FV3GFS Wind Rotation
+! 
+!-------------------------------------------------------------------------------
+
+  INTERFACE
+
+    SUBROUTINE windrotation (ua,va,londot,ix,jy,reflon,reflat)
+    IMPLICIT NONE
+    REAL,               INTENT(INOUT) :: ua         ( : , : )
+    REAL,               INTENT(INOUT) :: va         ( : , : )
+    REAL,               INTENT(IN)    :: londot     ( : , : )
+    INTEGER,            INTENT(IN)    :: ix, jy
+    REAL,               INTENT(IN)    :: reflon, reflat
+
+    END SUBROUTINE windrotation
+
+  END INTERFACE
+
 
 
 !-------------------------------------------------------------------------------
@@ -850,7 +871,8 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     call myinterp(dum3d_v(1,1,k),met_nx,met_ny,utmp,xdindex,ydindex,ncols_x+1,nrows_x+1,2)
     kk=met_nz-k+1
     va(1:ncols_x+1,1:nrows_x+1,kk) = utmp(1:ncols_x+1,1:nrows_x+1)
-    call windrotation(ua(1,1,kk),va(1,1,kk),londot,ncols_x+1,nrows_x+1,sngl(p_gam_gd),0.5*sngl(p_alp_gd+p_bet_gd))
+     call windrotation(ua(1:ncols_x+1,1:nrows_x+1,kk),va(1:ncols_x+1,1:nrows_x+1,kk),londot(1:ncols_x+1,1:nrows_x+1), &
+                            ncols_x+1,nrows_x+1,sngl(p_gam_gd),0.5*sngl(p_alp_gd+p_bet_gd))
    enddo
    WRITE (*,ifmt1) 'vgrd     ', (va(lprt_metx,lprt_mety,k),k=1,met_nz)
   ELSE
@@ -1114,7 +1136,8 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     IF ( rcode == nf90_noerr ) THEN
       call myinterp(dum2d,met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
       v10(1:ncols_x,1:nrows_x) = atmp(1:ncols_x,1:nrows_x)
-      call windrotation(u10,v10,loncrs,ncols_x,nrows_x,sngl(p_gam_gd),0.5*sngl(p_alp_gd+p_bet_gd))
+      call windrotation(u10(1:ncols_x,1:nrows_x),v10(1:ncols_x,1:nrows_x),loncrs(1:ncols_x,1:nrows_x), & 
+                        ncols_x,nrows_x,sngl(p_gam_gd),0.5*sngl(p_alp_gd+p_bet_gd))
       WRITE (*,f6000) 'vgrd10m  ', v10(lprt_metx, lprt_mety), 'm s-1'
     ELSE
       WRITE (*,f9400) TRIM(pname), 'vgrd10m', TRIM(nf90_strerror(rcode))
@@ -2098,30 +2121,3 @@ do i=1,iout
  enddo
 enddo
 end subroutine myinterp 
-
-!! take from https://www.mcs.anl.gov/~emconsta/wind_conversion.txt
-! or https://github.com/matplotlib/basemap/issues/269
-
-subroutine windrotation(ua,va,londot,ix,jy,reflon,reflat)
-real ua(ix,jy),va(ix,jy),londot(ix,jy),reflon,reflat
-
-!  ROTCON_P          R  WIND ROTATION CONSTANT, = 1 FOR POLAR STEREO
-!                         AND SIN(LAT_TAN_P) FOR LAMBERT CONFORMAL
-!  LON_XX_P          R  MERIDIAN ALIGNED WITH CARTESIAN X-AXIS(DEG)
-!  LAT_TAN_P         R  LATITUDE AT LAMBERT CONFORMAL PROJECTION
-!                         IS TRUE (DEG)
-      PARAMETER ( LAT_TAN_P  = 25.0 )
-      d2r=atan(1.)/45.
-      rotcon_p=sin(reflat*d2r)
-        do j=1,jy
-        do i=1,ix
-           angle2 = rotcon_p*(londot(i,j)-reflon)*d2r
-           sinx2 = sin(angle2)
-           cosx2 = cos(angle2)
-           ut = ua(i,j)
-           vt = va(i,j)
-           ua(i,j) = cosx2*ut-sinx2*vt
-           va(i,j) = sinx2*ut+cosx2*vt
-         end do
-        end do 
-end subroutine windrotation
