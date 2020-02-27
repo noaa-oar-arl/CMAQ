@@ -238,6 +238,7 @@ MODULE mcipparm
   LOGICAL            :: ifcuradfdbk   ! cumulus-radiative feedbacks used?
   LOGICAL            :: ifkfradextras ! KF-radiative feedbacks extra arrays?
   LOGICAL            :: iflai         ! leaf area index in input file?
+  LOGICAL            :: iflaiwrfout   ! is leaf area index in WRF history?
   LOGICAL            :: iflufrc       ! fractional land use available?
   LOGICAL            :: ifluwrfout    ! is fractional land use in WRF history?
   LOGICAL            :: iflu2wrfout   ! is fractional land use 2 in WRF history?

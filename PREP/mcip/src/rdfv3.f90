@@ -1414,35 +1414,46 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     ENDIF
 
   ENDIF
-! No LAI in FV3 yet.  :(
-  IF ( iflai ) THEN
-    IF ( ifpxwrf41 ) THEN
-      CALL get_var_2d_real_cdf (cdfid2, 'LAI_PX', dum2d, it, rcode)
-      IF ( rcode == nf90_noerr ) THEN
-       call myinterp(dum2d,met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,1)
-       lai_px(1:ncols_x,1:nrows_x) = atmp(1:ncols_x,1:nrows_x)
-       WRITE (*,f6000) 'LAI_PX   ', lai_px(lprt_metx, lprt_mety), 'm2 m-2'
-      ELSE
-        WRITE (*,f9400) TRIM(pname), 'LAI_PX', TRIM(nf90_strerror(rcode))
-        CALL graceful_stop (pname)
-      ENDIF
-    ELSE
-      CALL get_var_2d_real_cdf (cdfid2, 'LAI', dum2d, it, rcode)
-      IF ( rcode == nf90_noerr ) THEN
-        call myinterp(dum2d,met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,1)
-        lai(1:ncols_x,1:nrows_x) = atmp(1:ncols_x,1:nrows_x)
+
+    IF ( iflai ) THEN
+      IF ( iflaiwrfout ) THEN  ! leaf area index in FV3 history file
+        CALL get_var_2d_real_cdf (cdfid2, 'LAI', dum2d, it, rcode)
+        IF ( rcode == nf90_noerr ) THEN
+           call myinterp(dum2d,met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,1)
+           lai(1:ncols_x,1:nrows_x) = atmp(1:ncols_x,1:nrows_x)
         IF ( ABS(MAXVAL(lai)) < smallnum ) THEN
           IF ( met_soil_lsm == 2 ) THEN  ! NOAH LSM
             lai(:,:) = 4.0
           ENDIF
         ENDIF
-        WRITE (*,f6000) 'LAI      ', lai(lprt_metx, lprt_mety), 'm2 m-2'
-      ELSE
-        WRITE (*,f9400) TRIM(pname), 'LAI', TRIM(nf90_strerror(rcode))
-        CALL graceful_stop (pname)
+          WRITE (*,ifmt2) 'LAI      ',(lai(lprt_metx,lprt_mety))
+        ELSE
+          WRITE (*,f9400) TRIM(pname), 'LAI', TRIM(nf90_strerror(rcode))
+          CALL graceful_stop (pname)
+        ENDIF
+      ELSE  ! leaf area index in GEOGRID file from WPS
+       flg = file_geo
+        rcode = nf90_open (flg, nf90_nowrite, cdfidg)
+        IF ( rcode /= nf90_noerr ) THEN
+          WRITE (*,f9900) TRIM(pname)
+          CALL graceful_stop (pname)
+        ENDIF
+        CALL get_var_2d_real_cdf (cdfidg, 'LAI', dum2d, 1, rcode)
+        IF ( rcode == nf90_noerr ) THEN
+          call myinterp(dum2d,met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,1)
+          lai(1:ncols_x,1:nrows_x) = atmp(1:ncols_x,1:nrows_x)
+          WRITE (*,ifmt2) 'LAI ', lai(lprt_metx,lprt_mety)
+        ELSE
+          WRITE (*,f9400) TRIM(pname), 'LAI', TRIM(nf90_strerror(rcode))
+          CALL graceful_stop (pname)
+        ENDIF
+        rcode = nf90_close (cdfidg)
+        IF ( rcode /= nf90_noerr ) THEN
+          WRITE (*,f9950) TRIM(pname)
+          CALL graceful_stop (pname)
+        ENDIF
       ENDIF
     ENDIF
-  ENDIF
 
   IF ( ifwr ) THEN
     CALL get_var_2d_real_cdf (cdfid2, 'cnwat', dum2d, it, rcode)
@@ -1599,32 +1610,35 @@ SUBROUTINE rdfv3 (mcip_now,nn)
   IF ( first ) THEN
     IF ( iflufrc ) THEN
       IF ( ifluwrfout ) THEN  ! land use fractions in WRF history file
-        CALL get_var_3d_real_cdf (cdfid, 'LANDUSEF', dum3d_l, it, rcode)
+        CALL get_var_3d_real_cdf (cdfid2, 'LANDUSEF', dum3d_l, it, rcode)
         IF ( rcode == nf90_noerr ) THEN
-          lufrac(1:nxm,   1:nym,   :) = dum3d_l(:,:,:)
-          lufrac(  met_nx, :,      :) = lufrac(nxm,:,:)
-          lufrac( :,        met_ny,:) = lufrac(:,nym,:)
+          do k=1,nummetlu
+           call myinterp(dum3d_l(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,1)
+           lufrac(1:ncols_x,1:nrows_x,k) = atmp(1:ncols_x,1:nrows_x)
+          enddo
           WRITE (*,ifmt2) 'LANDUSEF ', (lufrac(lprt_metx,lprt_mety,k),k=1,nummetlu)
         ELSE
           WRITE (*,f9400) TRIM(pname), 'LANDUSEF', TRIM(nf90_strerror(rcode))
           CALL graceful_stop (pname)
         ENDIF
         IF ( iflu2wrfout ) THEN  ! land use fractions (ranked) in WRF file
-          CALL get_var_3d_real_cdf (cdfid, 'LANDUSEF2', dum3d_l, it, rcode)
+          CALL get_var_3d_real_cdf (cdfid2, 'LANDUSEF2', dum3d_l, it, rcode)
           IF ( rcode == nf90_noerr ) THEN
-            lufrac2(1:nxm,   1:nym,   :) = dum3d_l(:,:,:)
-            lufrac2(  met_nx, :,      :) = lufrac2(nxm,:,:)
-            lufrac2( :,        met_ny,:) = lufrac2(:,nym,:)
+           do k=1,nummetlu
+            call myinterp(dum3d_l(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,1)
+            lufrac2(1:ncols_x,1:nrows_x,k) = atmp(1:ncols_x,1:nrows_x)
+           enddo
             WRITE (*,ifmt2) 'LANDUSEF2', (lufrac2(lprt_metx,lprt_mety,k),k=1,nummetlu)
           ELSE
             WRITE (*,f9400) TRIM(pname), 'LANDUSEF2', TRIM(nf90_strerror(rcode))
             CALL graceful_stop (pname)
           ENDIF
-          CALL get_var_3d_int_cdf (cdfid, 'MOSAIC_CAT_INDEX', dum3d_li, it, rcode)
+          CALL get_var_3d_int_cdf (cdfid2, 'MOSAIC_CAT_INDEX', dum3d_li, it, rcode)
           IF ( rcode == nf90_noerr ) THEN
-            moscatidx(1:nxm,   1:nym,   :) = dum3d_li(:,:,:)
-            moscatidx(  met_nx, :,      :) = moscatidx(nxm,:,:)
-            moscatidx( :,        met_ny,:) = moscatidx(:,nym,:)
+           do k=1,nummetlu
+            call myinterp(real(dum3d_li(:,:,k)),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,1)
+            moscatidx(1:ncols_x,1:nrows_x,k) = int(atmp(1:ncols_x,1:nrows_x))
+           enddo 
             WRITE (*,ifmt3) 'MOSAIC_CAT', (moscatidx(lprt_metx,lprt_mety,k),k=1,nummetlu)
           ELSE
             ! Will be filled in getluse.f90, if NOAH Mosaic LSM was used
@@ -1639,9 +1653,10 @@ SUBROUTINE rdfv3 (mcip_now,nn)
         ENDIF
         CALL get_var_3d_real_cdf (cdfidg, 'LANDUSEF', dum3d_l, 1, rcode)
         IF ( rcode == nf90_noerr ) THEN
-          lufrac(1:nxm,   1:nym,   :) = dum3d_l(:,:,:)
-          lufrac(  met_nx, :,      :) = lufrac(nxm,:,:)
-          lufrac( :,        met_ny,:) = lufrac(:,nym,:)
+         do k=1,nummetlu
+           call myinterp(dum3d_l(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,1)
+           lufrac(1:ncols_x,1:nrows_x,k) = atmp(1:ncols_x,1:nrows_x)
+         enddo
           WRITE (*,ifmt2) 'LANDUSEF ', lufrac(lprt_metx,lprt_mety,:)
         ELSE
           WRITE (*,f9400) TRIM(pname), 'LANDUSEF', TRIM(nf90_strerror(rcode))

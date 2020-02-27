@@ -2,6 +2,7 @@
 
 APPL=aqm.t12z
 InMetDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly
+#InGeoDir=
 OutDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test
 ProgDir=/gpfs/hps3/emc/naqfc/noscrub/Patrick.C.Campbell/CMAQ_REPO/PREP/mcip/src
 
@@ -9,6 +10,11 @@ if [ ! -s $InMetDir ]; then
   echo "No such input directory $InMetDir"
   exit 1
 fi
+
+#if [ ! -s $InGeoDir ]; then
+#  echo "No such input directory $InGeoDir"
+#  exit 1
+#fi
 
 if [ ! -d $OutDir ]; then
   echo "No such output directory...will try to create one"
@@ -30,6 +36,7 @@ cat>namelist.mcip<<!
   file_gd    = 'GRIDDESC'
   file_mm    = '$InMetDir/gfs.t12z.atmf','.nc'
   file_sfc   = '$InMetDir/gfs.t12z.sfcf','.nc'
+  file_geo   = ''
   ioform     =  1
  &END
 

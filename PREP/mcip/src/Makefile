@@ -91,8 +91,8 @@ IOAPI_ROOT = /scratch2/NCEPDEV/naqfc/Youhua.Tang/CMAQ/ioapi-3.2/Linux2_x86_64ifo
 #FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT)/include
 #FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/include 
 
-FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT)
-#FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)
+#FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT)
+FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)
 
 #...Parallel
 #FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/include -I$(MPI_ROOT)/include
@@ -163,6 +163,7 @@ OBJS =\
  detangle_soil_px.o \
  e_aerk.o \
  dynflds.o \
+ fv3mopts.o \
  getluse.o \
  getmet.o \
  getpblht.o \

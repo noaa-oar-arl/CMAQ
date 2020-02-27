@@ -175,7 +175,6 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
   IMPLICIT NONE
 
   INTEGER     ,       INTENT(IN)    :: cdfid, cdfid2
-!  INTEGER                           :: cdfid2
   INTEGER                           :: cdfidg
   REAL,               INTENT(OUT)   :: ctmlays     ( maxlays )
   REAL                              :: phalf_lays  ( maxlays )
@@ -318,6 +317,14 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
     & /, 1x, '***   AND DID NOT FIND GEOGRID FILE' &
     & /, 1x, '***   -- WILL NOT USE FRACTIONAL LAND USE DATA' &
     & /, 1x, 70('*'))"
+  
+  CHARACTER(LEN=256), PARAMETER :: f9900 = "(/, 1x, 70('*'), &
+    & /, 1x, '*** SUBROUTINE: ', a, &
+    & /, 1x, '***   DID NOT FIND LEAF AREA INDEX IN FV3 output', &
+    & /, 1x, '***   AND DID NOT FIND GEOGRID FILE' &
+    & /, 1x, '***   -- WILL NOT USE LEAF AREA INDEX DATA' &
+    & /, 1x, 70('*'))"
+
 
 !-------------------------------------------------------------------------------
 ! Extract NX, NY, and NZ.
@@ -628,14 +635,13 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 ! Determine whether or not fractional land use is available in the output.
 ! Set the flag appropriately.
 !-------------------------------------------------------------------------------
-  !Leave check in FV3 MCIP version in case fractional land use becomes available,
-  ! and it does not stop model if not available
+  ! If fractional LANDUSEfF becomes available in FV3 or, if user provides a
+  ! file_geo with LANDUSEF,it does not stop model if not available
   rcode2 = nf90_inq_varid (cdfid2, 'LANDUSEF', varid)
   IF ( rcode2 == nf90_noerr ) THEN
     iflufrc    = .TRUE.   ! fractional land use is available
     ifluwrfout = .TRUE.   ! fractional land use is located in FV3 history file
   ELSE
-    iflufrc    = .FALSE.   ! fractional land use is not available
     ifluwrfout = .FALSE.  ! fractional land use is not available in FV3 history
     geofile = TRIM( file_geo )
     INQUIRE ( FILE=geofile, EXIST=ifgeo )
@@ -649,7 +655,6 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
         WRITE (*,f9600) TRIM(pname), TRIM(flg)
         CALL graceful_stop (pname)
       ENDIF
-      CALL chkwpshdr (flg, cdfidg)
       rcode = nf90_inq_varid (cdfidg, 'LANDUSEF', varid)
       IF ( rcode == nf90_noerr ) THEN
         iflufrc = .TRUE.  ! fractional land use is in the file
@@ -748,11 +753,36 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 ! the flags appropriately.
 !-------------------------------------------------------------------------------
 
-  rcode = nf90_inq_varid (cdfid2, 'LAI', varid)  !not in FV3GFSv16
-  IF ( rcode == nf90_noerr ) THEN
-    iflai = .TRUE.  ! leaf area index is in the file
+  rcode2 = nf90_inq_varid (cdfid2, 'LAI', varid) !not in FV3GFSv16
+  IF ( rcode2 == nf90_noerr ) THEN
+    iflai    = .TRUE.   ! leaf area index is in the file
+    iflaiwrfout = .TRUE.   ! leaf area index is not in the file
   ELSE
-    iflai = .FALSE. ! leaf area index is not in the file
+    iflaiwrfout = .FALSE.  ! leaf area index is not available in FV3 history
+    geofile = TRIM( file_geo )
+    INQUIRE ( FILE=geofile, EXIST=ifgeo )
+    IF ( .NOT. ifgeo ) THEN
+      WRITE (*,f9900) TRIM(pname)
+      iflai = .FALSE.
+    ELSE
+      flg = file_geo
+      rcode = nf90_open (flg, nf90_nowrite, cdfidg)
+      IF ( rcode /= nf90_noerr ) THEN
+        WRITE (*,f9600) TRIM(pname), TRIM(flg)
+        CALL graceful_stop (pname)
+      ENDIF
+      rcode = nf90_inq_varid (cdfidg, 'LAI', varid)
+      IF ( rcode == nf90_noerr ) THEN
+        iflai = .TRUE.  ! leaf area index is in the file
+      ELSE
+        iflai = .FALSE. ! fractional land use is not in the file
+      ENDIF
+      rcode = nf90_close (cdfidg)
+      IF ( rcode /= nf90_noerr ) THEN
+        WRITE (*,f9700)  TRIM(pname),TRIM(flg)
+        CALL graceful_stop (pname)
+      ENDIF
+    ENDIF
   ENDIF
 
   rcode = nf90_inq_varid (cdfid2, 'RMOL', varid) !not in FV3GFSv16

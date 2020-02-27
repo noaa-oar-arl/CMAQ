@@ -2,6 +2,7 @@
 
 set APPL=aqm.t12z
 set InMetDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly
+#set InGeoDir=
 set OutDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/fv3gfs_v16_test/output
 set ProgDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/models/CMAQ_REPO/PREP/mcip/src
 
@@ -9,6 +10,11 @@ if ( ! -s $InMetDir ) then
   echo "No such input directory $InMetDir"
   exit 1
 endif
+
+#if ( ! -s $InGeoDir ) then
+#  echo "No such input directory $InGeoDir"
+#  exit 1
+#endif
 
 if ( ! -d $OutDir ) then
   echo "No such output directory...will try to create one"
@@ -31,6 +37,7 @@ cat>namelist.mcip<<!
   file_gd    = 'GRIDDESC'
   file_mm    = '$InMetDir/gfs.t12z.atmf','.nc'
   file_sfc   = '$InMetDir/gfs.t12z.sfcf','.nc'
+!  file_geo   = ''
   ioform     =  1
  &END
 
