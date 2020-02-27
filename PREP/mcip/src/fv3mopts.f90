@@ -20,7 +20,7 @@ SUBROUTINE fv3mopts (txt_cupa, txt_microphys, txt_lwrad, txt_swrad,  &
                       txt_pbl, txt_sflay, txt_lsm, txt_urban, txt_shcu, txt_lu)
 
 !-------------------------------------------------------------------------------
-! Name:     WRF ARW (EM) Options
+! Name:     FV3-GFS Options
 ! Purpose:  Writes WRF options to an array that will form metadata for this run.
 ! Revised:  31 Jul 2007  Original version.  (T. Otte)
 !           15 Apr 2008  Updated for WRFv3 options.  (T. Otte)
@@ -42,6 +42,7 @@ SUBROUTINE fv3mopts (txt_cupa, txt_microphys, txt_lwrad, txt_swrad,  &
 !           18 Jun 2019  Updated for WRFv4.1 options.  Improved metadata to
 !                        annotate if radiative feedbacks were included in the
 !                        convective scheme.  (T. Spero)
+!           26 Feb 2020  Adapted for FV3GFSv16 at NOAA-ARL (P. C. Campbell)
 !-------------------------------------------------------------------------------
 
   USE metinfo
