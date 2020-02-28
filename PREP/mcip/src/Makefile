@@ -92,7 +92,7 @@ IOAPI_ROOT = /scratch2/NCEPDEV/naqfc/Youhua.Tang/CMAQ/ioapi-3.2/Linux2_x86_64ifo
 #FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/include 
 
 #FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT)
-FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)
+FFLAGS  = -FR -O3 -parallel -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)
 
 #...Parallel
 #FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/include -I$(MPI_ROOT)/include
@@ -101,7 +101,7 @@ FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)
 
 
 #WCOSS-Cray
-#LIBS    = -L$(IOAPI_ROOT) -laqm_ioapi \
+#LIBS    = -L$(IOAPI_ROOT) -lioapi \
           -L$(NETCDF)/lib -lnetcdf -lnetcdff -openmp
 
 #ARL-AAQEST-Local

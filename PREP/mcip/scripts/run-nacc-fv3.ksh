@@ -1,4 +1,4 @@
-#/bin/ksh -x
+#!/bin/ksh -x
 
 APPL=aqm.t12z
 InMetDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly

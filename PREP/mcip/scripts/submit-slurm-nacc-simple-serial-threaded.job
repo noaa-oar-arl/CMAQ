@@ -1,0 +1,18 @@
+#!/bin/sh -l
+#SBATCH -A arl
+#SBATCH -q windfall
+#SBATCH -n 24
+#SBATCH --time=00:10:00 
+
+# Clear the environment from any previously loaded modules
+
+module purge
+module load intel impi
+module list
+
+set -x
+
+env | grep SLURM
+
+# Use '&' to start the first job in the background
+srun ./run-nacc-fv3.csh
