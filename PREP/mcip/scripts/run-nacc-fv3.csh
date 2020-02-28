@@ -1,4 +1,4 @@
-#!/bin/csh -l
+#!/bin/csh -f
 set APPL=aqm.t12z
 set InMetDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly
 set InGeoDir=$InMetDir

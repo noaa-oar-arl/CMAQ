@@ -211,7 +211,7 @@ SUBROUTINE pblsup
               IF ( ifw10m ) THEN
                 ulev1 = xu10(c,r)  ! 10-m wind components already on scalar pts
                 vlev1 = xv10(c,r)
-              ELSE
+             ELSE
                 ulev1 = uns
                 vlev1 = vns
               ENDIF
@@ -283,7 +283,6 @@ SUBROUTINE pblsup
         ! directional shear assumed between layer-1 and surface).
         CALL wind (ulev1, vlev1, xwspd10(c,r), xwdir10(c,r),  &
                    xlonc(c,r), met_proj_clon, met_cone_fac)
-
         IF ( .NOT. ifw10m ) THEN
           ztemp = 10.0  ! [m]
           CALL sfclayer (theta1, theta2, ul(1), u2, x3htm(c,r,1), ztemp,  &
