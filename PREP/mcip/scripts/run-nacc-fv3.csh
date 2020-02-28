@@ -1,4 +1,4 @@
-#!/bin/csh -f
+#!/bin/csh -l
 set APPL=aqm.t12z
 set InMetDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly
 set InGeoDir=$InMetDir
@@ -80,7 +80,7 @@ cat>namelist.mcip<<!
 
 setenv IOAPI_CHECK_HEADERS T
 
-setenv GRID_BDY_2D ${APPL}.gridbdy.ncf
+setenv GRID_BDY_2D ${APPL}.grdbdy.ncf
 setenv GRID_CRO_2D ${APPL}.grdcro2d.ncf
 setenv GRID_DOT_2D ${APPL}.grddot2d.ncf
 setenv MET_BDY_3D  ${APPL}.metbdy3d.ncf

@@ -6,9 +6,9 @@
 
 # Clear the environment from any previously loaded modules
 
-module purge
-module load intel impi
-module list
+#module purge
+#module load intel impi
+#module list
 
 set -x
 

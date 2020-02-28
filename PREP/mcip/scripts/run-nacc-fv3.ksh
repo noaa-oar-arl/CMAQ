@@ -81,7 +81,7 @@ cat>namelist.mcip<<!
 export IOAPI_CHECK_HEADERS=T
 export EXECUTION_ID=$PROG
 
-export GRID_BDY_2D=${APPL}.gridbdy.ncf
+export GRID_BDY_2D=${APPL}.grdbdy.ncf
 export GRID_CRO_2D=${APPL}.grdcro2d.ncf
 export GRID_DOT_2D=${APPL}.grddot2d.ncf
 export MET_BDY_3D=${APPL}.metbdy3d.ncf
