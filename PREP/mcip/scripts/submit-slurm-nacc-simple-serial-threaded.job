@@ -15,4 +15,4 @@ set -x
 env | grep SLURM
 
 # Use '&' to start the first job in the background
-srun ./run-nacc-fv3.csh
+srun ./run-nacc-fv3.ksh
