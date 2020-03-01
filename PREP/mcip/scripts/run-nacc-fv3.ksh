@@ -50,7 +50,7 @@ cat>namelist.mcip<<!
   lwout      =  1
   luvbout    =  1
   mcip_start = "2020-01-12-12:00:00.0000"
-  mcip_end   = "2020-01-16-13:00:00.0000"
+  mcip_end   = "2020-01-12-13:00:00.0000"
   intvl      =  60
   coordnam   = "FV3_RPO"
   grdnam     = "FV3_CONUS"
@@ -64,7 +64,7 @@ cat>namelist.mcip<<!
   btrim      =  -1
   lprt_col   =  0
   lprt_row   =  0
-  ntimes     = 96
+  ntimes     = 2
   wrf_lc_ref_lat = 40.0
   projparm = 2., 33.,45., -97., -97., 40.
   domains = -2508000., -1716000., 12000., 12000., 442, 265
