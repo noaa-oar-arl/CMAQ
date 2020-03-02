@@ -1,9 +1,10 @@
 # The NOAA-ARL Atmosphere-Chemistry Coupler (NACC)
+# Dr. Patrick C. Campbell and Dr. Youhua Tang
 # Based on the Meteorology-Chemistry Interface Processor (MCIP)
 
 The NOAA-ARL Atmosphere-Chemistry Coupler (NACC) is adapted from the Meteorology-Chemistry Interface Processor (MCIP), and can ingest output from the [Finite Volume Cubed Sphere (FV3)](https://www.gfdl.noaa.gov/fv3/) version of the [Global Forecast System (GFS)](https://www.ncdc.noaa.gov/data-access/model-data/model-datasets/global-forcast-system-gfs) and the [Weather Research and Forecasting (WRF) Model](http://www.wrf-model.org) to prepare the meteorology files that are used within the CMAQ Modeling System. Where possible, MCIP uses data directly from the meteorological model to maximize consistency with the CMAQ Modeling System. When specific atmospheric fields are not explicitly output by WRF, MCIP uses scientific algorithms to create those fields for CMAQ.  MCIP output is used by the emissions model (for example, to provide time-varying temperatures for mobile emissions) and by the CCTM to define the atmospheric conditions. A scientific overview of MCIP is in [Otte and Pleim (2010)](https://www.geosci-model-dev.net/3/243/2010/).
 
-MCIP performs the following functions using the output (history) file from WRF:
+MCIP performs the following functions using the output (history) file from WRF or FV3-GFS:
 
 -   Defines the computational domain for the CCTM. The CCTM typically uses a smaller computational domain than the meteorological model, and the lateral boundary cells from the meteorological model generally are not used by CCTM.
 
@@ -19,7 +20,7 @@ MCIP is written in FORTRAN, and it runs on a single processor in a Unix/Linux en
 
 MCIP is often updated concurrently with the CCTM.  The changes to MCIP are documented with each update to the software, and a "Frequently Asked Questions" (FAQ) file exists that is specific to MCIP.
 
-As of MCIPv5.0, WRF is the only meteorological model that can be processed with MCIP, but MCIP could be expanded to process data from other meteorological models.
+As of MCIPv5.0, WRF and FV3-GFS are the only meteorological models that can be processed with MCIP, but MCIP could be expanded to process data from other meteorological models.
 
 MCIP can be used to determine the spatial region that is processed by CMAQ. MCIP can process the full meteorological modeling domain, uniformly trim cells from that domain, or "window" a rectilinear subset of that domain. Configuration options for MCIP include the time periods over which to extract data from the meteorological model output files, horizontal and vertical grid definitions, and selections for integrating satellite cloud observations into MCIP output.
 
@@ -46,9 +47,9 @@ The variables listed here are set by the user in the MCIP script (run_mcip.csh),
 -   `DataPath [default: $CMAQ_DATA]`  
     Input/output data directory path
 -   `InMetDir [default: None]`  
-    Path of the input data directory containing the WRF‑ARW output data files
+    Path of the input data directory containing the WRF‑ARW or FV3-GFS output data files
 -   `InGeoDir [default: None]`  
-    Path of the input data directory containing the WRF Geogrid file
+    Path of the input data directory containing the WRF Geogrid file, or similar pre-processed "geofile" (e.g., LAI, LANDUSEF) used for FV3-GFS
 -   `OutDir [default: $CMAQ_HOME/data/mcip]`  
     Path of the MCIP output data directory
 -   `ProgDir [default: $CMAQ_HOME/PREP/mcip/src]`  
@@ -58,9 +59,9 @@ The variables listed here are set by the user in the MCIP script (run_mcip.csh),
 -   `InMetFiles [default: None]`  
     List of input meteorology files, including the directory path for each file; without modifying MCIP, up to 300 meteorological model output files are allowed as input to a single MCIP execution
 -   `IfGeo [default: F]`  
-    Binary flag indicating the availability of an input WRF Geogrid file; options include T (true) or F (false)
+    Binary flag indicating the availability of an input WRF or FV3-GFS Geogrid file; options include T (true) or F (false)
 -   `InGeoFile [default: None]`  
-    Name and location of input WRF Geogrid file
+    Name and location of input WRF or FV3-GFS Geogrid file
 -   `LPV: [default: 0]`  
     Compute and output potential vorticity. This must be activated to support the [CCTM O3 potential vorticity scaling](../../CCTM/docs/ReleaseNotes/Potential_Vorticity_Scaling.md).
     -   `0`: Do not compute and output potential vorticity
@@ -74,9 +75,9 @@ The variables listed here are set by the user in the MCIP script (run_mcip.csh),
     -   `0`: Do not output u- and v-component winds on B-grid
     -   `1`: Output u- and v-component winds on B-grid (in addition to the C-grid)
 -   `MCIP_START [format: YYYY-MM-DD-HH:MM:SS.SSSS]`  
-    Beginning date and time (UTC) of data to output from MCIP. The start date and time must be contained within the input data from WRF.
+    Beginning date and time (UTC) of data to output from MCIP. The start date and time must be contained within the input data from WRF or FV3-GFS.
 -   `MCIP_END [format: YYYY-MM-DD-HH:MM:SS.SSSS]`  
-    End date and time (UTC) of data to output from MCIP. The end date and time must be contained within the input data from WRF.
+    End date and time (UTC) of data to output from MCIP. The end date and time must be contained within the input data from WRF or FV3-GFS.
 -   `INTVL [default: 60]`  
     Output interval in minutes. This setting determines the amount of model time contained in each output time step. The output interval for MCIP can be less frequent than the incoming meteorological model output (e.g., process 30-minute data for CCTM from 15-minute WRF output).
 -   `MKGRID [default: T]`  
@@ -133,8 +134,8 @@ cd $CMAQ_HOME/PREP/mcip/scripts
 
 |**File Name**|**Format**|**Description**|**Required**|
 |------------|------------------------------|-----------------------------------------------------|---------------------|
-|InMetFiles|netCDF (WRF)|List of WRF output files for input to MCIP|required|
-|InGeoFile|netCDF (WRF)|Output from WRF Geogrid processor|optional; only required if fractional land use are not part of the WRF output|
+|InMetFiles|netCDF (WRF or FV3-GFS)|List of WRF or FV3-GFS output files for input to MCIP|required|
+|InGeoFile|netCDF (WRFor FV3-GFS)|Output from WRF or FV3-GFS Geogrid processor|optional; only required if fractional land use, LAI, etc are not part of the WRF or FV3-GFS output|
 
 
 **Table 2. MCIP output files**
@@ -146,13 +147,13 @@ cd $CMAQ_HOME/PREP/mcip/scripts
 |GRID_CRO_2D|I/O API|Time-independent 2-D cross-point meteorology file|required|
 |GRID_CRO_3D|I/O API|Time-independent 3-D cross-point meteorology file|required|
 |GRID_DOT_2D|I/O API|Time-independent 2-D dot-point meteorology file|required|
-|LUFRAC_CRO|I/O API|Time-independent fractional land use by category|created if fractional land use was provided in WRF's output or in Geogrid output|
+|LUFRAC_CRO|I/O API|Time-independent fractional land use by category|created if fractional land use was provided in WRF's or FV3-GFS's output or in Geogrid output|
 |MET_BDY_3D|I/O API|Time-varying 3-D boundary meteorology file|required|
 |MET_CRO_2D|I/O API|Time-varying 2-D cross-point meteorology file|required|
 |MET_CRO_3D|I/O API|Time-varying 3-D cross-point meteorology file|required|
 |MET_DOT_3D|I/O API|Time-varying 3-D dot-point meteorology file|required|
 |MOSAIC_CRO|I/O API|Time-varying 3-D output from mosaic land use|created if the Noah Mosaic land-surface model was run in WRF|
-|SOI_CRO|I/O API|Time-varying soil properties in each soil layer|created if a land-surface model was run in WRF|
+|SOI_CRO|I/O API|Time-varying soil properties in each soil layer|created if a land-surface model was run in WRF or FV3-GFS|
 |mcip.nc|netCDF|contains both time-independent and time-varying output variables that contain 2-D layers (either only in 2-D or in 3-D, where the third dimension could be atmospheric layers, soil layers, land use categories, mosaic categories, etc.)|required, if IOFORM=2|
 |mcip_bdy.nc|netCDF|contains time-independent and time-varying output along the domain perimeter|required, if IOFORM=2| 
 
