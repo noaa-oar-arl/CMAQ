@@ -2017,7 +2017,6 @@ SUBROUTINE rdfv3 (mcip_now,nn)
         met_season = 2   ! winter
       ENDIF
     ENDIF
-    print*, 'met_season = ', met_season
 !-------------------------------------------------------------------------------
 ! If roughness length was not available in output, fill it from lookup tables.
 ! If the urban model was used in WRF, replace roughness length with urban-
