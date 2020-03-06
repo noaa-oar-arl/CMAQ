@@ -125,6 +125,7 @@ MODULE metinfo
   INTEGER           :: met_lu_lake     ! lake index in land use
   INTEGER           :: met_lu_urban    ! urban index in land use
   INTEGER           :: met_lu_water    ! water index in land use
+  INTEGER           :: met_lu_water_fv3! water index in land use for FV3
   CHARACTER(LEN=19) :: met_lu_src      ! source of land use categorization
   INTEGER           :: met_lw_rad      ! longwave radiation scheme
   INTEGER           :: met_pbl         ! PBL scheme

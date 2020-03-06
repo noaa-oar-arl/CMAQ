@@ -397,8 +397,8 @@ SUBROUTINE metvars2ctm
           ilu = landuse(ii,jj)
 
           IF ( met_model ==3 ) THEN !FV3
-         IF (ilu == 0) THEN  !MODIS Water is set to 0 in FV3
-          ilu = met_lu_water
+         IF (ilu == met_lu_water_fv3) THEN  !MODIS Water is set to 0 in FV3
+          ilu = met_lu_water                !Switch to MODIS IGBP water cat = 17
          ENDIF
         ENDIF
 

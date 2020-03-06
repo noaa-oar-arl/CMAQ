@@ -375,7 +375,6 @@ SUBROUTINE getluse
     xlwmask(:,:) = landmask(sc:ec,sr:er)
 
   ELSE
-
     ! LANDMASK is a dynamic, time-variant field in WRF for LSMs other than P-X,
     ! so reconstruct it as a static field using the dominant land-use category.
 

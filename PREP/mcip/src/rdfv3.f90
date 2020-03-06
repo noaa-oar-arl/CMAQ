@@ -1280,6 +1280,13 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     CALL graceful_stop (pname)
   ENDIF
 
+    WHERE ( INT(landuse) == met_lu_water_fv3 )  ! FV3 water = 0
+      landuse = met_lu_water ! MODIS IGBP water = 17
+    ELSEWHERE  ! land
+      landuse = landuse
+    END WHERE
+
+
   CALL get_var_2d_real_cdf (cdfid2, 'land', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
     call myinterp(dum2d,met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,1)
@@ -2010,7 +2017,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
         met_season = 2   ! winter
       ENDIF
     ENDIF
-
+    print*, 'met_season = ', met_season
 !-------------------------------------------------------------------------------
 ! If roughness length was not available in output, fill it from lookup tables.
 ! If the urban model was used in WRF, replace roughness length with urban-

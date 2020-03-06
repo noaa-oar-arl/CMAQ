@@ -508,11 +508,21 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
   ENDIF
 
 ! FV3 only  has MODIS 20-category ('MOD'):  Harcoded Ice, water, urban, lake         
+! FV3 doesn't have lake, category 21, but if using geofile, we add it from MODIS
+! input
           met_lu_src = 'MOD'
-          met_lu_water = 17
+          met_lu_water = 17 !MODIS IGBP water = 17...
+          !But, FV3 sets water category =0, and need extra met_lu_water_fv3
+          !variable for calulating PURB and LWMASK later
+          met_lu_water_fv3 = 0
           met_lu_ice   = 15
           met_lu_urban = 13
-          met_lu_lake = -1
+          IF ( file_geo(1:7) == " " ) THEN
+           met_lu_lake =  -1
+          ELSE
+           nummetlu = nummetlu +1 !added lake category from geofile
+           met_lu_lake =  21
+          ENDIF
 
    met_lw_rad=0
    met_sw_rad=0
@@ -636,7 +646,8 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
 ! Set the flag appropriately.
 !-------------------------------------------------------------------------------
   ! If fractional LANDUSEfF becomes available in FV3 or, if user provides a
-  ! file_geo with LANDUSEF,it does not stop model if not available
+  ! file_geo with LANDUSEF,it does not stop model if not available (needed for
+  ! tiled deposition with STAGE.
   rcode2 = nf90_inq_varid (cdfid2, 'LANDUSEF', varid)
   IF ( rcode2 == nf90_noerr ) THEN
     iflufrc    = .TRUE.   ! fractional land use is available
