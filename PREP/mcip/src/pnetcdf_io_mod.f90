@@ -16,7 +16,7 @@
 !  subject to their copyright restrictions.                                    !
 !------------------------------------------------------------------------------!
 
-MODULE netcdf_io
+MODULE pnetcdf_io
 
 !-------------------------------------------------------------------------------
 ! Name:     NetCDF IO
@@ -53,6 +53,8 @@ MODULE netcdf_io
 !           02 Feb 2018  Added new routine GET_VAR_3D_INT_CDF.  (T. Spero)
 !           22 Jun 2018  Changed module name from WRF_NETCDF to NETCDF_IO.
 !                        (T. Spero)
+!           11 Mar 2020  Added MPI capability to speed up nf90 reads (P. C.
+!                         Campbell)
 !-------------------------------------------------------------------------------
 
 CONTAINS
@@ -63,6 +65,7 @@ CONTAINS
 SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
 
   USE netcdf
+  USE mpi
 
   IMPLICIT NONE
 
@@ -76,6 +79,15 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
   INTEGER,           INTENT(OUT)   :: rcode
   CHARACTER(LEN=*),  INTENT(IN)    :: var
 
+  ! MPI stuff: number of processors, rank of this processor, and error
+  ! code.
+  INTEGER                          :: p, my_rank, ierr
+
+  ! Initialize MPI, learn local rank and total number of processors.
+  CALL MPI_Init(ierr)
+  CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
+  CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
+
   nx = SIZE(dum3d,1)
   ny = SIZE(dum3d,2)
   nz = SIZE(dum3d,3)
@@ -88,6 +100,9 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
    print*,'read error ',cdfid,var
    print*,'nx,ny,nz=',nx,ny,nz
   endif 
+
+  ! MPI library must be shut down.
+  CALL MPI_Finalize(ierr)
 END SUBROUTINE get_var_3d_real_cdf
 
 !-------------------------------------------------------------------------------
@@ -96,6 +111,7 @@ END SUBROUTINE get_var_3d_real_cdf
 SUBROUTINE get_var_3d_int_cdf (cdfid, var, idum3d, it, rcode)
 
   USE netcdf
+  USE mpi
 
   IMPLICIT NONE
 
@@ -109,6 +125,16 @@ SUBROUTINE get_var_3d_int_cdf (cdfid, var, idum3d, it, rcode)
   INTEGER,           INTENT(OUT)   :: rcode
   CHARACTER(LEN=*),  INTENT(IN)    :: var
 
+  ! MPI stuff: number of processors, rank of this processor, and error
+  ! code.
+  INTEGER                          :: p, my_rank, ierr
+ 
+  ! Initialize MPI, learn local rank and total number of processors.
+  CALL MPI_Init(ierr)
+  CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
+  CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
+
+
   nx = SIZE(idum3d,1)
   ny = SIZE(idum3d,2)
   nz = SIZE(idum3d,3)
@@ -119,6 +145,8 @@ SUBROUTINE get_var_3d_int_cdf (cdfid, var, idum3d, it, rcode)
   rcode = nf90_get_var (cdfid, id_data, idum3d, start=(/1,1,1,it/),  &
                         count=(/nx,ny,nz,1/))
 
+  ! MPI library must be shut down.
+  CALL MPI_Finalize(ierr)
 END SUBROUTINE get_var_3d_int_cdf
 
 !-------------------------------------------------------------------------------
@@ -127,6 +155,7 @@ END SUBROUTINE get_var_3d_int_cdf
 SUBROUTINE get_var_2d_real_cdf (cdfid, var, dum2d, it, rcode)
 
   USE netcdf
+  USE mpi
 
   IMPLICIT NONE
 
@@ -138,6 +167,15 @@ SUBROUTINE get_var_2d_real_cdf (cdfid, var, dum2d, it, rcode)
   INTEGER                          :: ny
   INTEGER,           INTENT(OUT)   :: rcode
   CHARACTER(LEN=*),  INTENT(IN)    :: var
+
+  ! MPI stuff: number of processors, rank of this processor, and error
+  ! code.
+  INTEGER                          :: p, my_rank, ierr
+
+  ! Initialize MPI, learn local rank and total number of processors.
+  CALL MPI_Init(ierr)
+  CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
+  CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
 
   nx = SIZE(dum2d,1)
   ny = SIZE(dum2d,2)
@@ -152,6 +190,8 @@ SUBROUTINE get_var_2d_real_cdf (cdfid, var, dum2d, it, rcode)
   IF ( rcode /= nf90_noerr ) print*,'read error for ',trim(var),&
    ' id_data,it,nx,ny=',id_data,it,nx,ny
 
+    ! MPI library must be shut down.
+  CALL MPI_Finalize(ierr)
 END SUBROUTINE get_var_2d_real_cdf
 
 !-------------------------------------------------------------------------------
@@ -160,6 +200,7 @@ END SUBROUTINE get_var_2d_real_cdf
 SUBROUTINE get_var_2d_int_cdf (cdfid, var, idum2d, it, rcode)
 
   USE netcdf
+  USE mpi
 
   IMPLICIT NONE
 
@@ -171,6 +212,15 @@ SUBROUTINE get_var_2d_int_cdf (cdfid, var, idum2d, it, rcode)
   INTEGER                          :: ny
   INTEGER,           INTENT(OUT)   :: rcode
   CHARACTER(LEN=*),  INTENT(IN)    :: var
+  
+  ! MPI stuff: number of processors, rank of this processor, and error
+  ! code.
+  INTEGER                          :: p, my_rank, ierr
+
+  ! Initialize MPI, learn local rank and total number of processors.
+  CALL MPI_Init(ierr)
+  CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
+  CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
 
   nx = SIZE(idum2d,1)
   ny = SIZE(idum2d,2)
@@ -181,6 +231,8 @@ SUBROUTINE get_var_2d_int_cdf (cdfid, var, idum2d, it, rcode)
   rcode = nf90_get_var (cdfid, id_data, idum2d, start=(/1,1,it/),  &
                         count=(/nx,ny,1/))
 
+  ! MPI library must be shut down.
+  CALL MPI_Finalize(ierr)
 END SUBROUTINE get_var_2d_int_cdf
 
 !-------------------------------------------------------------------------------
@@ -189,6 +241,7 @@ END SUBROUTINE get_var_2d_int_cdf
 SUBROUTINE get_var_1d_real_cdf (cdfid, var, dum1d, it, rcode)
 
   USE netcdf
+  USE mpi
 
   IMPLICIT NONE
 
@@ -199,7 +252,16 @@ SUBROUTINE get_var_1d_real_cdf (cdfid, var, dum1d, it, rcode)
   INTEGER                          :: nx
   INTEGER,           INTENT(OUT)   :: rcode
   CHARACTER(LEN=*),  INTENT(IN)    :: var
+  
+  ! MPI stuff: number of processors, rank of this processor, and error
+  ! code.
+  INTEGER                          :: p, my_rank, ierr
 
+  ! Initialize MPI, learn local rank and total number of processors.
+  CALL MPI_Init(ierr)
+  CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
+  CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
+  
   nx = SIZE(dum1d)
 
   rcode = nf90_inq_varid (cdfid, var, id_data)
@@ -208,12 +270,15 @@ SUBROUTINE get_var_1d_real_cdf (cdfid, var, dum1d, it, rcode)
   rcode = nf90_get_var (cdfid, id_data, dum1d, start=(/1,it/),  &
                         count=(/nx,1/))
 
+  ! MPI library must be shut down.
+  CALL MPI_Finalize(ierr)
 END SUBROUTINE get_var_1d_real_cdf
 
 !-------
 SUBROUTINE get_var_1d_double_cdf (cdfid, var, dum1d, it, rcode)
 
   USE netcdf
+  USE mpi
 
   IMPLICIT NONE
 
@@ -226,6 +291,15 @@ SUBROUTINE get_var_1d_double_cdf (cdfid, var, dum1d, it, rcode)
   CHARACTER(LEN=*),  INTENT(IN)    :: var
   double precision, allocatable  :: dbtmp(:)
   
+  ! MPI stuff: number of processors, rank of this processor, and error
+  ! code.
+  INTEGER                          :: p, my_rank, ierr
+
+  ! Initialize MPI, learn local rank and total number of processors.
+  CALL MPI_Init(ierr)
+  CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
+  CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr) 
+
   nx = SIZE(dum1d)
   allocate(dbtmp(nx))
   
@@ -235,6 +309,8 @@ SUBROUTINE get_var_1d_double_cdf (cdfid, var, dum1d, it, rcode)
   rcode = nf90_get_var (cdfid, id_data, dbtmp, start=(/1,it/),  &
                         count=(/nx,1/))
   dum1d(:)=sngl(dbtmp(:))
+  ! MPI library must be shut down.
+  CALL MPI_Finalize(ierr)
 END SUBROUTINE get_var_1d_double_cdf
 
 !-------------------------------------------------------------------------------
@@ -262,4 +338,4 @@ END SUBROUTINE get_var_real_cdf
 !-------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------
 
-END MODULE netcdf_io
+END MODULE pnetcdf_io

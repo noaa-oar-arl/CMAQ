@@ -49,30 +49,23 @@ MODEL = mcip.exe
 FC      = ifort
 #FC      = ftn
 
-#...NetCDF/HDF5 Settings
-#NETCDF = /usr/local/apps/netcdf-4.6.3/intel-18.0
-#...Serial netCDF I/O
-
-#WCOSS-Cray
-#NETCDF =  /opt/cray/netcdf/4.3.2/INTEL/140/
-#ARL-AAQEST-Local
-#NETCDF =  /opt/netcdf4
-#Hera-Princeton
-NETCDF = /apps/netcdf/4.7.0/intel/18.0.5.274
-
-#...Parallel netCDF I/O with HDF5
+#NetCDF Settings
+#WCOSS-Cray...Parallel netCDF I/O
 #NETCDF =  /opt/cray/netcdf-hdf5parallel/4.4.1.1/INTEL/150
 #NETCDF  = /gpfs/hps/usrx/local/prod/NetCDF/4.2/intel/sandybridge
-#HDF5    = /usrx/local/prod/HDF5/1.8.9/parallel/intel/sandybridge
+#serial
+#NETCDF =  /opt/cray/netcdf/4.3.2/INTEL/140/
+#AAQEST
+#NETCDF =  /opt/netcdf4
+#Hera Princeton...Parallel netCDF I/O with HDF5 support
+NETCDF = /apps/netcdf/4.7.0/intel/18.0.5.274/impi/2018.0.4
+#Parallel NetCDF standalone (no HDF5 support)
+#PNETCDF = /apps/pnetcdf/1.10.0/intel/16.1.150/impi/5.1.2.150
+#Serial
+#NETCDF = /apps/netcdf/4.7.0/intel/18.0.5.274
 
-#NETCDF_FORTAN = /gpfs/hps/usrx/local/prod/NetCDF/3.6.3/intel/haswell/src/netcdf-3.6.3-beta1/fortran/
-#IOAPI_ROOT = /usr/local/apps/ioapi-3.2/intel-18.0
 
-
-#...IOAPI Settings
-#IOAPI_ROOT = /gpfs/hps3/emc/naqfc/noscrub/Jianping.Huang/nwdev/cmaq.v5.1.8/lib/
-#IOAPI_ROOT = /gpfs/hps/nco/ops/nwprod/cmaq.v5.1.4/lib/
-
+#IOAPI Settings
 #WCOSS-Cray
 #IOAPI_ROOT = /gpfs/hps3/emc/naqfc/noscrub/Youhua.Tang/CMAQ/ioapi-3.2/Linux2_x86_64ifort
 #ARL-AAQEST-Local
@@ -80,45 +73,37 @@ NETCDF = /apps/netcdf/4.7.0/intel/18.0.5.274
 #Hera-Princeton
 IOAPI_ROOT = /scratch2/NCEPDEV/naqfc/Youhua.Tang/CMAQ/ioapi-3.2/Linux2_x86_64ifort
 
-#...MPI Settings
+#MPI Settings for parallel
+#WCOSS-Cray
 #MPI_ROOT = /opt/cray/mpt/7.2.0/gni/mpich2-intel/140
-
-###FFLAGS  = -g -O0 -check all -C -traceback -FR -I$(NETCDF)/include  \
-###          -I$(IOAPI_ROOT)/Linux2_x86_64ifort
-#FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/Linux2_x86_64ifort
-
-#...Serial
-#FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT)/include
-#FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/include 
-
-#FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT)
-FFLAGS  = -FR -O3 -parallel -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)
-
-#...Parallel
-#FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)/include -I$(MPI_ROOT)/include
-#FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT)/include -I$(MPI_ROOT)/include
-#FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(HDF5)/include -I$(IOAPI_ROOT)/include -I$(MPI_ROOT)/include 
+#Hera Princeton
+#MPI_ROOT = /apps/mvapich2/2.3/intel/18.0.5.274
+MPI_ROOT = /apps/intel/compilers_and_libraries_2018/linux/mpi/intel64
+#Parallel
+FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT) -I$(MPI_ROOT)/include
+#FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT) -I$(MPI_ROOT)/include
+#Serial
+#FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)
+#FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT) 
 
 
 #WCOSS-Cray
 #LIBS    = -L$(IOAPI_ROOT) -lioapi \
-          -L$(NETCDF)/lib -lnetcdf -lnetcdff -openmp
+#          -L$(NETCDF)/lib -lnetcdf -lnetcdff -openmp
+#          -L$(MPI_ROOT)/lib -lmpifort
 
 #ARL-AAQEST-Local
 #LIBS    = -L$(IOAPI_ROOT) -lioapi \
-          -L$(NETCDF)/lib -lnetcdf -lnetcdff -qopenmp
-
+#          -L$(NETCDF)/lib -lnetcdf -lnetcdff -qopenmp
+#          -L$(MPI_ROOT)/lib -lmpifort
 #Hera-Princeton
 LIBS    = -L$(IOAPI_ROOT) -lioapi \
-          -L$(NETCDF)/lib -lnetcdf -lnetcdff -qopenmp
-
-
+          -L$(NETCDF)/lib -lnetcdf -lnetcdff -qopenmp \
+          -L$(MPI_ROOT)/lib -lmpifort
 #          -L$(HDF5)/lib -lhdf5
 #          -L$(NETCDF_FORTRAN) -lnetcdff
 #          -L$(NETCDF)/lib -lnetcdf
 #          -L$(NETCDF)/lib -lnetcdf -lnetcdff
-
-
 
 /EFS   = 
 
@@ -136,6 +121,7 @@ MODULES =\
  metinfo_mod.o \
  metvars_mod.o \
  netcdf_io_mod.o \
+ pnetcdf_io_mod.o \
  vgrd_mod.o \
  xvars_mod.o
  

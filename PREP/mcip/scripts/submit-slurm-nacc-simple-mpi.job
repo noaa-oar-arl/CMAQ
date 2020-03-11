@@ -5,10 +5,12 @@
 #SBATCH --time=00:10:00 
 
 # Clear the environment from any previously loaded modules
-
-#module purge
-#module load intel impi
-#module list
+# Load netcdf and mpich for MPI 
+module purge
+module load intel
+module load impi/2018.0.4
+module load netcdf-hdf5parallel/4.7.0
+module list
 
 set -x
 
