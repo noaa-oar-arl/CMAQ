@@ -1,10 +1,10 @@
 #!/bin/ksh -l
 
 APPL=aqm.t12z
-InMetDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly
+InMetDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly
 InGeoDir=$InMetDir
-OutDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/fv3gfs_v16_test
-ProgDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/models/CMAQ_REPO/PREP/mcip/src
+OutDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test
+ProgDir=/gpfs/hps3/emc/naqfc/noscrub/Patrick.C.Campbell/CMAQ_REPO/PREP/mcip/src
 
 if [ ! -s $InMetDir ]; then
   echo "No such input directory $InMetDir"
@@ -81,7 +81,7 @@ cat>namelist.mcip<<!
 export IOAPI_CHECK_HEADERS=T
 export EXECUTION_ID=$PROG
 
-export GRID_BDY_2D=${APPL}.grdbdy.ncf
+export GRID_BDY_2D=${APPL}.grdbdy2d.ncf
 export GRID_CRO_2D=${APPL}.grdcro2d.ncf
 export GRID_DOT_2D=${APPL}.grddot2d.ncf
 export MET_BDY_3D=${APPL}.metbdy3d.ncf

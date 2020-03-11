@@ -80,7 +80,7 @@ cat>namelist.mcip<<!
 
 setenv IOAPI_CHECK_HEADERS T
 
-setenv GRID_BDY_2D ${APPL}.grdbdy.ncf
+setenv GRID_BDY_2D ${APPL}.grdbdy2d.ncf
 setenv GRID_CRO_2D ${APPL}.grdcro2d.ncf
 setenv GRID_DOT_2D ${APPL}.grddot2d.ncf
 setenv MET_BDY_3D  ${APPL}.metbdy3d.ncf
