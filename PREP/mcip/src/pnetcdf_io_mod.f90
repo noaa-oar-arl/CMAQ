@@ -95,7 +95,7 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
   IF ( rcode /= nf90_noerr ) RETURN
 
   rcode = nf90_get_var (cdfid, id_data, dum3d, start=(/(my_rank*nx/p)+1,1,1,it/),  &
-                        count=(/(nx/p),ny,nz,1/))
+                        count=(/((my_rank+1)*nx/p),ny,nz,1/))
   IF ( rcode /= nf90_noerr ) then
    print*,'read error ',cdfid,var
    print*,'nx,ny,nz=',nx,ny,nz
@@ -139,7 +139,7 @@ SUBROUTINE get_var_3d_int_cdf (cdfid, var, idum3d, it, rcode)
   IF ( rcode /= nf90_noerr ) RETURN
 
   rcode = nf90_get_var (cdfid, id_data, idum3d, start=(/(my_rank*nx/p)+1,1,1,it/),  &
-                        count=(/(nx/p),ny,nz,1/))
+                        count=(/((my_rank+1)*nx/p),ny,nz,1/))
 
 END SUBROUTINE get_var_3d_int_cdf
 
@@ -178,7 +178,7 @@ SUBROUTINE get_var_2d_real_cdf (cdfid, var, dum2d, it, rcode)
    RETURN
   endif
   rcode = nf90_get_var (cdfid, id_data, dum2d, start=(/(my_rank*nx/p)+1,1,it/),  &
-                        count=(/(nx/p),ny,1/))
+                        count=(/((my_rank+1)*nx/p),ny,1/))
   IF ( rcode /= nf90_noerr ) print*,'read error for ',trim(var),&
    ' id_data,it,nx,ny=',id_data,it,nx,ny
 
@@ -217,7 +217,7 @@ SUBROUTINE get_var_2d_int_cdf (cdfid, var, idum2d, it, rcode)
   IF ( rcode /= nf90_noerr ) RETURN
 
   rcode = nf90_get_var (cdfid, id_data, idum2d, start=(/(my_rank*nx/p)+1,1,it/),  &
-                        count=(/(nx/p),ny,1/))
+                        count=(/((my_rank+1)*nx/p),ny,1/))
 
 END SUBROUTINE get_var_2d_int_cdf
 
