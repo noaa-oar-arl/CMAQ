@@ -14,10 +14,11 @@
 #%include <head.h>
 #%include <envir-xc40.h>
 #
-module purge 
+#module purge 
 module load cray-netcdf-hdf5parallel/4.4.1.1
 module load cray-mpich/7.2.0
 module load cray-hdf5-parallel/1.8.13 
+
 #12 MPI ranks/procs are used on 2 nodes  with
 # 6 tasks per node (-N6)
 #export PROCS=12

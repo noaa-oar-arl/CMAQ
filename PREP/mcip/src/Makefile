@@ -52,6 +52,7 @@ FC      = ifort
 #NetCDF Settings
 #WCOSS-Cray...Parallel netCDF I/O
 NETCDF =  /opt/cray/netcdf-hdf5parallel/4.4.1.1/INTEL/150
+#NETCDF =  /opt/cray/netcdf-hdf5parallel/4.3.2/INTEL/140
 #NETCDF  = /gpfs/hps/usrx/local/prod/NetCDF/4.2/intel/sandybridge
 #serial
 #NETCDF =  /opt/cray/netcdf/4.3.2/INTEL/140/
@@ -90,7 +91,7 @@ FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT) -I$(MPI_ROOT)/i
 #WCOSS-Cray
 #Parallel
 LIBS     = -L$(IOAPI_ROOT) -lioapi \
-          -L$(NETCDF)/lib -lnetcdf_parallel -lnetcdff_parallel -openmp \
+          -L$(NETCDF)/lib -lnetcdf -lnetcdff -lnetcdf_parallel -lnetcdff_parallel -openmp \
           -L$(MPI_ROOT)/lib -lmpich
 #Serial
 #LIBS     = -L$(IOAPI_ROOT) -lioapi \
