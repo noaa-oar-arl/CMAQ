@@ -92,4 +92,10 @@ setenv SOI_CRO     ${APPL}.soicro.ncf
 setenv MOSAIC_CRO  ${APPL}.mosaiccro.ncf
 
 rm -f *.ncf
-aprun -n${PROCS} -N${TASKS} $ProgDir/mcip.exe
+#Serial
+#$ProgDir/mcip.exe
+#Parallel MPI Slurm
+srun -n${PROCS} -N${NODES} $ProgDir/mcip.exe
+#Parallel MPI LSF
+#aprun -n${PROCS} -N${NODES} $ProgDir/mcip.exe
+

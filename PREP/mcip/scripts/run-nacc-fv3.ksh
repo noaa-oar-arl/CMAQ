@@ -1,10 +1,10 @@
 #!/bin/ksh -l
 
 APPL=aqm.t12z
-InMetDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly
+InMetDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly
 InGeoDir=$InMetDir
-OutDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test
-ProgDir=/gpfs/hps3/emc/naqfc/noscrub/Patrick.C.Campbell/CMAQ_REPO/PREP/mcip/src
+OutDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/fv3gfs_v16_test/output
+ProgDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/models/CMAQ_REPO/PREP/mcip/src
 
 if [ ! -s $InMetDir ]; then
   echo "No such input directory $InMetDir"
@@ -93,4 +93,10 @@ export SOI_CRO=${APPL}.soicro.ncf
 export MOSAIC_CRO=${APPL}.mosaiccro.ncf
 
 rm -f *.ncf 
-aprun -n${PROCS} -N${TASKS} $ProgDir/mcip.exe
+
+#Serial
+#$ProgDir/mcip.exe
+#Parallel MPI Slurm
+srun -n${PROCS} -N${NODES} $ProgDir/mcip.exe
+#Parallel MPI LSF
+#aprun -n${PROCS} -N${NODES} $ProgDir/mcip.exe

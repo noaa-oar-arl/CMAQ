@@ -14,7 +14,7 @@
 #%include <head.h>
 #%include <envir-xc40.h>
 #
-#module purge 
+module purge 
 module load cray-netcdf-hdf5parallel/4.4.1.1
 module load cray-mpich/7.2.0
 module load cray-hdf5-parallel/1.8.13 
@@ -26,7 +26,7 @@ module load cray-hdf5-parallel/1.8.13
 #export TASKS=6
 export PROCS=1
 export NODES=1
-export TASKS=1
+#export TASKS=1
 export IOBUF_PARAMS="128M:verbose"
 
 ./run-nacc-fv3.ksh
