@@ -1,8 +1,9 @@
 #!/bin/ksh -l
 #SBATCH -A arl
 #SBATCH -q windfall
-#SBATCH -n 12
-#SBATCH -N 2
+#SBATCH -n 2
+#SBATCH -N 1
+##SBATCH --mem 6000
 #SBATCH --time=00:10:00 
 
 # Clear the environment from any previously loaded modules
@@ -21,8 +22,8 @@ env | grep SLURM
 
 #12 MPI ranks/procs(-n12) are used on 2 nodes  with
 # 6 tasks per node (-N6)
-export PROCS=12
-export NODES=2
+export PROCS=2
+export NODES=1
 #export TASKS=6
 #export PROCS=1
 #export NODES=1

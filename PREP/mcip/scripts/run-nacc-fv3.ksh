@@ -96,7 +96,9 @@ rm -f *.ncf
 
 #Serial
 #$ProgDir/mcip.exe
+
 #Parallel MPI Slurm
 srun -n${PROCS} -N${NODES} $ProgDir/mcip.exe
+
 #Parallel MPI LSF
 #aprun -n${PROCS} -N${NODES} $ProgDir/mcip.exe
