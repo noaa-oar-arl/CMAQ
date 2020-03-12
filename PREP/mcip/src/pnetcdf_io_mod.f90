@@ -83,8 +83,6 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
   ! code.
   INTEGER                          :: p, my_rank, ierr
 
-  ! Initialize MPI, learn local rank and total number of processors.
-  CALL MPI_Init(ierr)
   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
 
@@ -101,8 +99,6 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
    print*,'nx,ny,nz=',nx,ny,nz
   endif 
 
-  ! MPI library must be shut down.
-  CALL MPI_Finalize(ierr)
 END SUBROUTINE get_var_3d_real_cdf
 
 !-------------------------------------------------------------------------------
@@ -129,8 +125,6 @@ SUBROUTINE get_var_3d_int_cdf (cdfid, var, idum3d, it, rcode)
   ! code.
   INTEGER                          :: p, my_rank, ierr
  
-  ! Initialize MPI, learn local rank and total number of processors.
-  CALL MPI_Init(ierr)
   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
 
@@ -145,8 +139,6 @@ SUBROUTINE get_var_3d_int_cdf (cdfid, var, idum3d, it, rcode)
   rcode = nf90_get_var (cdfid, id_data, idum3d, start=(/1,1,1,it/),  &
                         count=(/nx,ny,nz,1/))
 
-  ! MPI library must be shut down.
-  CALL MPI_Finalize(ierr)
 END SUBROUTINE get_var_3d_int_cdf
 
 !-------------------------------------------------------------------------------
@@ -172,8 +164,6 @@ SUBROUTINE get_var_2d_real_cdf (cdfid, var, dum2d, it, rcode)
   ! code.
   INTEGER                          :: p, my_rank, ierr
 
-  ! Initialize MPI, learn local rank and total number of processors.
-  CALL MPI_Init(ierr)
   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
 
@@ -190,8 +180,6 @@ SUBROUTINE get_var_2d_real_cdf (cdfid, var, dum2d, it, rcode)
   IF ( rcode /= nf90_noerr ) print*,'read error for ',trim(var),&
    ' id_data,it,nx,ny=',id_data,it,nx,ny
 
-    ! MPI library must be shut down.
-  CALL MPI_Finalize(ierr)
 END SUBROUTINE get_var_2d_real_cdf
 
 !-------------------------------------------------------------------------------
@@ -217,8 +205,6 @@ SUBROUTINE get_var_2d_int_cdf (cdfid, var, idum2d, it, rcode)
   ! code.
   INTEGER                          :: p, my_rank, ierr
 
-  ! Initialize MPI, learn local rank and total number of processors.
-  CALL MPI_Init(ierr)
   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
 
@@ -231,8 +217,6 @@ SUBROUTINE get_var_2d_int_cdf (cdfid, var, idum2d, it, rcode)
   rcode = nf90_get_var (cdfid, id_data, idum2d, start=(/1,1,it/),  &
                         count=(/nx,ny,1/))
 
-  ! MPI library must be shut down.
-  CALL MPI_Finalize(ierr)
 END SUBROUTINE get_var_2d_int_cdf
 
 !-------------------------------------------------------------------------------
@@ -257,11 +241,11 @@ SUBROUTINE get_var_1d_real_cdf (cdfid, var, dum1d, it, rcode)
   ! code.
   INTEGER                          :: p, my_rank, ierr
 
-  ! Initialize MPI, learn local rank and total number of processors.
-  CALL MPI_Init(ierr)
   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
-  
+  print*, 'p = ', p
+  print*, 'my_rank = ', my_rank
+ 
   nx = SIZE(dum1d)
 
   rcode = nf90_inq_varid (cdfid, var, id_data)
@@ -270,8 +254,6 @@ SUBROUTINE get_var_1d_real_cdf (cdfid, var, dum1d, it, rcode)
   rcode = nf90_get_var (cdfid, id_data, dum1d, start=(/1,it/),  &
                         count=(/nx,1/))
 
-  ! MPI library must be shut down.
-  CALL MPI_Finalize(ierr)
 END SUBROUTINE get_var_1d_real_cdf
 
 !-------
@@ -295,8 +277,6 @@ SUBROUTINE get_var_1d_double_cdf (cdfid, var, dum1d, it, rcode)
   ! code.
   INTEGER                          :: p, my_rank, ierr
 
-  ! Initialize MPI, learn local rank and total number of processors.
-  CALL MPI_Init(ierr)
   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr) 
 
@@ -309,8 +289,6 @@ SUBROUTINE get_var_1d_double_cdf (cdfid, var, dum1d, it, rcode)
   rcode = nf90_get_var (cdfid, id_data, dbtmp, start=(/1,it/),  &
                         count=(/nx,1/))
   dum1d(:)=sngl(dbtmp(:))
-  ! MPI library must be shut down.
-  CALL MPI_Finalize(ierr)
 END SUBROUTINE get_var_1d_double_cdf
 
 !-------------------------------------------------------------------------------

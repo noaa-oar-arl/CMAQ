@@ -191,7 +191,6 @@ SUBROUTINE rdfv3 (mcip_now,nn)
   USE coord
   USE mcipparm
   USE pnetcdf_io
-!  USE netcdf_io
   USE netcdf
   USE m3utilio
   USE mpi
@@ -445,7 +444,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
 
   ! MPI stuff: number of processors, rank of this processor, and error
   ! code.
-  INTEGER                          :: p, my_rank, ierr
+  ! INTEGER                          :: p, my_rank, ierr
 
 !-------------------------------------------------------------------------------
 ! Interfaces for FV3GFS getxyindex, horizontal interpolation, and wind rotation
@@ -499,11 +498,11 @@ SUBROUTINE rdfv3 (mcip_now,nn)
   END INTERFACE
 
 !-------------------------------------------------------------------------------
-! Initialize MPI, learn local rank and total number of processors.
+! Learn MPI local rank and total number of processors.
 !-------------------------------------------------------------------------------
-  CALL MPI_Init(ierr)
-  CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
-  CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
+
+  ! CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
+  ! CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
 
 !-------------------------------------------------------------------------------
 ! Define additional staggered grid dimensions. (***No staggered FV3 dimensions,e.g., nxm=met_nx***)
@@ -2146,8 +2145,5 @@ SUBROUTINE rdfv3 (mcip_now,nn)
 ! DEALLOCATE ( dum3d_w )  ! commented out to avoid memory fragmentation
 
 !-------------------------------------------------------------------------------
-
- ! MPI library must be shut down.
-  CALL MPI_Finalize(ierr)
 
 END SUBROUTINE rdfv3

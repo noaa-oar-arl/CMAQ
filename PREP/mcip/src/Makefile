@@ -88,9 +88,15 @@ FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT) -I$(MPI_ROOT)/i
 
 
 #WCOSS-Cray
+#Parallel
 LIBS     = -L$(IOAPI_ROOT) -lioapi \
-          -L$(NETCDF)/lib -lnetcdf -lnetcdff -openmp \
+          -L$(NETCDF)/lib -lnetcdf_parallel -lnetcdff_parallel -openmp \
           -L$(MPI_ROOT)/lib -lmpich
+#Serial
+#LIBS     = -L$(IOAPI_ROOT) -lioapi \
+#          -L$(NETCDF)/lib -lnetcdf -lnetcdff -openmp 
+
+
 
 #ARL-AAQEST-Local
 #LIBS    = -L$(IOAPI_ROOT) -lioapi \

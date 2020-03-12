@@ -93,4 +93,4 @@ export SOI_CRO=${APPL}.soicro.ncf
 export MOSAIC_CRO=${APPL}.mosaiccro.ncf
 
 rm -f *.ncf 
-$ProgDir/mcip.exe
+aprun -n${PROCS} -N${TASKS} $ProgDir/mcip.exe
