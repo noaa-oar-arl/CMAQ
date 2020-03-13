@@ -82,6 +82,10 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
   ! MPI stuff: number of processors, rank of this processor, and error
   ! code.
   INTEGER                          :: p, my_rank, ierr
+  REAL                             :: startnx_r, startny_r, startnz_r
+  INTEGER                          :: startnx, startny, startnz
+  REAL                             :: countnx_r, countny_r, countnz_r
+  INTEGER                          :: countnx, countny, countnz
 
   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
@@ -92,8 +96,30 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
   rcode = nf90_inq_varid (cdfid, var, id_data)
   IF ( rcode /= nf90_noerr ) RETURN
 
-  rcode = nf90_get_var (cdfid, id_data, dum3d, start=(/(my_rank*nx/p)+1,(my_rank*ny/p)+1,(my_rank*nz/p)+1,it/),  &
-                        count=(/(nx/p),(ny/p),(nz/p),1/))
+  !Assign MPI start ranks to read slabs
+  startnx_r=(my_rank*nx/p)+1
+  startnx=aint(startnx_r)
+  startny_r=(my_rank*ny/p)+1
+  startny=aint(startny_r)
+  startnz_r=(my_rank*(nz/p))+1
+  startnz =anint(startnz_r)
+  !Assign MPI counts to read slabs
+  countnx_r=(nx/p)
+  countnx=anint(countnx_r)
+  countny_r=(ny/p)
+  countny=anint(countny_r) 
+  countnz_r=(nz/p)
+  countnz=anint(countnz_r)
+
+  IF (my_rank == (p - 1)) then !avoid going over array sizes
+   countnx=countnx-1
+   countny=countny-1
+   countnz=countnz-1
+  ENDIF
+
+  rcode = nf90_get_var (cdfid, id_data, dum3d, start=(/startnx,startny,startnz,it/),  &
+                        count=(/countnx,countny,countnz,1/))
+
   IF ( rcode /= nf90_noerr ) then
    print*,'read error ',cdfid,var
    print*,'nx,ny,nz=',nx,ny,nz
@@ -124,7 +150,11 @@ SUBROUTINE get_var_3d_int_cdf (cdfid, var, idum3d, it, rcode)
   ! MPI stuff: number of processors, rank of this processor, and error
   ! code.
   INTEGER                          :: p, my_rank, ierr
- 
+  REAL                             :: startnx_r, startny_r, startnz_r
+  INTEGER                          :: startnx, startny, startnz
+  REAL                             :: countnx_r, countny_r, countnz_r
+  INTEGER                          :: countnx, countny, countnz
+
   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
 
@@ -136,8 +166,30 @@ SUBROUTINE get_var_3d_int_cdf (cdfid, var, idum3d, it, rcode)
   rcode = nf90_inq_varid (cdfid, var, id_data)
   IF ( rcode /= nf90_noerr ) RETURN
 
-  rcode = nf90_get_var (cdfid, id_data, idum3d, start=(/(my_rank*nx/p)+1,(my_rank*ny/p)+1,(my_rank*nz/p)+1,it/),  &
-                        count=(/(nx/p),(ny/p),(nz/p),1/))
+   !Assign MPI start ranks to read slabs
+  startnx_r=(my_rank*nx/p)+1
+  startnx=aint(startnx_r)
+  startny_r=(my_rank*ny/p)+1
+  startny=aint(startny_r)
+  startnz_r=(my_rank*(nz/p))+1
+  startnz =anint(startnz_r)
+  !Assign MPI counts to read slabs
+  countnx_r=(nx/p)
+  countnx=anint(countnx_r)
+  countny_r=(ny/p)
+  countny=anint(countny_r)
+  countnz_r=(nz/p)
+  countnz=anint(countnz_r)
+
+   IF (my_rank == (p - 1)) then !avoid going over array sizes
+    countnx=countnx-1
+    countny=countny-1
+    countnz=countnz-1
+   ENDIF
+
+  
+  rcode = nf90_get_var (cdfid, id_data, idum3d, start=(/startnx,startny,startnz,it/),  &
+                        count=(/countnx,countny,countnz,1/))
 
 END SUBROUTINE get_var_3d_int_cdf
 
@@ -163,6 +215,10 @@ SUBROUTINE get_var_2d_real_cdf (cdfid, var, dum2d, it, rcode)
   ! MPI stuff: number of processors, rank of this processor, and error
   ! code.
   INTEGER                          :: p, my_rank, ierr
+  REAL                             :: startnx_r, startny_r
+  INTEGER                          :: startnx, startny
+  REAL                             :: countnx_r, countny_r
+  INTEGER                          :: countnx, countny
 
   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
@@ -175,8 +231,26 @@ SUBROUTINE get_var_2d_real_cdf (cdfid, var, dum2d, it, rcode)
    print*,'can not find variable ',trim(var)
    RETURN
   endif
-  rcode = nf90_get_var (cdfid, id_data, dum2d, start=(/(my_rank*nx/p)+1,(my_rank*ny/p)+1,it/),  &
-                        count=(/(nx/p),(ny/p),1/))
+  
+    !Assign MPI start ranks to read slabs
+  startnx_r=(my_rank*nx/p)+1
+  startnx=aint(startnx_r)
+  startny_r=(my_rank*ny/p)+1
+  startny=aint(startny_r)
+  !Assign MPI counts to read slabs
+  countnx_r=(nx/p)
+  countnx=anint(countnx_r)
+  countny_r=(ny/p)
+  countny=anint(countny_r)
+  
+   IF (my_rank == (p - 1)) then !avoid going over array sizes
+   countnx=countnx-1
+   countny=countny-1
+  ENDIF
+
+
+  rcode = nf90_get_var (cdfid, id_data, dum2d, start=(/startnx,startny,it/),  &
+                        count=(/countnx,countny,1/))
   IF ( rcode /= nf90_noerr ) print*,'read error for ',trim(var),&
    ' id_data,it,nx,ny=',id_data,it,nx,ny
 
@@ -204,6 +278,10 @@ SUBROUTINE get_var_2d_int_cdf (cdfid, var, idum2d, it, rcode)
   ! MPI stuff: number of processors, rank of this processor, and error
   ! code.
   INTEGER                          :: p, my_rank, ierr
+  REAL                             :: startnx_r, startny_r
+  INTEGER                          :: startnx, startny
+  REAL                             :: countnx_r, countny_r
+  INTEGER                          :: countnx, countny
 
   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
@@ -214,8 +292,24 @@ SUBROUTINE get_var_2d_int_cdf (cdfid, var, idum2d, it, rcode)
   rcode = nf90_inq_varid (cdfid, var, id_data)
   IF ( rcode /= nf90_noerr ) RETURN
 
-  rcode = nf90_get_var (cdfid, id_data, idum2d, start=(/(my_rank*nx/p)+1,(my_rank*ny/p)+1,it/),  &
-                        count=(/(nx/p),(ny/p),1/))
+    !Assign MPI start ranks to read slabs
+  startnx_r=(my_rank*nx/p)+1
+  startnx=aint(startnx_r)
+  startny_r=(my_rank*ny/p)+1
+  startny=aint(startny_r)
+  !Assign MPI counts to read slabs
+  countnx_r=(nx/p)
+  countnx=anint(countnx_r)
+  countny_r=(ny/p)
+  countny=anint(countny_r)
+
+   IF (my_rank == (p - 1)) then !avoid going over array sizes
+    countnx=countnx-1
+    countny=countny-1
+   ENDIF
+
+  rcode = nf90_get_var (cdfid, id_data, idum2d, start=(/startnx,startny,it/),  &
+                        count=(/countnx,countny,1/))
 
 END SUBROUTINE get_var_2d_int_cdf
 
@@ -240,6 +334,11 @@ SUBROUTINE get_var_1d_real_cdf (cdfid, var, dum1d, it, rcode)
   ! MPI stuff: number of processors, rank of this processor, and error
   ! code.
   INTEGER                          :: p, my_rank, ierr
+  REAL                             :: startnx_r
+  INTEGER                          :: startnx
+  REAL                             :: countnx_r
+  INTEGER                          :: countnx
+
 
   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
@@ -249,8 +348,19 @@ SUBROUTINE get_var_1d_real_cdf (cdfid, var, dum1d, it, rcode)
   rcode = nf90_inq_varid (cdfid, var, id_data)
   IF ( rcode /= nf90_noerr ) RETURN
 
-  rcode = nf90_get_var (cdfid, id_data, dum1d, start=(/(my_rank*nx/p)+1,it/),  &
-                        count=(/(nx/p),1/))
+   !Assign MPI start ranks to read slabs
+  startnx_r=(my_rank*nx/p)+1
+  startnx=aint(startnx_r)
+  !Assign MPI counts to read slabs
+  countnx_r=(nx/p)
+  countnx=anint(countnx_r)
+
+   IF (my_rank == (p - 1)) then !avoid going over array sizes
+    countnx=countnx-1
+   ENDIF
+
+  rcode = nf90_get_var (cdfid, id_data, dum1d, start=(/startnx,it/),  &
+                        count=(/countnx,1/))
 
 END SUBROUTINE get_var_1d_real_cdf
 
@@ -274,6 +384,10 @@ SUBROUTINE get_var_1d_double_cdf (cdfid, var, dum1d, it, rcode)
   ! MPI stuff: number of processors, rank of this processor, and error
   ! code.
   INTEGER                          :: p, my_rank, ierr
+  REAL                             :: startnx_r
+  INTEGER                          :: startnx
+  REAL                             :: countnx_r
+  INTEGER                          :: countnx
   
   nx = SIZE(dum1d)
   allocate(dbtmp(nx))
@@ -281,8 +395,19 @@ SUBROUTINE get_var_1d_double_cdf (cdfid, var, dum1d, it, rcode)
   rcode = nf90_inq_varid (cdfid, var, id_data)
   IF ( rcode /= nf90_noerr ) RETURN
 
-  rcode = nf90_get_var (cdfid, id_data, dbtmp, start=(/(my_rank*nx/p)+1,it/),  &
-                        count=(/(nx/p),1/))
+  !Assign MPI start ranks to read slabs
+  startnx_r=(my_rank*nx/p)+1
+  startnx=aint(startnx_r)
+  !Assign MPI counts to read slabs
+  countnx_r=(nx/p)
+  countnx=anint(countnx_r)
+
+   IF (my_rank == (p - 1)) then !avoid going over array sizes
+    countnx=countnx-1
+   ENDIF
+
+  rcode = nf90_get_var (cdfid, id_data, dbtmp, start=(/startnx,it/),  &
+                        count=(/countnx,1/))
   dum1d(:)=sngl(dbtmp(:))
 END SUBROUTINE get_var_1d_double_cdf
 
