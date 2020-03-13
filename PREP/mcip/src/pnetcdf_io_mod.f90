@@ -97,28 +97,34 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
   IF ( rcode /= nf90_noerr ) RETURN
 
   !Assign MPI start ranks to read slabs
-  startnx_r=(my_rank*nx/p)+1
-  startnx=aint(startnx_r)
-  startny_r=(my_rank*ny/p)+1
-  startny=aint(startny_r)
-  startnz_r=(my_rank*(nz/p))+1
-  startnz =anint(startnz_r)
+  startnx=(my_rank*nx/p)+1
+  !startnx=aint(startnx_r)
+  startny=(my_rank*ny/p)+1
+  !startny=aint(startny_r)
+  startnz=(my_rank*(nz/p))+1
+  !startnz =anint(startnz_r)
   !Assign MPI counts to read slabs
-  countnx_r=(nx/p)
-  countnx=anint(countnx_r)
-  countny_r=(ny/p)
-  countny=anint(countny_r) 
-  countnz_r=(nz/p)
-  countnz=anint(countnz_r)
-
-  IF (my_rank == (p - 1)) then !avoid going over array sizes
+  countnx=(nx/p)
+!  countnx=anint(countnx_r)
+  countny=(ny/p)
+!  countny=anint(countny_r) 
+  countnz=(nz/p)
+!  countnz=anint(countnz_r)
+IF (my_rank .gt. 0) then
+  IF (my_rank .eq. (p - 1)) then !avoid going over array sizes
    countnx=countnx-1
    countny=countny-1
    countnz=countnz-1
   ENDIF
+ENDIF
+  print*, 'p = ', p
+  print*, 'my_rank = ', my_rank
+  print*, 'startnx = ', startnx, 'startny = ', startny, 'startnz = ', startnz
+  print*, 'countnx = ', countnx, 'countny = ', countny, 'countnz = ', countnz
+  print*, 'endnx = ', startnx+countnx, 'endny = ', startny+countny, 'endnz = ', startnz+countnz
 
-  rcode = nf90_get_var (cdfid, id_data, dum3d, start=(/startnx,startny,startnz,it/),  &
-                        count=(/countnx,countny,countnz,1/))
+  rcode = nf90_get_var (cdfid, id_data, dum3d, start=(/startnx,startny,1,it/),  &
+                        count=(/countnx,countny,nz,1/))
 
   IF ( rcode /= nf90_noerr ) then
    print*,'read error ',cdfid,var
@@ -167,29 +173,31 @@ SUBROUTINE get_var_3d_int_cdf (cdfid, var, idum3d, it, rcode)
   IF ( rcode /= nf90_noerr ) RETURN
 
    !Assign MPI start ranks to read slabs
-  startnx_r=(my_rank*nx/p)+1
-  startnx=aint(startnx_r)
-  startny_r=(my_rank*ny/p)+1
-  startny=aint(startny_r)
-  startnz_r=(my_rank*(nz/p))+1
-  startnz =anint(startnz_r)
+  startnx=(my_rank*nx/p)+1
+!  startnx=aint(startnx_r)
+  startny=(my_rank*ny/p)+1
+!  startny=aint(startny_r)
+  startnz=(my_rank*(nz/p))+1
+!  startnz =anint(startnz_r)
   !Assign MPI counts to read slabs
-  countnx_r=(nx/p)
-  countnx=anint(countnx_r)
-  countny_r=(ny/p)
-  countny=anint(countny_r)
-  countnz_r=(nz/p)
-  countnz=anint(countnz_r)
-
-   IF (my_rank == (p - 1)) then !avoid going over array sizes
+  countnx=(nx/p)
+!  countnx=anint(countnx_r)
+  countny=(ny/p)
+!  countny=anint(countny_r)
+  countnz=(nz/p)
+!  countnz=anint(countnz_r)
+  IF (my_rank .gt. 0) then
+   IF (my_rank .eq. (p - 1)) then !avoid going over array sizes
     countnx=countnx-1
     countny=countny-1
     countnz=countnz-1
    ENDIF
+ ENDIF
+
 
   
-  rcode = nf90_get_var (cdfid, id_data, idum3d, start=(/startnx,startny,startnz,it/),  &
-                        count=(/countnx,countny,countnz,1/))
+  rcode = nf90_get_var (cdfid, id_data, idum3d, start=(/startnx,startny,1,it/),  &
+                        count=(/countnx,countny,nz,1/))
 
 END SUBROUTINE get_var_3d_int_cdf
 
@@ -233,21 +241,21 @@ SUBROUTINE get_var_2d_real_cdf (cdfid, var, dum2d, it, rcode)
   endif
   
     !Assign MPI start ranks to read slabs
-  startnx_r=(my_rank*nx/p)+1
-  startnx=aint(startnx_r)
-  startny_r=(my_rank*ny/p)+1
-  startny=aint(startny_r)
+  startnx=(my_rank*nx/p)+1
+!  startnx=aint(startnx_r)
+  startny=(my_rank*ny/p)+1
+!  startny=aint(startny_r)
   !Assign MPI counts to read slabs
-  countnx_r=(nx/p)
-  countnx=anint(countnx_r)
-  countny_r=(ny/p)
-  countny=anint(countny_r)
-  
-   IF (my_rank == (p - 1)) then !avoid going over array sizes
+  countnx=(nx/p)
+!  countnx=anint(countnx_r)
+  countny=(ny/p)
+!  countny=anint(countny_r)
+  IF (my_rank .gt. 0) then
+   IF (my_rank .eq. (p - 1)) then !avoid going over array sizes
    countnx=countnx-1
    countny=countny-1
   ENDIF
-
+ ENDIF
 
   rcode = nf90_get_var (cdfid, id_data, dum2d, start=(/startnx,startny,it/),  &
                         count=(/countnx,countny,1/))
@@ -293,20 +301,21 @@ SUBROUTINE get_var_2d_int_cdf (cdfid, var, idum2d, it, rcode)
   IF ( rcode /= nf90_noerr ) RETURN
 
     !Assign MPI start ranks to read slabs
-  startnx_r=(my_rank*nx/p)+1
-  startnx=aint(startnx_r)
-  startny_r=(my_rank*ny/p)+1
-  startny=aint(startny_r)
+  startnx=(my_rank*nx/p)+1
+!  startnx=aint(startnx_r)
+  startny=(my_rank*ny/p)+1
+!  startny=aint(startny_r)
   !Assign MPI counts to read slabs
-  countnx_r=(nx/p)
-  countnx=anint(countnx_r)
-  countny_r=(ny/p)
-  countny=anint(countny_r)
-
-   IF (my_rank == (p - 1)) then !avoid going over array sizes
+  countnx=(nx/p)
+!  countnx=anint(countnx_r)
+  countny=(ny/p)
+!  countny=anint(countny_r)
+  IF (my_rank .gt. 0) then
+   IF (my_rank .eq. (p - 1)) then !avoid going over array sizes
     countnx=countnx-1
     countny=countny-1
    ENDIF
+  ENDIF
 
   rcode = nf90_get_var (cdfid, id_data, idum2d, start=(/startnx,startny,it/),  &
                         count=(/countnx,countny,1/))
@@ -349,18 +358,18 @@ SUBROUTINE get_var_1d_real_cdf (cdfid, var, dum1d, it, rcode)
   IF ( rcode /= nf90_noerr ) RETURN
 
    !Assign MPI start ranks to read slabs
-  startnx_r=(my_rank*nx/p)+1
-  startnx=aint(startnx_r)
+  startnx=(my_rank*nx/p)+1
+!  startnx=aint(startnx_r)
   !Assign MPI counts to read slabs
-  countnx_r=(nx/p)
-  countnx=anint(countnx_r)
+  countnx=(nx/p)
+!  countnx=anint(countnx_r)
 
-   IF (my_rank == (p - 1)) then !avoid going over array sizes
-    countnx=countnx-1
-   ENDIF
+!   IF (my_rank == (p - 1)) then !avoid going over array sizes
+!    countnx=countnx-1
+!   ENDIF
 
-  rcode = nf90_get_var (cdfid, id_data, dum1d, start=(/startnx,it/),  &
-                        count=(/countnx,1/))
+  rcode = nf90_get_var (cdfid, id_data, dum1d, start=(/1,it/),  &
+                        count=(/nx,1/))
 
 END SUBROUTINE get_var_1d_real_cdf
 
@@ -396,18 +405,18 @@ SUBROUTINE get_var_1d_double_cdf (cdfid, var, dum1d, it, rcode)
   IF ( rcode /= nf90_noerr ) RETURN
 
   !Assign MPI start ranks to read slabs
-  startnx_r=(my_rank*nx/p)+1
-  startnx=aint(startnx_r)
+  startnx=(my_rank*nx/p)+1
+!  startnx=aint(startnx_r)
   !Assign MPI counts to read slabs
-  countnx_r=(nx/p)
-  countnx=anint(countnx_r)
+  countnx=(nx/p)
+!  countnx=anint(countnx_r)
 
-   IF (my_rank == (p - 1)) then !avoid going over array sizes
-    countnx=countnx-1
-   ENDIF
+!   IF (my_rank == (p - 1)) then !avoid going over array sizes
+!    countnx=countnx-1
+!   ENDIF
 
-  rcode = nf90_get_var (cdfid, id_data, dbtmp, start=(/startnx,it/),  &
-                        count=(/countnx,1/))
+  rcode = nf90_get_var (cdfid, id_data, dbtmp, start=(/1,it/),  &
+                        count=(/nx,1/))
   dum1d(:)=sngl(dbtmp(:))
 END SUBROUTINE get_var_1d_double_cdf
 
