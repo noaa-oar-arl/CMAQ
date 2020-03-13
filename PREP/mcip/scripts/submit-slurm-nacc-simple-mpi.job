@@ -1,9 +1,8 @@
 #!/bin/ksh -l
 #SBATCH -A arl
 #SBATCH -q windfall
-#SBATCH -n 12
+#SBATCH -n 4
 #SBATCH -N 2
-#SBATCH --mem 3000
 #SBATCH --time=00:10:00 
 
 # Clear the environment from any previously loaded modules
@@ -20,15 +19,9 @@ set -x
 
 env | grep SLURM
 
-#12 MPI ranks/procs(-n12) are used on 2 nodes  with
-# 6 tasks per node (-N6)
-export PROCS=12
+#  # of MPI ranks/procs(-n#) are used on # (-N#)
+export PROCS=4
 export NODES=2
-#export TASKS=6
-#export PROCS=1
-#export NODES=1
-#export TASKS=1
 export IOBUF_PARAMS="128M:verbose"
-
 # Use '&' to start the first job in the background
 ./run-nacc-fv3.ksh

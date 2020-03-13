@@ -107,6 +107,7 @@ FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT) -I$(MPI_ROOT)/i
 LIBS    = -L$(IOAPI_ROOT) -lioapi \
           -L$(NETCDF)/lib -lnetcdf -lnetcdff -qopenmp \
           -L$(MPI_ROOT)/lib -lmpi -lmpifort
+
 #          -L$(MPI_ROOT)/lib -lfmpich
 #          -L$(MPI_ROOT)/lib -lmpich
 #          -L$(HDF5)/lib -lhdf5

@@ -97,6 +97,9 @@ rm -f *.ncf
 #Serial
 #$ProgDir/mcip.exe
 
+#Parallel test for your system, determine necessary Nodes
+#srun -l /usr/bin/time $ProgDir/mcip.exe
+
 #Parallel MPI Slurm
 srun -n${PROCS} -N${NODES} $ProgDir/mcip.exe
 

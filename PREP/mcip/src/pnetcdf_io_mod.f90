@@ -86,16 +86,14 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
 
-  print*, 'p = ', p
-  print*, 'my_rank = ', my_rank
   nx = SIZE(dum3d,1)
   ny = SIZE(dum3d,2)
   nz = SIZE(dum3d,3)
   rcode = nf90_inq_varid (cdfid, var, id_data)
   IF ( rcode /= nf90_noerr ) RETURN
 
-  rcode = nf90_get_var (cdfid, id_data, dum3d, start=(/(my_rank*nx/p)+1,(my_rank*ny/p)+1,1,it/),  &
-                        count=(/(nx/p),(ny/p),nz,1/))
+  rcode = nf90_get_var (cdfid, id_data, dum3d, start=(/(my_rank*nx/p)+1,(my_rank*ny/p)+1,(my_rank*nz/p)+1,it/),  &
+                        count=(/(nx/p),(ny/p),(nz/p),1/))
   IF ( rcode /= nf90_noerr ) then
    print*,'read error ',cdfid,var
    print*,'nx,ny,nz=',nx,ny,nz
@@ -138,8 +136,8 @@ SUBROUTINE get_var_3d_int_cdf (cdfid, var, idum3d, it, rcode)
   rcode = nf90_inq_varid (cdfid, var, id_data)
   IF ( rcode /= nf90_noerr ) RETURN
 
-  rcode = nf90_get_var (cdfid, id_data, idum3d, start=(/(my_rank*nx/p)+1,(my_rank*ny/p)+1,1,it/),  &
-                        count=(/(nx/p),(ny/p),nz,1/))
+  rcode = nf90_get_var (cdfid, id_data, idum3d, start=(/(my_rank*nx/p)+1,(my_rank*ny/p)+1,(my_rank*nz/p)+1,it/),  &
+                        count=(/(nx/p),(ny/p),(nz/p),1/))
 
 END SUBROUTINE get_var_3d_int_cdf
 
@@ -227,6 +225,7 @@ END SUBROUTINE get_var_2d_int_cdf
 SUBROUTINE get_var_1d_real_cdf (cdfid, var, dum1d, it, rcode)
 
   USE netcdf
+  USE mpi
 
   IMPLICIT NONE
 
@@ -238,13 +237,20 @@ SUBROUTINE get_var_1d_real_cdf (cdfid, var, dum1d, it, rcode)
   INTEGER,           INTENT(OUT)   :: rcode
   CHARACTER(LEN=*),  INTENT(IN)    :: var
   
+  ! MPI stuff: number of processors, rank of this processor, and error
+  ! code.
+  INTEGER                          :: p, my_rank, ierr
+
+  CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
+  CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
+  
   nx = SIZE(dum1d)
 
   rcode = nf90_inq_varid (cdfid, var, id_data)
   IF ( rcode /= nf90_noerr ) RETURN
 
-  rcode = nf90_get_var (cdfid, id_data, dum1d, start=(/1,it/),  &
-                        count=(/nx,1/))
+  rcode = nf90_get_var (cdfid, id_data, dum1d, start=(/(my_rank*nx/p)+1,it/),  &
+                        count=(/(nx/p),1/))
 
 END SUBROUTINE get_var_1d_real_cdf
 
@@ -252,6 +258,7 @@ END SUBROUTINE get_var_1d_real_cdf
 SUBROUTINE get_var_1d_double_cdf (cdfid, var, dum1d, it, rcode)
 
   USE netcdf
+  USE mpi
 
   IMPLICIT NONE
 
@@ -264,14 +271,18 @@ SUBROUTINE get_var_1d_double_cdf (cdfid, var, dum1d, it, rcode)
   CHARACTER(LEN=*),  INTENT(IN)    :: var
   double precision, allocatable  :: dbtmp(:)
   
+  ! MPI stuff: number of processors, rank of this processor, and error
+  ! code.
+  INTEGER                          :: p, my_rank, ierr
+  
   nx = SIZE(dum1d)
   allocate(dbtmp(nx))
   
   rcode = nf90_inq_varid (cdfid, var, id_data)
   IF ( rcode /= nf90_noerr ) RETURN
 
-  rcode = nf90_get_var (cdfid, id_data, dbtmp, start=(/1,it/),  &
-                        count=(/nx,1/))
+  rcode = nf90_get_var (cdfid, id_data, dbtmp, start=(/(my_rank*nx/p)+1,it/),  &
+                        count=(/(nx/p),1/))
   dum1d(:)=sngl(dbtmp(:))
 END SUBROUTINE get_var_1d_double_cdf
 
