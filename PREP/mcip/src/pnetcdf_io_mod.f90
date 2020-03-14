@@ -84,8 +84,6 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
   INTEGER                          :: p, my_rank, ierr
   INTEGER                          :: startnx, startny, startnz
   INTEGER                          :: countnx, countny, countnz
-  INTEGER                          :: nf_collective
-  PARAMETER                        (nf_collective = 1)
 
 
   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
@@ -98,25 +96,25 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
   IF ( rcode /= nf90_noerr ) RETURN
 
   !Assign MPI start ranks to read slabs
-  startnx=(my_rank*nx/p)+1
-  startny=(my_rank*ny/p)+1
-  startnz=(my_rank*(nz/p))+1
+   startnx=(my_rank*nx/p)+1
+   startny=(my_rank*ny/p)+1
+   startnz=(my_rank*(nz/p))+1
   !Assign MPI counts to read slabs
-  countnx=(nx/p)
-  countny=(ny/p)
-  countnz=(nz/p)
-  
+   countnx=(nx/p)
+   countny=(ny/p)
+   countnz=(nz/p)
   print*, 'p = ', p
   print*, 'my_rank = ', my_rank
   print*, 'startnx = ', startnx, 'startny = ', startny, 'startnz = ', startnz
   print*, 'countnx = ', countnx, 'countny = ', countny, 'countnz = ', countnz
   print*, 'endnx = ', startnx+countnx, 'endny = ', startny+countny, 'endnz = ', startnz+countnz
 
-  rcode = nf90_var_par_access(cdfid, id_data, nf_collective)
+  rcode = nf90_var_par_access(cdfid, id_data, nf90_collective)
 
   rcode = nf90_get_var (cdfid, id_data, dum3d, start=(/startnx,startny,startnz,it/),  &
                         count=(/countnx,countny,countnz,1/))
 
+  print*,'dum3d = ', dum3d(1,1,:)
   IF ( rcode /= nf90_noerr ) then
    print*,'read error ',cdfid,var
    print*,'nx,ny,nz=',nx,ny,nz
@@ -149,8 +147,6 @@ SUBROUTINE get_var_3d_int_cdf (cdfid, var, idum3d, it, rcode)
   INTEGER                          :: p, my_rank, ierr
   INTEGER                          :: startnx, startny, startnz
   INTEGER                          :: countnx, countny, countnz
-  INTEGER                          :: nf_collective
-  PARAMETER                        (nf_collective = 1)
 
   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
@@ -172,7 +168,7 @@ SUBROUTINE get_var_3d_int_cdf (cdfid, var, idum3d, it, rcode)
   countny=(ny/p)
   countnz=(nz/p)
   
-  rcode = nf90_var_par_access(cdfid, id_data, nf_collective) 
+  rcode = nf90_var_par_access(cdfid, id_data, nf90_collective) 
   
   rcode = nf90_get_var (cdfid, id_data, idum3d, start=(/startnx,startny,startnz,it/),  &
                         count=(/countnx,countny,countnz,1/))
@@ -203,8 +199,6 @@ SUBROUTINE get_var_2d_real_cdf (cdfid, var, dum2d, it, rcode)
   INTEGER                          :: p, my_rank, ierr
   INTEGER                          :: startnx, startny
   INTEGER                          :: countnx, countny
-  INTEGER                          :: nf_collective
-  PARAMETER                        (nf_collective = 1)
 
 
   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
@@ -226,7 +220,7 @@ SUBROUTINE get_var_2d_real_cdf (cdfid, var, dum2d, it, rcode)
   countnx=(nx/p)
   countny=(ny/p)
 
-  rcode = nf90_var_par_access(cdfid, id_data, nf_collective)
+  rcode = nf90_var_par_access(cdfid, id_data, nf90_collective)
 
   rcode = nf90_get_var (cdfid, id_data, dum2d, start=(/startnx,startny,it/),  &
                         count=(/countnx,countny,1/))
@@ -259,8 +253,6 @@ SUBROUTINE get_var_2d_int_cdf (cdfid, var, idum2d, it, rcode)
   INTEGER                          :: p, my_rank, ierr
   INTEGER                          :: startnx, startny
   INTEGER                          :: countnx, countny
-  INTEGER                          :: nf_collective
-  PARAMETER                        (nf_collective = 1)
 
   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
@@ -278,7 +270,7 @@ SUBROUTINE get_var_2d_int_cdf (cdfid, var, idum2d, it, rcode)
   countnx=(nx/p)
   countny=(ny/p)
   
-  rcode = nf90_var_par_access(cdfid, id_data, nf_collective)
+  rcode = nf90_var_par_access(cdfid, id_data, nf90_collective)
 
   rcode = nf90_get_var (cdfid, id_data, idum2d, start=(/startnx,startny,it/),  &
                         count=(/countnx,countny,1/))
