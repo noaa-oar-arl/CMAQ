@@ -81,6 +81,7 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
 
   ! MPI stuff: number of processors, rank of this processor, and error
   ! code.
+
   INTEGER                          :: p, my_rank, ierr
   INTEGER                          :: startnx, startny, startnz
   INTEGER                          :: countnx, countny, countnz
@@ -92,19 +93,22 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
   nx = SIZE(dum3d,1)
   ny = SIZE(dum3d,2)
   nz = SIZE(dum3d,3)
+
   rcode = nf90_inq_varid (cdfid, var, id_data)
   IF ( rcode /= nf90_noerr ) RETURN
 
   !Assign MPI start ranks to read slabs
-   startnx=(my_rank*nx/p)+1
-   startny=(my_rank*ny/p)+1
-   startnz=(my_rank*(nz/p))+1
+   startnx=nint((my_rank*real(nx)/p))+1
+   startny=nint((my_rank*real(ny)/p))+1
+   startnz=nint((my_rank*real(nz)/p))+1
   !Assign MPI counts to read slabs
-   countnx=(nx/p)
-   countny=(ny/p)
-   countnz=(nz/p)
+   countnx=nint(real(nx)/p)
+   countny=nint(real(ny)/p)
+   countnz=nint(real(nz)/p)
+
   print*, 'p = ', p
   print*, 'my_rank = ', my_rank
+  
   print*, 'startnx = ', startnx, 'startny = ', startny, 'startnz = ', startnz
   print*, 'countnx = ', countnx, 'countny = ', countny, 'countnz = ', countnz
   print*, 'endnx = ', startnx+countnx, 'endny = ', startny+countny, 'endnz = ', startnz+countnz
