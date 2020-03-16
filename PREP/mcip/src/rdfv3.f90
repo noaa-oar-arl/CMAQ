@@ -501,8 +501,8 @@ SUBROUTINE rdfv3 (mcip_now,nn)
 ! Learn MPI local rank and total number of processors.
 !-------------------------------------------------------------------------------
 
-  ! CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
-  ! CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
+   !CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
+   !CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
 
 !-------------------------------------------------------------------------------
 ! Define additional staggered grid dimensions. (***No staggered FV3 dimensions,e.g., nxm=met_nx***)
@@ -897,6 +897,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
    write(*,*)'time mismatch in SFC file ',mcip_now,mcip_next,mcip_rd,date_init,rdtime
    CALL graceful_stop (pname)
   ENDIF   
+
 
 !-------------------------------------------------------------------------------
 ! Read FV3 data for this domain.

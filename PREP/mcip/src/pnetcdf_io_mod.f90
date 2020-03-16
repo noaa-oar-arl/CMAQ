@@ -82,10 +82,11 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
   ! MPI stuff: number of processors, rank of this processor, and error
   ! code.
 
-  INTEGER                          :: p, my_rank, ierr
+  INTEGER                          :: i, p, my_rank, ierr
   INTEGER                          :: startnx, startny, startnz
   INTEGER                          :: countnx, countny, countnz
-
+  INTEGER                          :: endnx, endny, endnz
+  REAL, ALLOCATABLE                :: data_out(:,:,:,:)
 
   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
@@ -98,6 +99,7 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
   IF ( rcode /= nf90_noerr ) RETURN
 
   !Assign MPI start ranks to read slabs
+  !Note: Explicitly set to nearest integer for odd processor/z-array size
    startnx=nint((my_rank*real(nx)/p))+1
    startny=nint((my_rank*real(ny)/p))+1
    startnz=nint((my_rank*real(nz)/p))+1
@@ -105,20 +107,40 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
    countnx=nint(real(nx)/p)
    countny=nint(real(ny)/p)
    countnz=nint(real(nz)/p)
+  !Assign MPI end  to read slabs
+   endnx=startnx+countnx
+   endny=startny+countny
+   endnz=startnz+countnz
+
+  !Allocate output array to slab size+1 (make it big enough)
+    IF ( .NOT. ALLOCATED ( data_out ) )  &
+    ALLOCATE ( data_out (p, countnx, countny, countnz ) ) 
 
   print*, 'p = ', p
   print*, 'my_rank = ', my_rank
   
   print*, 'startnx = ', startnx, 'startny = ', startny, 'startnz = ', startnz
   print*, 'countnx = ', countnx, 'countny = ', countny, 'countnz = ', countnz
-  print*, 'endnx = ', startnx+countnx, 'endny = ', startny+countny, 'endnz = ', startnz+countnz
+  print*, 'endnx = ', endnx, 'endny = ', endny, 'endnz = ', endnz
 
   rcode = nf90_var_par_access(cdfid, id_data, nf90_collective)
+!  rcode = nf90_get_var (cdfid, id_data, data_out(my_rank+1,:,:,:), start=(/startnx,startny,startnz,it/),  &
+!                        count=(/countnx,countny,countnz,1/))
+   rcode = nf90_get_var (cdfid, id_data, dum3d(1:nx,1:ny,1:nz), start=(/startnx,startny,startnz,it/),  &
+                        count=(/countnx,countny,countnz,1/))      
 
-  rcode = nf90_get_var (cdfid, id_data, dum3d, start=(/startnx,startny,startnz,it/),  &
-                        count=(/countnx,countny,countnz,1/))
+  !Set output array to dummy3d for readfv3
+!   DO i = 1, p-1
+!    dum3d(startnx:endnx,startny:endny,startnz:endnz) = data_out(i,:,:,:)
+!   ENDDO
+!    print*, data_out(my_rank+1,1,:,1)
 
-  print*,'dum3d = ', dum3d(1,1,:)
+!    DO i = 1, p-1
+!       dum3d(startnx:endnx,startny:endny,startnz:endnz) = data_out(i,:,:,:)
+!    ENDDO
+
+!    print*,'dum3d(1,1,:) = ', dum3d(1,1,:)
+
   IF ( rcode /= nf90_noerr ) then
    print*,'read error ',cdfid,var
    print*,'nx,ny,nz=',nx,ny,nz
