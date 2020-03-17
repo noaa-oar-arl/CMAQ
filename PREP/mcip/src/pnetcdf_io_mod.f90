@@ -95,9 +95,10 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
 
   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
-  psizes = 0
-  CALL MPI_Dims_create(p, 2, psizes, ierr)
-  print*, 'psizes = ', psizes
+
+ ! psizes = 0
+ ! CALL MPI_Dims_create(p, 2, psizes, ierr)
+ ! print*, 'psizes = ', psizes
 
   rcode = nf90_inq_varid (cdfid, var, id_data)
   IF ( rcode /= nf90_noerr ) RETURN
@@ -125,7 +126,7 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
   rcode = nf90_var_par_access(cdfid, id_data, nf90_collective)
   rcode = nf90_get_var (cdfid, id_data, data_out(my_rank+1,:,:,:), start=(/startnx,startny,1,it/),  &
                         count=(/countnx,countny,nz,1/))
-  print*, 'Rank 0 data_out column = ', data_out(1,1,1,:)
+  print*, 'my_rank = ', my_rank, 'my_rank data_out column = ', data_out(my_rank+1,1,1,:)
   rcode = nf90_get_var (cdfid, id_data, dum3d, start=(/startnx,startny,1,it/),  &
                          count=(/countnx,countny,nz,1/))
 
