@@ -56,7 +56,7 @@ SUBROUTINE setup (ctmlays)
   USE metinfo
   USE files
   USE netcdf
-  USE mpi
+  !USE mpi
 
   IMPLICIT NONE
 
@@ -159,10 +159,14 @@ SUBROUTINE setup (ctmlays)
     ENDIF
 
    ELSE  ! FV3
-    rcode = nf90_open (trim(file_mm(1))//'000'//trim(file_mm(2)), nf90_nowrite, cdfid, &
-                     comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)    
-    rcode2 = nf90_open (trim(file_sfc(1))//'000'//trim(file_sfc(2)), nf90_nowrite, cdfid2, &
-                     comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)
+!    rcode = nf90_open (trim(file_mm(1))//'000'//trim(file_mm(2)), nf90_nowrite, cdfid, &
+!                     comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)    
+!    rcode2 = nf90_open (trim(file_sfc(1))//'000'//trim(file_sfc(2)), nf90_nowrite, cdfid2, &
+!                     comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)
+
+        rcode = nf90_open (trim(file_mm(1))//'000'//trim(file_mm(2)),nf90_nowrite, cdfid)
+        rcode2 = nf90_open (trim(file_sfc(1))//'000'//trim(file_sfc(2)),nf90_nowrite, cdfid2)
+
     IF ( rcode.ne.nf90_noerr .or. rcode2.ne.nf90_noerr ) then
      WRITE (*,f9000) TRIM(pname), TRIM(file_mm(1)), TRIM(nf90_strerror(rcode))
      WRITE (*,f9000) TRIM(pname), TRIM(file_sfc(1)), TRIM(nf90_strerror(rcode))
@@ -188,7 +192,8 @@ SUBROUTINE setup (ctmlays)
       WRITE (*,f9200) TRIM(pname), fv3_version, gridtype
       CALL graceful_stop (pname)
     ENDIF
-
+    rcode = nf90_close (cdfid)
+    rcode = nf90_close (cdfid2)
 
    END IF
 

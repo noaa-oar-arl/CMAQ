@@ -173,7 +173,7 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
   USE netcdf_io
   USE const, ONLY: pi180
   USE netcdf
-  USE mpi
+  !USE mpi
 
   IMPLICIT NONE
 
@@ -664,8 +664,10 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
       iflufrc = .FALSE.
     ELSE
       flg = file_geo
-      rcode = nf90_open (flg, nf90_nowrite, cdfidg, &
-                     comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)
+!      rcode = nf90_open (flg, nf90_nowrite, cdfidg, &
+!                     comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)
+       rcode = nf90_open (flg, nf90_nowrite, cdfidg)
+
       IF ( rcode /= nf90_noerr ) THEN
         WRITE (*,f9600) TRIM(pname), TRIM(flg)
         CALL graceful_stop (pname)
@@ -781,8 +783,10 @@ SUBROUTINE setup_fv3 (cdfid, cdfid2, ctmlays)
       iflai = .FALSE.
     ELSE
       flg = file_geo
-      rcode = nf90_open (flg, nf90_nowrite, cdfidg, &
-                     comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)
+!      rcode = nf90_open (flg, nf90_nowrite, cdfidg, &
+!                     comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)
+       rcode = nf90_open (flg, nf90_nowrite, cdfidg)
+
       IF ( rcode /= nf90_noerr ) THEN
         WRITE (*,f9600) TRIM(pname), TRIM(flg)
         CALL graceful_stop (pname)

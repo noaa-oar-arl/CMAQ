@@ -445,7 +445,8 @@ SUBROUTINE rdfv3 (mcip_now,nn)
   ! MPI stuff: number of processors, rank of this processor, and error
   ! code.
   ! INTEGER                          :: p, my_rank, ierr
-
+  ! INTEGER                          :: startnx, startny
+  ! INTEGER                          :: endnx, endny
 !-------------------------------------------------------------------------------
 ! Interfaces for FV3GFS getxyindex, horizontal interpolation, and wind rotation
 ! 
@@ -501,8 +502,8 @@ SUBROUTINE rdfv3 (mcip_now,nn)
 ! Learn MPI local rank and total number of processors.
 !-------------------------------------------------------------------------------
 
-   !CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
-   !CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
+!   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
+!   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
 
 !-------------------------------------------------------------------------------
 ! Define additional staggered grid dimensions. (***No staggered FV3 dimensions,e.g., nxm=met_nx***)
