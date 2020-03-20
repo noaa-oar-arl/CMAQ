@@ -54,7 +54,7 @@ MODULE pnetcdf_io
 !           22 Jun 2018  Changed module name from WRF_NETCDF to NETCDF_IO.
 !                        (T. Spero)
 !           11 Mar 2020  Added MPI capability to speed up nf90 reads (P. C.
-!                         Campbell)
+!                         Campbell and Y. Tang)
 !-------------------------------------------------------------------------------
 
 CONTAINS
@@ -82,12 +82,11 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
   ! MPI stuff: number of processors, rank of this processor, and error
   ! code.
 
-  INTEGER                          :: p, my_rank, ierr
-  INTEGER                          :: psizes(2), gsizes(2)
-  INTEGER                          :: startnx, startny, startnz
-  INTEGER                          :: countnx, countny, countnz
-  INTEGER                          :: endnx, endny, endnz
-  REAL,ALLOCATABLE                 :: data_out(:,:,:,:)
+  INTEGER                          :: p, my_rank, ierr, mody
+  INTEGER                          :: startnx
+  INTEGER                          :: countnx,i,mstatus(MPI_STATUS_SIZE)
+  REAL,ALLOCATABLE                 :: data_out(:,:,:)
+  INTEGER, ALLOCATABLE             :: startny(:),countny(:)
 
   nx = SIZE(dum3d,1)
   ny = SIZE(dum3d,2)
@@ -95,6 +94,9 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
 
   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
+   
+  if(.not.allocated(startny)) allocate(startny(p))
+  if(.not.allocated(countny)) allocate(countny(p))
 
  ! psizes = 0
  ! CALL MPI_Dims_create(p, 2, psizes, ierr)
@@ -102,38 +104,53 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
 
   rcode = nf90_inq_varid (cdfid, var, id_data)
   IF ( rcode /= nf90_noerr ) RETURN
-
  
   !Assign MPI start ranks to read slabs
-  !Note: Explicitly set to nearest integer for odd processor/z-array size
-    startnx=(my_rank*nx/p)+1  
-    startny=(my_rank*ny/p)+1
+  mody=mod(ny,p)
+  startnx=1 ! (my_rank*nx/p)+1
+  countnx=nx !  (nx/p)
   !Assign MPI counts to read slabs
-   countnx=nx/p
-   countny=ny/p
+  if(mody.eq.0) then
+   countny(:)=ny/p
+   do i=1,p
+   startny(i)=(i-1)*ny/p+1 ! decompose along y direction
+   enddo
+  else
+   countny(1:mody)=(ny-mody)/p+1
+   countny(mody+1:p)=(ny-mody)/p
+   startny(1)=1
+   do i=2,p
+    startny(i)=startny(i-1)+countny(i-1)
+   enddo
+  endif
 
-  !Allocate output array to slab size
+  print*,'p,my_rank,startnx,startny,countnx,countny=',p,my_rank,startnx,startny,countnx,countny
+   !Allocate output array to slab size
     IF ( .NOT. ALLOCATED ( data_out ) )  &
-    ALLOCATE ( data_out (p, countnx, countny, nz ) ) 
-
-  print*, 'p = ', p
-  print*, 'my_rank = ', my_rank
-  
-  print*, 'startnx = ', startnx, 'startny = ', startny
-  print*, 'countnx = ', countnx, 'countny = ', countny
-  print*, 'endnx = ', startnx+countnx, 'endny = ', startny+countny
+    ALLOCATE ( data_out (countnx, countny(my_rank+1), nz ) ) 
 
   rcode = nf90_var_par_access(cdfid, id_data, nf90_collective)
-  rcode = nf90_get_var (cdfid, id_data, data_out(my_rank+1,:,:,:), start=(/startnx,startny,1,it/),  &
-                        count=(/countnx,countny,nz,1/))
-  print*, 'my_rank = ', my_rank, 'my_rank data_out column = ', data_out(my_rank+1,1,1,:)
-  rcode = nf90_get_var (cdfid, id_data, dum3d, start=(/startnx,startny,1,it/),  &
-                         count=(/countnx,countny,nz,1/))
+  print*,'start read ',my_rank
+  rcode = nf90_get_var (cdfid, id_data, data_out, start=(/startnx,startny(my_rank+1),1,it/),  &
+                        count=(/countnx,countny(my_rank+1),nz,1/))
 
   IF ( rcode /= nf90_noerr ) then
-   print*,'read error ',cdfid,var
+   print*,'read error',cdfid,var
    print*,'nx,ny,nz=',nx,ny,nz
   endif 
+  print*,'finish read ',my_rank
+  
+   if(my_rank.eq.0) then
+    dum3d(1:countnx,1:countny(1),1:nz)=data_out(:,:,:)
+    do i=2,p
+     call mpi_recv(data_out,countnx*countny(i)*nz,MPI_REAL,i-1,MPI_ANY_TAG, &
+        MPI_COMM_WORLD,mstatus,ierr)
+     dum3d(1:countnx,startny(i):startny(i)+countny(i)-1,1:nz)=data_out(1:countnx,1:countny(i),1:nz)
+    enddo
+  else
+   call mpi_send(data_out,countnx*countny(my_rank+1)*nz,MPI_REAL,0,2020, &
+        MPI_COMM_WORLD,ierr)
+  endif
 
 END SUBROUTINE get_var_3d_real_cdf
 
