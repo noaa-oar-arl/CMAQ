@@ -28,6 +28,8 @@ SUBROUTINE outcm3io (sdate, stime)
 !                        with radiative feedbacks.  (T. Spero)
 !           15 Jul 2019  Corrected error in setting units for 3D microphysics
 !                        fields.  (T. Spero)
+!           22 Mar 2020  Added MPI capability to speed up nf90 reads (P. C.
+!                         Campbell)
 !-------------------------------------------------------------------------------
 
   USE mcipparm
@@ -36,6 +38,7 @@ SUBROUTINE outcm3io (sdate, stime)
   USE files
   USE vgrd
   USE m3utilio
+  USE mpi
 
   IMPLICIT NONE
 
@@ -62,6 +65,12 @@ SUBROUTINE outcm3io (sdate, stime)
     & /, 1x, '***   ERROR WRITING TO FILE ', a, &
     & /, 1x, 70('*'))"
 
+! MPI stuff: number of processors, rank of this processor, and error
+! code.
+    INTEGER                          :: my_rank, ierr
+
+  CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
+
 !-------------------------------------------------------------------------------
 ! Build common header for I/O API output.
 !-------------------------------------------------------------------------------
@@ -71,7 +80,6 @@ SUBROUTINE outcm3io (sdate, stime)
 !-------------------------------------------------------------------------------
 ! Write MET_CRO_2D.
 !-------------------------------------------------------------------------------
-
   DO n = 1, nfld2dxyt
 
     vtype3d(n) = m3real
@@ -119,11 +127,13 @@ SUBROUTINE outcm3io (sdate, stime)
   ENDIF
 
   DO n = 1, nfld2dxyt
+   if(my_rank.eq.0) then   
     IF ( .NOT. write3 (metcro2d, vname3d(n), sdate, stime,  &
                        fld2dxyt(n)%fld) ) THEN
       WRITE (*,f9100) TRIM(pname), TRIM(metcro2d)
       CALL graceful_stop (pname)
     ENDIF
+   endif
   ENDDO
 
 !-------------------------------------------------------------------------------
@@ -239,20 +249,24 @@ SUBROUTINE outcm3io (sdate, stime)
   ENDIF
 
   DO n = 1, nfld3dxyzt
+   if(my_rank.eq.0) then
     IF ( .NOT. write3 (metcro3d, vname3d(n), sdate, stime,  &
                        fld3dxyzt(n)%fld) ) THEN
       WRITE (*,f9100) TRIM(pname), TRIM(metcro2d)
       CALL graceful_stop (pname)
     ENDIF
+   endif
   ENDDO
 
   IF ( nqspecies > 0 ) THEN
     DO n = 1, nfld3dxyzt_q
+     if(my_rank.eq.0) then
       IF ( .NOT. write3 (metcro3d, vname3d(nfld3dxyzt+n), sdate, stime,  &
                          fld3dxyzt_q(n)%fld) ) THEN
         WRITE (*,f9100) TRIM(pname), TRIM(metcro2d)
         CALL graceful_stop (pname)
       ENDIF
+     endif
     ENDDO
   ENDIF
 
@@ -313,20 +327,24 @@ SUBROUTINE outcm3io (sdate, stime)
   ENDIF
 
   DO n = 1, nfld3dxyzt
+   if(my_rank.eq.0) then
     IF ( .NOT. write3 (metbdy3d, vname3d(n), sdate, stime,  &
                        fld3dxyzt(n)%bdy) ) THEN
       WRITE (*,f9100) TRIM(pname), TRIM(metbdy3d)
       CALL graceful_stop (pname)
     ENDIF
+   endif
   ENDDO
 
   IF ( nqspecies > 0 ) THEN
     DO n = 1, nfld3dxyzt_q
+     if(my_rank.eq.0) then
       IF ( .NOT. write3 (metbdy3d, vname3d(nfld3dxyzt+n), sdate, stime,  &
                          fld3dxyzt_q(n)%bdy) ) THEN
         WRITE (*,f9100) TRIM(pname), TRIM(metbdy3d)
         CALL graceful_stop (pname)
       ENDIF
+     endif
     ENDDO
   ENDIF
 
@@ -378,11 +396,13 @@ SUBROUTINE outcm3io (sdate, stime)
   ENDIF
 
   DO n = 1, nfld3dxyzt_d
+   if(my_rank.eq.0) then
     IF ( .NOT. write3 (metdot3d, vname3d(n), sdate, stime,  &
                        fld3dxyzt_d(n)%fld) ) THEN
       WRITE (*,f9100) TRIM(pname), TRIM(metdot3d)
       CALL graceful_stop (pname)
     ENDIF
+   endif
   ENDDO
 
 !-------------------------------------------------------------------------------
@@ -434,11 +454,13 @@ SUBROUTINE outcm3io (sdate, stime)
     ENDIF
 
     DO n = 1, nfld3dxyst
+     if(my_rank.eq.0) then
       IF ( .NOT. write3 (soicro, vname3d(n), sdate, stime,  &
                          fld3dxyst(n)%fld) ) THEN
         WRITE (*,f9100) TRIM(pname), TRIM(soicro)
         CALL graceful_stop (pname)
       ENDIF
+     endif
     ENDDO
 
   ENDIF
@@ -492,11 +514,13 @@ SUBROUTINE outcm3io (sdate, stime)
     ENDIF
 
     DO n = 1, nfld3dxymt
+     if(my_rank.eq.0) then
       IF ( .NOT. write3 (mosaiccro, vname3d(n), sdate, stime,  &
                          fld3dxymt(n)%fld) ) THEN
         WRITE (*,f9100) TRIM(pname), TRIM(mosaiccro)
         CALL graceful_stop (pname)
       ENDIF
+     endif
     ENDDO
 
   ENDIF

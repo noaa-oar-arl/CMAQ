@@ -444,9 +444,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
 
   ! MPI stuff: number of processors, rank of this processor, and error
   ! code.
-  !  INTEGER                          :: my_rank, ierr
-  ! INTEGER                          :: startnx, startny
-  ! INTEGER                          :: endnx, endny
+    INTEGER                          :: my_rank, ierr
 !-------------------------------------------------------------------------------
 ! Interfaces for FV3GFS getxyindex, horizontal interpolation, and wind rotation
 ! 
@@ -502,8 +500,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
 ! Learn MPI local rank and total number of processors.
 !-------------------------------------------------------------------------------
 
-!    CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
-!   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
+    CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
 
 !-------------------------------------------------------------------------------
 ! Define additional staggered grid dimensions. (***No staggered FV3 dimensions,e.g., nxm=met_nx***)
@@ -910,8 +907,10 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     call myinterp(dum3d_u(:,:,k),met_nx,met_ny,utmp,xdindex,ydindex,ncols_x+1,nrows_x+1,2)  ! put it into Dot point for later rotation
     kk=met_nz-k+1                                            ! flip to bottom up
     ua(1:ncols_x+1,1:nrows_x+1,kk) = utmp(1:ncols_x+1,1:nrows_x+1)
-   enddo 
-   WRITE (*,ifmt1) 'ugrd     ', (ua(lprt_metx,lprt_mety,k),k=1,met_nz)
+   enddo
+   if(my_rank.eq.0) then 
+    WRITE (*,ifmt1) 'ugrd     ', (ua(lprt_metx,lprt_mety,k),k=1,met_nz)
+   endif
   ELSE
     WRITE (*,f9400) TRIM(pname), 'ugrd', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
@@ -927,7 +926,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
      call windrotation(ua(1:ncols_x+1,1:nrows_x+1,kk),va(1:ncols_x+1,1:nrows_x+1,kk),londot(1:ncols_x+1,1:nrows_x+1), &
                             ncols_x+1,nrows_x+1,sngl(p_gam_gd),0.5*sngl(p_alp_gd+p_bet_gd))
    enddo
-   WRITE (*,ifmt1) 'vgrd     ', (va(lprt_metx,lprt_mety,k),k=1,met_nz)
+   if(my_rank.eq.0) then
+    WRITE (*,ifmt1) 'vgrd     ', (va(lprt_metx,lprt_mety,k),k=1,met_nz)
+   endif
   ELSE
     WRITE (*,f9400) TRIM(pname), 'vgrd', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
@@ -940,7 +941,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     kk=met_nz-k+1
     wa(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
    enddo
-   WRITE (*,ifmt1a) 'dzdt     ', (wa(lprt_metx,lprt_mety,k),k=1,met_nz)
+   if(my_rank.eq.0) then
+    WRITE (*,ifmt1a) 'dzdt     ', (wa(lprt_metx,lprt_mety,k),k=1,met_nz)
+   endif
   ELSE
     WRITE (*,f9400) TRIM(pname), 'dzdt', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
@@ -982,7 +985,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     kk=met_nz-k+1
     dpres(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
    enddo
-   WRITE (*,ifmt1a) 'dpres      ', (dpres(lprt_metx,lprt_mety,k),k=1,met_nz)
+   if(my_rank.eq.0) then
+    WRITE (*,ifmt1a) 'dpres      ', (dpres(lprt_metx,lprt_mety,k),k=1,met_nz)
+   endif
   ELSE
     WRITE (*,f9400) TRIM(pname), 'dpres', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
@@ -995,7 +1000,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     kk=met_nz-k+1
     delz(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
    enddo
-   WRITE (*,ifmt1a) 'delz      ', (delz(lprt_metx,lprt_mety,k),k=1,met_nz)
+   if(my_rank.eq.0) then
+    WRITE (*,ifmt1a) 'delz      ', (delz(lprt_metx,lprt_mety,k),k=1,met_nz)
+   endif
   ELSE
     WRITE (*,f9400) TRIM(pname), 'delz', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
@@ -1008,7 +1015,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     kk=met_nz-k+1
     ta(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
    enddo
-   WRITE (*,ifmt1a) 'tmp      ', (ta(lprt_metx,lprt_mety,k),k=1,met_nz)
+   if(my_rank.eq.0) then
+    WRITE (*,ifmt1a) 'tmp      ', (ta(lprt_metx,lprt_mety,k),k=1,met_nz)
+   endif
   ELSE
     WRITE (*,f9400) TRIM(pname), 'tmp', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
@@ -1021,7 +1030,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     kk=met_nz-k+1
     qva(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
    enddo
-   WRITE (*,ifmt1) 'spfh     ', (qva(lprt_metx,lprt_mety,k),k=1,met_nz)
+   if(my_rank.eq.0) then
+    WRITE (*,ifmt1) 'spfh     ', (qva(lprt_metx,lprt_mety,k),k=1,met_nz)
+   endif
   ELSE
     WRITE (*,f9400) TRIM(pname), 'spfh', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
@@ -1034,7 +1045,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     kk=met_nz-k+1
     qca(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
    enddo
-   WRITE (*,ifmt1) 'clwmr    ', (qca(lprt_metx,lprt_mety,k),k=1,met_nz)
+   if(my_rank.eq.0) then
+    WRITE (*,ifmt1) 'clwmr    ', (qca(lprt_metx,lprt_mety,k),k=1,met_nz)
+   endif
   ELSE
     WRITE (*,f9400) TRIM(pname), 'clwmr', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
@@ -1047,7 +1060,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     kk=met_nz-k+1
     qra(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
    enddo
-    WRITE (*,ifmt1) 'rwmr     ', (qra(lprt_metx,lprt_mety,k),k=1,met_nz)
+    if(my_rank.eq.0) then
+     WRITE (*,ifmt1) 'rwmr     ', (qra(lprt_metx,lprt_mety,k),k=1,met_nz)
+    endif
   ELSE
     WRITE (*,f9400) TRIM(pname), 'rwmr', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
@@ -1062,7 +1077,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
       kk=met_nz-k+1
       qia(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
      enddo
-      WRITE (*,ifmt1) 'icmr     ', (qia(lprt_metx,lprt_mety,k),k=1,met_nz)
+      if(my_rank.eq.0) then
+       WRITE (*,ifmt1) 'icmr     ', (qia(lprt_metx,lprt_mety,k),k=1,met_nz)
+      endif
     ELSE
       WRITE (*,f9400) TRIM(pname), 'icmr', TRIM(nf90_strerror(rcode))
       CALL graceful_stop (pname)
@@ -1080,7 +1097,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
       kk=met_nz-k+1
       qsa(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
      enddo
-     WRITE (*,ifmt1) 'snmr     ', (qsa(lprt_metx,lprt_mety,k),k=1,met_nz)
+     if(my_rank.eq.0) then
+      WRITE (*,ifmt1) 'snmr     ', (qsa(lprt_metx,lprt_mety,k),k=1,met_nz)
+     endif
     ELSE
       WRITE (*,f9400) TRIM(pname), 'snmr', TRIM(nf90_strerror(rcode))
       CALL graceful_stop (pname)
@@ -1098,7 +1117,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
       kk=met_nz-k+1
       qga(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
      enddo
-      WRITE (*,ifmt1) 'grle     ', (qga(lprt_metx,lprt_mety,k),k=1,met_nz)
+      if(my_rank.eq.0) then
+       WRITE (*,ifmt1) 'grle     ', (qga(lprt_metx,lprt_mety,k),k=1,met_nz)
+      endif
     ELSE
       WRITE (*,f9400) TRIM(pname), 'grle', TRIM(nf90_strerror(rcode))
       CALL graceful_stop (pname)
@@ -1116,7 +1137,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
       kk=met_nz-k+1
       tke(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
      enddo
-      WRITE (*,ifmt1a) 'TKE      ', (tke(lprt_metx,lprt_mety,k),k=1,nzp)
+      if(my_rank.eq.0) then
+       WRITE (*,ifmt1a) 'TKE      ', (tke(lprt_metx,lprt_mety,k),k=1,nzp)
+      endif
     ELSE
       WRITE (*,f9400) TRIM(pname), 'TKE', TRIM(nf90_strerror(rcode))
       CALL graceful_stop (pname)
@@ -1130,7 +1153,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
        kk=met_nz-k+1
        tke(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
       enddo
-      WRITE (*,ifmt1) 'TKE_MYJ  ', (tke(lprt_metx,lprt_mety,k),k=1,met_nz)
+      if(my_rank.eq.0) then
+       WRITE (*,ifmt1) 'TKE_MYJ  ', (tke(lprt_metx,lprt_mety,k),k=1,met_nz)
+      endif
     ELSE
       WRITE (*,f9400) TRIM(pname), 'TKE_MYJ', TRIM(nf90_strerror(rcode))
       CALL graceful_stop (pname)
@@ -1145,7 +1170,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
       kk=met_nz-k+1
       cldfra(1:ncols_x,1:nrows_x,kk) = atmp(1:ncols_x,1:nrows_x)
      enddo
-     WRITE (*,ifmt1a) 'cld_amt  ', (cldfra(lprt_metx,lprt_mety,k),k=1,met_nz)
+     if(my_rank.eq.0) then
+      WRITE (*,ifmt1a) 'cld_amt  ', (cldfra(lprt_metx,lprt_mety,k),k=1,met_nz)
+     endif
     ELSE
       WRITE (*,f9400) TRIM(pname), 'cld_amt', TRIM(nf90_strerror(rcode))
       CALL graceful_stop (pname)
@@ -1470,7 +1497,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
          IF ( rcode == nf90_noerr ) THEN
           call myinterp(dum2d,met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,1)
           lai(1:ncols_x,1:nrows_x) = atmp(1:ncols_x,1:nrows_x)
-          WRITE (*,ifmt2) 'LAI ', lai(lprt_metx,lprt_mety)
+          if(my_rank.eq.0) then
+           WRITE (*,ifmt2) 'LAI ', lai(lprt_metx,lprt_mety)
+          endif
         ELSE
           WRITE (*,f9400) TRIM(pname), 'LAI', TRIM(nf90_strerror(rcode))
           CALL graceful_stop (pname)
@@ -1558,7 +1587,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     IF ( rcode == nf90_noerr ) THEN
      call myinterp(dum2d,met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,1)
      soim3d(1:ncols_x,1:nrows_x,4) = atmp(1:ncols_x,1:nrows_x)
-     WRITE (*,ifmt5) 'soim3d    ', (soim3d(lprt_metx,lprt_mety,k),k=1,met_ns)
+     if(my_rank.eq.0) then
+      WRITE (*,ifmt5) 'soim3d    ', (soim3d(lprt_metx,lprt_mety,k),k=1,met_ns)
+     endif
     ELSE
       WRITE (*,f9400) TRIM(pname), 'soilw4', TRIM(nf90_strerror(rcode))
       CALL graceful_stop (pname)
@@ -1603,7 +1634,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     IF ( rcode == nf90_noerr ) THEN
       call myinterp(dum2d,met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,1)
       soit3d(1:ncols_x,1:nrows_x,4) = atmp(1:ncols_x,1:nrows_x)
-      WRITE (*,ifmt5) 'soit3d    ', (soit3d(lprt_metx,lprt_mety,k),k=1,met_ns)
+      if(my_rank.eq.0) then
+       WRITE (*,ifmt5) 'soit3d    ', (soit3d(lprt_metx,lprt_mety,k),k=1,met_ns)
+      endif
     ELSE
       WRITE (*,f9400) TRIM(pname), 'soilt4', TRIM(nf90_strerror(rcode))
       CALL graceful_stop (pname)
@@ -1645,7 +1678,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
            call myinterp(dum3d_l(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,1)
            lufrac(1:ncols_x,1:nrows_x,k) = atmp(1:ncols_x,1:nrows_x)
           enddo
-          WRITE (*,ifmt2) 'LANDUSEF ', (lufrac(lprt_metx,lprt_mety,k),k=1,nummetlu)
+          if(my_rank.eq.0) then
+           WRITE (*,ifmt2) 'LANDUSEF ', (lufrac(lprt_metx,lprt_mety,k),k=1,nummetlu)
+          endif
         ELSE
           WRITE (*,f9400) TRIM(pname), 'LANDUSEF', TRIM(nf90_strerror(rcode))
           CALL graceful_stop (pname)
@@ -1657,7 +1692,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
             call myinterp(dum3d_l(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,1)
             lufrac2(1:ncols_x,1:nrows_x,k) = atmp(1:ncols_x,1:nrows_x)
            enddo
-            WRITE (*,ifmt2) 'LANDUSEF2', (lufrac2(lprt_metx,lprt_mety,k),k=1,nummetlu)
+            if(my_rank.eq.0) then
+             WRITE (*,ifmt2) 'LANDUSEF2', (lufrac2(lprt_metx,lprt_mety,k),k=1,nummetlu)
+            endif
           ELSE
             WRITE (*,f9400) TRIM(pname), 'LANDUSEF2', TRIM(nf90_strerror(rcode))
             CALL graceful_stop (pname)
@@ -1668,8 +1705,10 @@ SUBROUTINE rdfv3 (mcip_now,nn)
            do k=1,nummetlu
             call myinterp(real(dum3d_li(:,:,k)),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,1)
             moscatidx(1:ncols_x,1:nrows_x,k) = int(atmp(1:ncols_x,1:nrows_x))
-           enddo 
-            WRITE (*,ifmt3) 'MOSAIC_CAT', (moscatidx(lprt_metx,lprt_mety,k),k=1,nummetlu)
+           enddo
+            if(my_rank.eq.0) then 
+             WRITE (*,ifmt3) 'MOSAIC_CAT', (moscatidx(lprt_metx,lprt_mety,k),k=1,nummetlu)
+            endif
           ELSE
             ! Will be filled in getluse.f90, if NOAH Mosaic LSM was used
           ENDIF
@@ -1689,7 +1728,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
            call myinterp(dum3d_l(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,1)
            lufrac(1:ncols_x,1:nrows_x,k) = atmp(1:ncols_x,1:nrows_x)
          enddo
-          WRITE (*,ifmt2) 'LANDUSEF ', lufrac(lprt_metx,lprt_mety,:)
+          if(my_rank.eq.0) then
+           WRITE (*,ifmt2) 'LANDUSEF ', lufrac(lprt_metx,lprt_mety,:)
+          endif
         ELSE
           WRITE (*,f9400) TRIM(pname), 'LANDUSEF', TRIM(nf90_strerror(rcode))
           CALL graceful_stop (pname)

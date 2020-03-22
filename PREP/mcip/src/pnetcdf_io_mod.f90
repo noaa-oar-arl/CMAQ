@@ -128,13 +128,13 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
    enddo
   endif
 
-  print*,'p,my_rank,startnx,startny,countnx,countny=',p,my_rank,startnx,startny,countnx,countny
+  !print*,'p,my_rank,startnx,startny,countnx,countny=',p,my_rank,startnx,startny,countnx,countny
    !Allocate output array to slab size
     IF ( .NOT. ALLOCATED ( data_out ) )  &
     ALLOCATE ( data_out (countnx, countny(my_rank+1), nz ) ) 
 
   rcode = nf90_var_par_access(cdfid, id_data, nf90_collective)
-  print*,'start read ',my_rank
+  !print*,'start read ',my_rank
   rcode = nf90_get_var (cdfid, id_data, data_out, start=(/startnx,startny(my_rank+1),1,it/),  &
                         count=(/countnx,countny(my_rank+1),nz,1/))
 
@@ -142,7 +142,7 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
    print*,'read error',cdfid,var
    print*,'nx,ny,nz=',nx,ny,nz
   endif 
-  print*,'finish read ',my_rank
+ ! print*,'finish read ',my_rank
   
    if(my_rank.eq.0) then
     dum3d(1:countnx,1:countny(1),1:nz)=data_out(:,:,:)
