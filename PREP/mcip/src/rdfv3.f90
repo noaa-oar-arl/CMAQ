@@ -444,7 +444,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
 
   ! MPI stuff: number of processors, rank of this processor, and error
   ! code.
-  ! INTEGER                          :: p, my_rank, ierr
+  !  INTEGER                          :: my_rank, ierr
   ! INTEGER                          :: startnx, startny
   ! INTEGER                          :: endnx, endny
 !-------------------------------------------------------------------------------
@@ -502,7 +502,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
 ! Learn MPI local rank and total number of processors.
 !-------------------------------------------------------------------------------
 
-!   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
+!    CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
 !   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
 
 !-------------------------------------------------------------------------------
@@ -916,7 +916,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     WRITE (*,f9400) TRIM(pname), 'ugrd', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
-
+ 
   CALL get_var_3d_real_cdf (cdfid, 'vgrd', dum3d_v, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
    do k=1,met_nz
@@ -1074,7 +1074,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
   rcode = nf90_inq_varid (cdfid, 'snmr', rcode)
   IF ( rcode == nf90_noerr ) THEN
     CALL get_var_3d_real_cdf (cdfid, 'snmr', dum3d_t, it, rcode)
-    IF ( rcode == nf90_noerr ) THEN
+  IF ( rcode == nf90_noerr ) THEN
      do k=1,met_nz
       call myinterp(dum3d_t(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
       kk=met_nz-k+1
@@ -1110,7 +1110,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
 !FV3 does not have TKE
   IF ( ( iftke ) .AND. ( iftkef ) ) THEN  ! TKE on full-levels
     CALL get_var_3d_real_cdf (cdfid, 'TKE', dum3d_w, it, rcode)
-    IF ( rcode == nf90_noerr ) THEN
+   IF ( rcode == nf90_noerr ) THEN
      do k=1,met_nz
       call myinterp(dum3d_w(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
       kk=met_nz-k+1
@@ -1121,6 +1121,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
       WRITE (*,f9400) TRIM(pname), 'TKE', TRIM(nf90_strerror(rcode))
       CALL graceful_stop (pname)
     ENDIF
+
   ELSE IF ( ( iftke ) .AND. ( .NOT. iftkef ) ) THEN  ! TKE on half-layers
     CALL get_var_3d_real_cdf (cdfid, 'TKE_MYJ', dum3d_t, it, rcode)
     IF ( rcode == nf90_noerr ) THEN
@@ -1138,7 +1139,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
 
   IF ( ifcld3d ) THEN  ! 3D resolved cloud fraction
     CALL get_var_3d_real_cdf (cdfid, 'cld_amt', dum3d_t, it, rcode)
-    IF ( rcode == nf90_noerr ) THEN
+   IF ( rcode == nf90_noerr ) THEN
      do k=1,met_nz
       call myinterp(dum3d_t(:,:,k),met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,2)
       kk=met_nz-k+1
@@ -1234,7 +1235,6 @@ SUBROUTINE rdfv3 (mcip_now,nn)
           rcold(1:ncols_x,1:nrows_x)*(nn-1))
       endif
       rcold(1:ncols_x,1:nrows_x)=atmp(1:ncols_x,1:nrows_x)
-      	  
       !Convert mass precip rate in FV3 (kg/m2/s) to column amount (cm/hour)
       raincon(1:ncols_x,1:nrows_x)=raincon(1:ncols_x,1:nrows_x)/997.0 * 100.0*3600.
 
@@ -1257,7 +1257,6 @@ SUBROUTINE rdfv3 (mcip_now,nn)
           rnold(1:ncols_x,1:nrows_x)*(nn-1))
       endif
       rnold(1:ncols_x,1:nrows_x)=atmp(1:ncols_x,1:nrows_x)
-      	  
       !Convert mass precip rate in FV3 (kg/m2/s) to column amount (cm/hour)
       rainnon(1:ncols_x,1:nrows_x)=rainnon(1:ncols_x,1:nrows_x)/997.0 * 100.0*3600.
 
@@ -1286,7 +1285,6 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     WRITE (*,f9400) TRIM(pname), 'dlwrf', TRIM(nf90_strerror(rcode))
     CALL graceful_stop (pname)
   ENDIF
-
 
   CALL get_var_2d_real_cdf (cdfid2, 'vtype', dum2d, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
@@ -1441,12 +1439,11 @@ SUBROUTINE rdfv3 (mcip_now,nn)
       WRITE (*,f9400) TRIM(pname), 'RS', TRIM(nf90_strerror(rcode))
       CALL graceful_stop (pname)
     ENDIF
-
   ENDIF
 
     IF ( iflai ) THEN
-      IF ( iflaiwrfout ) THEN  ! leaf area index in FV3 history file
-        CALL get_var_2d_real_cdf (cdfid2, 'LAI', dum2d, it, rcode)
+      IF ( iflaiwrfout ) THEN  ! leaf area index in FV3 history file 
+       CALL get_var_2d_real_cdf (cdfid2, 'LAI', dum2d, it, rcode)
         IF ( rcode == nf90_noerr ) THEN
            call myinterp(dum2d,met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,1)
            lai(1:ncols_x,1:nrows_x) = atmp(1:ncols_x,1:nrows_x)
@@ -1470,7 +1467,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
           CALL graceful_stop (pname)
         ENDIF
         CALL get_var_2d_real_cdf (cdfidg, 'LAI', dum2d, 1, rcode)
-        IF ( rcode == nf90_noerr ) THEN
+         IF ( rcode == nf90_noerr ) THEN
           call myinterp(dum2d,met_nx,met_ny,atmp,xindex,yindex,ncols_x,nrows_x,1)
           lai(1:ncols_x,1:nrows_x) = atmp(1:ncols_x,1:nrows_x)
           WRITE (*,ifmt2) 'LAI ', lai(lprt_metx,lprt_mety)
@@ -1497,6 +1494,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
       CALL graceful_stop (pname)
     ENDIF
   ENDIF
+
   IF ( ifveg ) THEN
       CALL get_var_2d_real_cdf (cdfid2, 'veg', dum2d, it, rcode)
       IF ( rcode == nf90_noerr ) THEN
@@ -1664,6 +1662,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
             WRITE (*,f9400) TRIM(pname), 'LANDUSEF2', TRIM(nf90_strerror(rcode))
             CALL graceful_stop (pname)
           ENDIF
+
           CALL get_var_3d_int_cdf (cdfid2, 'MOSAIC_CAT_INDEX', dum3d_li, it, rcode)
           IF ( rcode == nf90_noerr ) THEN
            do k=1,nummetlu

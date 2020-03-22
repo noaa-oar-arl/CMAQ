@@ -98,13 +98,17 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
   if(.not.allocated(startny)) allocate(startny(p))
   if(.not.allocated(countny)) allocate(countny(p))
 
- ! psizes = 0
- ! CALL MPI_Dims_create(p, 2, psizes, ierr)
- ! print*, 'psizes = ', psizes
-
   rcode = nf90_inq_varid (cdfid, var, id_data)
   IF ( rcode /= nf90_noerr ) RETURN
  
+  
+  !Assign MPI start ranks to read slabs
+!  startnx=(my_rank*nx/p)+1
+!  startny=(my_rank*ny/p)+1
+  !Assign MPI counts to read slabs
+!  countnx=(nx/p)
+!  countny=(ny/p)
+
   !Assign MPI start ranks to read slabs
   mody=mod(ny,p)
   startnx=1 ! (my_rank*nx/p)+1
@@ -174,34 +178,73 @@ SUBROUTINE get_var_3d_int_cdf (cdfid, var, idum3d, it, rcode)
   INTEGER,           INTENT(OUT)   :: rcode
   CHARACTER(LEN=*),  INTENT(IN)    :: var
 
+
   ! MPI stuff: number of processors, rank of this processor, and error
   ! code.
-  INTEGER                          :: p, my_rank, ierr
-  INTEGER                          :: startnx, startny, startnz
-  INTEGER                          :: countnx, countny, countnz
 
-  CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
-  CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
-
+  INTEGER                          :: p, my_rank, ierr, mody
+  INTEGER                          :: startnx
+  INTEGER                          :: countnx,i,mstatus(MPI_STATUS_SIZE)
+  REAL,ALLOCATABLE                 :: data_out(:,:,:)
+  INTEGER, ALLOCATABLE             :: startny(:),countny(:)
 
   nx = SIZE(idum3d,1)
   ny = SIZE(idum3d,2)
   nz = SIZE(idum3d,3)
 
+  CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
+  CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
+ 
+  if(.not.allocated(startny)) allocate(startny(p))
+  if(.not.allocated(countny)) allocate(countny(p))
+
   rcode = nf90_inq_varid (cdfid, var, id_data)
   IF ( rcode /= nf90_noerr ) RETURN
 
-   !Assign MPI start ranks to read slabs
-  startnx=(my_rank*nx/p)+1
-  startny=(my_rank*ny/p)+1
+  !Assign MPI start ranks to read slabs
+  mody=mod(ny,p)
+  startnx=1 ! (my_rank*nx/p)+1
+  countnx=nx !  (nx/p)
   !Assign MPI counts to read slabs
-  countnx=(nx/p)
-  countny=(ny/p)
-  
-  rcode = nf90_var_par_access(cdfid, id_data, nf90_collective) 
-  
-  rcode = nf90_get_var (cdfid, id_data, idum3d, start=(/startnx,startny,1,it/),  &
-                        count=(/countnx,countny,nz,1/))
+  if(mody.eq.0) then
+   countny(:)=ny/p
+   do i=1,p
+   startny(i)=(i-1)*ny/p+1 ! decompose along y direction
+   enddo
+  else
+   countny(1:mody)=(ny-mody)/p+1
+   countny(mody+1:p)=(ny-mody)/p
+   startny(1)=1
+   do i=2,p
+    startny(i)=startny(i-1)+countny(i-1)
+   enddo
+  endif
+
+   !Allocate output array to slab size
+    IF ( .NOT. ALLOCATED ( data_out ) )  &
+    ALLOCATE ( data_out (countnx, countny(my_rank+1), nz ) )
+
+  rcode = nf90_var_par_access(cdfid, id_data, nf90_collective)
+  rcode = nf90_get_var (cdfid, id_data, data_out, &
+  start=(/startnx,startny(my_rank+1),1,it/),  &
+                        count=(/countnx,countny(my_rank+1),nz,1/))
+
+  IF ( rcode /= nf90_noerr ) then
+   print*,'read error',cdfid,var
+   print*,'nx,ny,nz=',nx,ny,nz
+  endif
+
+   if(my_rank.eq.0) then
+    idum3d(1:countnx,1:countny(1),1:nz)=data_out(:,:,:)
+    do i=2,p
+     call mpi_recv(data_out,countnx*countny(i)*nz,MPI_REAL,i-1,MPI_ANY_TAG, &
+        MPI_COMM_WORLD,mstatus,ierr)
+     idum3d(1:countnx,startny(i):startny(i)+countny(i)-1,1:nz)=data_out(1:countnx,1:countny(i),1:nz)
+    enddo
+  else
+   call mpi_send(data_out,countnx*countny(my_rank+1)*nz,MPI_REAL,0,2020, &
+        MPI_COMM_WORLD,ierr)
+  endif
 
 END SUBROUTINE get_var_3d_int_cdf
 
@@ -226,36 +269,70 @@ SUBROUTINE get_var_2d_real_cdf (cdfid, var, dum2d, it, rcode)
 
   ! MPI stuff: number of processors, rank of this processor, and error
   ! code.
-  INTEGER                          :: p, my_rank, ierr
-  INTEGER                          :: startnx, startny
-  INTEGER                          :: countnx, countny
-
-
-  CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
-  CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
+  INTEGER                          :: p, my_rank, ierr, mody
+  INTEGER                          :: startnx
+  INTEGER                          :: countnx,i,mstatus(MPI_STATUS_SIZE)
+  REAL,ALLOCATABLE                 :: data_out(:,:)
+  INTEGER, ALLOCATABLE             :: startny(:),countny(:)
 
   nx = SIZE(dum2d,1)
   ny = SIZE(dum2d,2)
 
+  CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
+  CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
+
+  if(.not.allocated(startny)) allocate(startny(p))
+  if(.not.allocated(countny)) allocate(countny(p))
+
   rcode = nf90_inq_varid (cdfid, var, id_data)
-  IF ( rcode /= nf90_noerr ) then
-   print*,'can not find variable ',trim(var)
-   RETURN
-  endif
-  
-    !Assign MPI start ranks to read slabs
-  startnx=(my_rank*nx/p)+1
-  startny=(my_rank*ny/p)+1
+  IF ( rcode /= nf90_noerr ) RETURN
+
+  !Assign MPI start ranks to read slabs
+  mody=mod(ny,p)
+  startnx=1 ! (my_rank*nx/p)+1
+  countnx=nx !  (nx/p)
   !Assign MPI counts to read slabs
-  countnx=(nx/p)
-  countny=(ny/p)
+  if(mody.eq.0) then
+   countny(:)=ny/p
+   do i=1,p
+   startny(i)=(i-1)*ny/p+1 ! decompose along y direction
+   enddo
+  else
+   countny(1:mody)=(ny-mody)/p+1
+   countny(mody+1:p)=(ny-mody)/p
+   startny(1)=1
+   do i=2,p
+    startny(i)=startny(i-1)+countny(i-1)
+   enddo
+  endif
+
+   !Allocate output array to slab size
+    IF ( .NOT. ALLOCATED ( data_out ) )  &
+    ALLOCATE ( data_out (countnx, countny(my_rank+1)) )
+
 
   rcode = nf90_var_par_access(cdfid, id_data, nf90_collective)
 
-  rcode = nf90_get_var (cdfid, id_data, dum2d, start=(/startnx,startny,it/),  &
-                        count=(/countnx,countny,1/))
-  IF ( rcode /= nf90_noerr ) print*,'read error for ',trim(var),&
-   ' id_data,it,nx,ny=',id_data,it,nx,ny
+  rcode = nf90_get_var (cdfid, id_data, data_out, &
+  start=(/startnx,startny(my_rank+1),it/),  &
+                        count=(/countnx,countny(my_rank+1),1/))
+
+  IF ( rcode /= nf90_noerr ) then
+   print*,'read error',cdfid,var
+   print*,'nx,ny',nx,ny
+  endif
+
+   if(my_rank.eq.0) then
+    dum2d(1:countnx,1:countny(1))=data_out(:,:)
+    do i=2,p
+     call mpi_recv(data_out,countnx*countny(i),MPI_REAL,i-1,MPI_ANY_TAG, &
+        MPI_COMM_WORLD,mstatus,ierr)
+     dum2d(1:countnx,startny(i):startny(i)+countny(i)-1)=data_out(1:countnx,1:countny(i))
+    enddo
+  else
+   call mpi_send(data_out,countnx*countny(my_rank+1),MPI_REAL,0,2020, &
+        MPI_COMM_WORLD,ierr)
+  endif
 
 END SUBROUTINE get_var_2d_real_cdf
 
@@ -280,30 +357,71 @@ SUBROUTINE get_var_2d_int_cdf (cdfid, var, idum2d, it, rcode)
   
   ! MPI stuff: number of processors, rank of this processor, and error
   ! code.
-  INTEGER                          :: p, my_rank, ierr
-  INTEGER                          :: startnx, startny
-  INTEGER                          :: countnx, countny
 
-  CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
-  CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
+  INTEGER                          :: p, my_rank, ierr, mody
+  INTEGER                          :: startnx
+  INTEGER                          :: countnx,i,mstatus(MPI_STATUS_SIZE)
+  REAL,ALLOCATABLE                 :: data_out(:,:)
+  INTEGER, ALLOCATABLE             :: startny(:),countny(:)
 
   nx = SIZE(idum2d,1)
   ny = SIZE(idum2d,2)
 
+  CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
+  CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
+
+  
+  if(.not.allocated(startny)) allocate(startny(p))
+  if(.not.allocated(countny)) allocate(countny(p))
+
   rcode = nf90_inq_varid (cdfid, var, id_data)
   IF ( rcode /= nf90_noerr ) RETURN
 
-    !Assign MPI start ranks to read slabs
-  startnx=(my_rank*nx/p)+1
-  startny=(my_rank*ny/p)+1
+  !Assign MPI start ranks to read slabs
+  mody=mod(ny,p)
+  startnx=1 ! (my_rank*nx/p)+1
+  countnx=nx !  (nx/p)
   !Assign MPI counts to read slabs
-  countnx=(nx/p)
-  countny=(ny/p)
+  if(mody.eq.0) then
+   countny(:)=ny/p
+   do i=1,p
+   startny(i)=(i-1)*ny/p+1 ! decompose along y direction
+   enddo
+  else
+   countny(1:mody)=(ny-mody)/p+1
+   countny(mody+1:p)=(ny-mody)/p
+   startny(1)=1
+   do i=2,p
+    startny(i)=startny(i-1)+countny(i-1)
+   enddo
+  endif
+
+   !Allocate output array to slab size
+    IF ( .NOT. ALLOCATED ( data_out ) )  &
+    ALLOCATE ( data_out (countnx, countny(my_rank+1)) )
   
   rcode = nf90_var_par_access(cdfid, id_data, nf90_collective)
 
-  rcode = nf90_get_var (cdfid, id_data, idum2d, start=(/startnx,startny,it/),  &
-                        count=(/countnx,countny,1/))
+  rcode = nf90_get_var (cdfid, id_data, data_out, &
+  start=(/startnx,startny(my_rank+1),it/),  &
+                        count=(/countnx,countny(my_rank+1),1/))
+
+  IF ( rcode /= nf90_noerr ) then
+   print*,'read error',cdfid,var
+   print*,'nx,ny',nx,ny
+  endif
+
+   if(my_rank.eq.0) then
+    idum2d(1:countnx,1:countny(1))=data_out(:,:)
+    do i=2,p
+     call mpi_recv(data_out,countnx*countny(i),MPI_REAL,i-1,MPI_ANY_TAG, &
+        MPI_COMM_WORLD,mstatus,ierr)
+     idum2d(1:countnx,startny(i):startny(i)+countny(i)-1)=data_out(1:countnx,1:countny(i))
+    enddo
+  else
+   call mpi_send(data_out,countnx*countny(my_rank+1),MPI_REAL,0,2020, &
+        MPI_COMM_WORLD,ierr)
+  endif
 
 END SUBROUTINE get_var_2d_int_cdf
 
