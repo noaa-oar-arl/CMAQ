@@ -27,6 +27,8 @@ SUBROUTINE outgm3io (sdate, stime)
 !                        of fractional land use from lucro.f90.  (T. Spero)
 !           09 Jul 2019  Corrected output time step to 0 for time-invariant
 !                        file LUFRAC_CRO.  (T. Spero)
+!           22 Mar 2020  Added MPI capability to speed up nf90 reads (P. C.
+!                         Campbell)
 !-------------------------------------------------------------------------------
 
   USE mcipparm
@@ -35,6 +37,7 @@ SUBROUTINE outgm3io (sdate, stime)
   USE coord
   USE files
   USE m3utilio
+  USE mpi
 
   IMPLICIT NONE
 
@@ -59,6 +62,13 @@ SUBROUTINE outgm3io (sdate, stime)
     & /, 1x, '*** SUBROUTINE: ', a, &
     & /, 1x, '***   ERROR WRITING TO FILE ', a, &
     & /, 1x, 70('*'))"
+
+
+! MPI stuff: number of processors, rank of this processor, and error
+! code.
+    INTEGER                          :: my_rank, ierr
+
+  CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
 
 !-------------------------------------------------------------------------------
 ! Build common header for I/O API files.
@@ -119,11 +129,13 @@ SUBROUTINE outgm3io (sdate, stime)
   ENDIF
 
   DO n = 1, nfld2dxy
+   if(my_rank.eq.0) then
     IF ( .NOT. write3 (gridcro2d, vname3d(n), sdate, stime,  &
                        fld2dxy(n)%fld) ) THEN
       WRITE (*,f9100) TRIM(pname), TRIM(gridcro2d)
       CALL graceful_stop (pname)
     ENDIF
+   endif
   ENDDO
 
 !-------------------------------------------------------------------------------
@@ -143,11 +155,13 @@ SUBROUTINE outgm3io (sdate, stime)
   ENDIF
 
   DO n = 1, nfld2dxy
+   if(my_rank.eq.0) then
     IF ( .NOT. write3 (gridbdy2d, vname3d(n), sdate, stime,  &
                        fld2dxy(n)%bdy) ) THEN
       WRITE (*,f9100) TRIM(pname), TRIM(gridbdy2d)
       CALL graceful_stop (pname)
     ENDIF
+   endif
   ENDDO
 
 !-------------------------------------------------------------------------------
@@ -202,11 +216,13 @@ SUBROUTINE outgm3io (sdate, stime)
   ENDIF
 
   DO n = 1, nfld2dxy_d
+   if(my_rank.eq.0) then
     IF ( .NOT. write3 (griddot2d, vname3d(n), sdate, stime,  &
                        fld2dxy_d(n)%fld) ) THEN
       WRITE (*,f9100) TRIM(pname), TRIM(griddot2d)
       CALL graceful_stop (pname)
     ENDIF
+   endif
   ENDDO
 
 !-------------------------------------------------------------------------------
@@ -256,11 +272,13 @@ SUBROUTINE outgm3io (sdate, stime)
     ENDIF
 
     DO n = 1, nfld3dxyl
+     if(my_rank.eq.0) then
       IF ( .NOT. write3 (lufraccro, vname3d(n), sdate, stime,  &
                          fld3dxyl(n)%fld) ) THEN
         WRITE (*,f9100) TRIM(pname), TRIM(lufraccro)
         CALL graceful_stop (pname)
       ENDIF
+     endif
     ENDDO
 
   ENDIF

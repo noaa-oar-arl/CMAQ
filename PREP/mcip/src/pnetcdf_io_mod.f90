@@ -83,8 +83,8 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
   ! code.
 
   INTEGER                          :: p, my_rank, ierr, mody
-  INTEGER                          :: startnx
-  INTEGER                          :: countnx,i,mstatus(MPI_STATUS_SIZE)
+  INTEGER                          :: startnx,countnx
+  INTEGER                          :: i,mstatus(MPI_STATUS_SIZE)
   REAL,ALLOCATABLE                 :: data_out(:,:,:)
   INTEGER, ALLOCATABLE             :: startny(:),countny(:)
 
@@ -101,14 +101,6 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
   rcode = nf90_inq_varid (cdfid, var, id_data)
   IF ( rcode /= nf90_noerr ) RETURN
  
-  
-  !Assign MPI start ranks to read slabs
-!  startnx=(my_rank*nx/p)+1
-!  startny=(my_rank*ny/p)+1
-  !Assign MPI counts to read slabs
-!  countnx=(nx/p)
-!  countny=(ny/p)
-
   !Assign MPI start ranks to read slabs
   mody=mod(ny,p)
   startnx=1 ! (my_rank*nx/p)+1
@@ -128,7 +120,7 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
    enddo
   endif
 
-  !print*,'p,my_rank,startnx,startny,countnx,countny=',p,my_rank,startnx,startny,countnx,countny
+!  print*,'p,my_rank,startnx,startny,countnx,countny=',p,my_rank,startnx,startny,countnx,countny
    !Allocate output array to slab size
     IF ( .NOT. ALLOCATED ( data_out ) )  &
     ALLOCATE ( data_out (countnx, countny(my_rank+1), nz ) ) 
