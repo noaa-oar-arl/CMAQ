@@ -100,7 +100,7 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
 
   rcode = nf90_inq_varid (cdfid, var, id_data)
   IF ( rcode /= nf90_noerr ) RETURN
- 
+  print*, 'timing 1....' 
   !Assign MPI start ranks to read slabs
   mody=mod(ny,p)
   startnx=1 ! (my_rank*nx/p)+1
@@ -119,7 +119,7 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
     startny(i)=startny(i-1)+countny(i-1)
    enddo
   endif
-
+  print*, 'timing 2....'
 !  print*,'p,my_rank,startnx,startny,countnx,countny=',p,my_rank,startnx,startny,countnx,countny
    !Allocate output array to slab size
     IF ( .NOT. ALLOCATED ( data_out ) )  &
@@ -127,15 +127,16 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
 
   rcode = nf90_var_par_access(cdfid, id_data, nf90_collective)
   !print*,'start read ',my_rank
+  print*, 'timing 3....'
   rcode = nf90_get_var (cdfid, id_data, data_out, start=(/startnx,startny(my_rank+1),1,it/),  &
                         count=(/countnx,countny(my_rank+1),nz,1/))
-
+  print*, 'timing 4....'
   IF ( rcode /= nf90_noerr ) then
    print*,'read error',cdfid,var
    print*,'nx,ny,nz=',nx,ny,nz
   endif 
  ! print*,'finish read ',my_rank
-  
+  print*, 'timing 5....'
    if(my_rank.eq.0) then
     dum3d(1:countnx,1:countny(1),1:nz)=data_out(:,:,:)
     do i=2,p
@@ -147,7 +148,7 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
    call mpi_send(data_out,countnx*countny(my_rank+1)*nz,MPI_REAL,0,2020, &
         MPI_COMM_WORLD,ierr)
   endif
-
+  print*, 'timing 6....'
 END SUBROUTINE get_var_3d_real_cdf
 
 !-------------------------------------------------------------------------------
