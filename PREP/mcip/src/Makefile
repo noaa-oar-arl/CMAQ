@@ -54,12 +54,13 @@ FC      = ifort
 #NETCDF =  /opt/cray/netcdf-hdf5parallel/4.4.1.1/INTEL/150
 #NETCDF =  /opt/cray/netcdf-hdf5parallel/4.3.2/INTEL/140
 #NETCDF  = /gpfs/hps/usrx/local/prod/NetCDF/4.2/intel/sandybridge
+NETCDF  =  /opt/cray/netcdf-hdf5parallel/4.4.1/INTEL/15.0
 #serial
 #NETCDF =  /opt/cray/netcdf/4.3.2/INTEL/140/
 #AAQEST
 #NETCDF =  /opt/netcdf4
 #Hera Princeton...Parallel netCDF I/O with HDF5 support
-NETCDF = /apps/netcdf/4.7.0/intel/18.0.5.274/impi/2018.0.4
+#NETCDF = /apps/netcdf/4.7.0/intel/18.0.5.274/impi/2018.0.4
 #Parallel NetCDF standalone (no HDF5 support)
 #PNETCDF = /apps/pnetcdf/1.10.0/intel/16.1.150/impi/5.1.2.150
 #Serial
@@ -68,18 +69,19 @@ NETCDF = /apps/netcdf/4.7.0/intel/18.0.5.274/impi/2018.0.4
 
 #IOAPI Settings
 #WCOSS-Cray
-#IOAPI_ROOT = /gpfs/hps3/emc/naqfc/noscrub/Youhua.Tang/CMAQ/ioapi-3.2/Linux2_x86_64ifort
+IOAPI_ROOT = /gpfs/hps3/emc/naqfc/noscrub/Youhua.Tang/CMAQ/ioapi-3.2/Linux2_x86_64ifort
 #ARL-AAQEST-Local
 #IOAPI_ROOT = /data/aqf/youhuat/CMAQ/ioapi-3.2/Linux2_x86_64ifort
 #Hera-Princeton
-IOAPI_ROOT = /scratch2/NCEPDEV/naqfc/Youhua.Tang/CMAQ/ioapi-3.2/Linux2_x86_64ifort
+#IOAPI_ROOT = /scratch2/NCEPDEV/naqfc/Youhua.Tang/CMAQ/ioapi-3.2/Linux2_x86_64ifort
 
 #MPI Settings for parallel
 #WCOSS-Cray
 #MPI_ROOT = /opt/cray/mpt/7.2.0/gni/mpich2-intel/140
+MPI_ROOT = /opt/cray/mpt/7.3.1/gni/mpich-intel/14.0
 #Hera Princeton
 #MPI_ROOT = /apps/mvapich2/2.3/intel/18.0.5.274
-MPI_ROOT = /apps/intel/compilers_and_libraries_2018/linux/mpi/intel64
+#MPI_ROOT = /apps/intel/compilers_and_libraries_2018/linux/mpi/intel64
 #Parallel
 FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT) -I$(MPI_ROOT)/include
 #FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT) -I$(MPI_ROOT)/include
@@ -90,9 +92,9 @@ FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT) -I$(MPI_ROOT)/i
 
 #WCOSS-Cray
 #Parallel
-#LIBS     = -L$(IOAPI_ROOT) -lioapi \
-#          -L$(NETCDF)/lib -lnetcdf -lnetcdff -lnetcdf_parallel -lnetcdff_parallel -openmp \
-#          -L$(MPI_ROOT)/lib -lmpich
+LIBS     = -L$(IOAPI_ROOT) -lioapi \
+          -L$(NETCDF)/lib -lnetcdf -lnetcdff -lnetcdf_parallel -lnetcdff_parallel -openmp \
+          -L$(MPI_ROOT)/lib -lmpich
 #Serial
 #LIBS     = -L$(IOAPI_ROOT) -lioapi \
 #          -L$(NETCDF)/lib -lnetcdf -lnetcdff -openmp 
@@ -104,9 +106,9 @@ FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT) -I$(MPI_ROOT)/i
 #          -L$(NETCDF)/lib -lnetcdf -lnetcdff -qopenmp \
 #          -L$(MPI_ROOT)/lib -lmpifort
 #Hera-Princeton
-LIBS    = -L$(IOAPI_ROOT) -lioapi \
-          -L$(NETCDF)/lib -lnetcdf -lnetcdff -qopenmp \
-          -L$(MPI_ROOT)/lib -lmpi -lmpifort
+#LIBS    = -L$(IOAPI_ROOT) -lioapi \
+#          -L$(NETCDF)/lib -lnetcdf -lnetcdff -qopenmp \
+#          -L$(MPI_ROOT)/lib -lmpi -lmpifort
 
 #          -L$(MPI_ROOT)/lib -lfmpich
 #          -L$(MPI_ROOT)/lib -lmpich
