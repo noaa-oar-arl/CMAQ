@@ -82,7 +82,7 @@ PROGRAM mcip
   USE date_pack
   USE date_time
   USE files
-  USE mpi
+ ! USE mpi
 
   IMPLICIT NONE
 
@@ -92,7 +92,7 @@ PROGRAM mcip
   CHARACTER(LEN=24)                 :: mcip_now   ! YYYY-MO-DD-HH:MI:SS.SSSS 
   integer   :: nn
   ! MPI stuff: error code.
-  integer   :: ierr 
+!  integer   :: ierr 
 !-------------------------------------------------------------------------------
 ! Error, warning, and informational messages.
 !-------------------------------------------------------------------------------
@@ -159,7 +159,7 @@ PROGRAM mcip
 ! Initialize MPI before read meteorology input.
 !-------------------------------------------------------------------------------
 
-  CALL MPI_Init(ierr)
+!  CALL MPI_Init(ierr)
 
 !-------------------------------------------------------------------------------
 ! Loop over time to get input, process fields, and write output.
@@ -199,7 +199,7 @@ PROGRAM mcip
 ! Shutdown MPI.
 !-------------------------------------------------------------------------------
 
-  CALL MPI_Finalize(ierr)
+!  CALL MPI_Finalize(ierr)
 
 !-------------------------------------------------------------------------------
 ! Deallocate arrays.

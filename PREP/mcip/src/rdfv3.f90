@@ -190,10 +190,11 @@ SUBROUTINE rdfv3 (mcip_now,nn)
   USE metvars
   USE coord
   USE mcipparm
-  USE pnetcdf_io
+!  USE pnetcdf_io
+  USE netcdf_io
   USE netcdf
   USE m3utilio
-  USE mpi
+!  USE mpi
 
   IMPLICIT NONE
 
@@ -781,17 +782,17 @@ SUBROUTINE rdfv3 (mcip_now,nn)
 ! open files and check headers
 ! added parallel netcdf mpi arguments
   write(str3,'(i3.3)')nn-1
-  rcode = nf90_open (trim(file_mm(1))//str3//trim(file_mm(2)), nf90_nowrite, cdfid, &
-                     comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)    
-!  rcode = nf90_open (trim(file_mm(1))//str3//trim(file_mm(2)), nf90_nowrite,cdfid)
+!  rcode = nf90_open (trim(file_mm(1))//str3//trim(file_mm(2)), nf90_nowrite, cdfid, &
+!                     comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)    
+  rcode = nf90_open (trim(file_mm(1))//str3//trim(file_mm(2)), nf90_nowrite,cdfid)
 
   IF ( rcode /= nf90_noerr ) THEN
    print*,'error open ATM file', nn,str3,trim(file_mm(1))//str3//trim(file_mm(2))
    call graceful_stop (pname)
   endif 
-  rcode2 = nf90_open (trim(file_sfc(1))//str3//trim(file_sfc(2)), nf90_nowrite, cdfid2, &
-                      comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)
-!  rcode2 = nf90_open (trim(file_sfc(1))//str3//trim(file_sfc(2)), nf90_nowrite,cdfid2)
+!  rcode2 = nf90_open (trim(file_sfc(1))//str3//trim(file_sfc(2)), nf90_nowrite, cdfid2, &
+!                      comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)
+  rcode2 = nf90_open (trim(file_sfc(1))//str3//trim(file_sfc(2)), nf90_nowrite,cdfid2)
 
   IF ( rcode2 /= nf90_noerr ) THEN
    print*,'error open SFC file', nn,str3,trim(file_sfc(1))//str3//trim(file_sfc(2))
@@ -1462,9 +1463,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
         ENDIF
       ELSE  ! leaf area index in GEOGRID file from WPS
        flg = file_geo
-        rcode = nf90_open (flg, nf90_nowrite, cdfidg, &
-                           comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)
-!        rcode = nf90_open (flg, nf90_nowrite, cdfidg)
+!        rcode = nf90_open (flg, nf90_nowrite, cdfidg, &
+!                           comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)
+        rcode = nf90_open (flg, nf90_nowrite, cdfidg)
         IF ( rcode /= nf90_noerr ) THEN
           WRITE (*,f9900) TRIM(pname)
           CALL graceful_stop (pname)
@@ -1677,9 +1678,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
         ENDIF
       ELSE  ! land use fractions in GEOGRID file from WPS
         flg = file_geo
-        rcode = nf90_open (flg, nf90_nowrite, cdfidg, &
-                           comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)
-!        rcode = nf90_open (flg, nf90_nowrite, cdfidg)
+!        rcode = nf90_open (flg, nf90_nowrite, cdfidg, &
+!                           comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)
+        rcode = nf90_open (flg, nf90_nowrite, cdfidg)
         IF ( rcode /= nf90_noerr ) THEN
           WRITE (*,f9900) TRIM(pname)
           CALL graceful_stop (pname)
