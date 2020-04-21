@@ -95,7 +95,7 @@ export MOSAIC_CRO=${APPL}.mosaiccro.ncf
 rm -f *.ncf 
 
 #Serial
-$ProgDir/mcip.exe
+#$ProgDir/mcip.exe
 
-#Time splitting LSF
-#aprun -n${PROCS} -N${NODES} $ProgDir/mcip.exe
+# LSF
+aprun -n${PROCS} -N${NODES} $ProgDir/mcip.exe
