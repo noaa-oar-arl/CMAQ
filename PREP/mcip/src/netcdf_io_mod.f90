@@ -76,18 +76,21 @@ SUBROUTINE get_var_3d_real_cdf (cdfid, var, dum3d, it, rcode)
   INTEGER,           INTENT(OUT)   :: rcode
   CHARACTER(LEN=*),  INTENT(IN)    :: var
 
+
   nx = SIZE(dum3d,1)
   ny = SIZE(dum3d,2)
   nz = SIZE(dum3d,3)
+    
   rcode = nf90_inq_varid (cdfid, var, id_data)
   IF ( rcode /= nf90_noerr ) RETURN
 
   rcode = nf90_get_var (cdfid, id_data, dum3d, start=(/1,1,1,it/),  &
                         count=(/nx,ny,nz,1/))
+
   IF ( rcode /= nf90_noerr ) then
    print*,'read error ',cdfid,var
    print*,'nx,ny,nz=',nx,ny,nz
-  endif 
+  endif
 END SUBROUTINE get_var_3d_real_cdf
 
 !-------------------------------------------------------------------------------

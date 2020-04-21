@@ -17,9 +17,9 @@
 module purge
 module load PrgEnv-intel/5.2.82
 module load cray-netcdf/4.3.2
-module load cray-mpich/7.2.0
+#module load cray-mpich/7.2.0
 
-export PROCS=24
+export PROCS=1
 export NODES=1
 export IOBUF_PARAMS="128M:verbose"
 

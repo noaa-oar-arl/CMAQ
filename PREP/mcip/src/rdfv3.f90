@@ -920,7 +920,7 @@ SUBROUTINE rdfv3 (mcip_now,nn)
 
   CALL get_var_3d_real_cdf (cdfid, 'vgrd', dum3d_v, it, rcode)
   IF ( rcode == nf90_noerr ) THEN
-   do k=1,met_nz
+  do k=1,met_nz
     call myinterp(dum3d_v(:,:,k),met_nx,met_ny,utmp,xdindex,ydindex,ncols_x+1,nrows_x+1,2)
     
     kk=met_nz-k+1

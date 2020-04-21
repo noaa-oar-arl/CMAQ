@@ -3,7 +3,7 @@
 APPL=aqm.t12z
 InMetDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly
 InGeoDir=$InMetDir
-OutDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test/fv3gfs_v16_test/output
+OutDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test/output
 ProgDir=/gpfs/hps3/emc/naqfc/noscrub/Patrick.C.Campbell/CMAQ_REPO/PREP/mcip/src
 
 if [ ! -s $InMetDir ]; then
@@ -95,7 +95,7 @@ export MOSAIC_CRO=${APPL}.mosaiccro.ncf
 rm -f *.ncf 
 
 #Serial
-#$ProgDir/mcip.exe
+$ProgDir/mcip.exe
 
 #Time splitting LSF
-aprun -n${PROCS} -N${NODES} $ProgDir/mcip.exe
+#aprun -n${PROCS} -N${NODES} $ProgDir/mcip.exe
