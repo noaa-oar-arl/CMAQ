@@ -1,10 +1,10 @@
 #!/bin/ksh -l
 
 APPL=aqm.t12z
-InMetDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly
+InMetDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test/12z_hourly
 InGeoDir=$InMetDir
-OutDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/fv3gfs_v16_test/output
-ProgDir=/scratch2/NAGAPE/arl/Patrick.C.Campbell/models/CMAQ_REPO/PREP/mcip/src
+OutDir=/gpfs/hps2/ptmp/Patrick.C.Campbell/fv3gfs_v16_test/fv3gfs_v16_test/output
+ProgDir=/gpfs/hps3/emc/naqfc/noscrub/Patrick.C.Campbell/CMAQ_REPO/PREP/mcip/src
 
 if [ ! -s $InMetDir ]; then
   echo "No such input directory $InMetDir"
@@ -36,7 +36,7 @@ cat>namelist.mcip<<!
   file_gd    = 'GRIDDESC'
   file_mm    = '$InMetDir/gfs.t12z.atmf','.nc'
   file_sfc   = '$InMetDir/gfs.t12z.sfcf','.nc'
-  file_geo   = '$InGeoDir/gfs.t12z.geo.01.nc'
+  file_geo   = '$InGeoDir/gfs.t12z.geo.07.nc'
   ioform     =  1
  &END
 
@@ -49,8 +49,8 @@ cat>namelist.mcip<<!
   lpv        =  0
   lwout      =  1
   luvbout    =  1
-  mcip_start = "2020-01-12-12:00:00.0000"
-  mcip_end   = "2020-01-12-13:00:00.0000"
+  mcip_start = "2019-07-12-12:00:00.0000"
+  mcip_end   = "2019-07-13-13:00:00.0000"
   intvl      =  60
   coordnam   = "FV3_RPO"
   grdnam     = "FV3_CONUS"
@@ -64,7 +64,7 @@ cat>namelist.mcip<<!
   btrim      =  -1
   lprt_col   =  0
   lprt_row   =  0
-  ntimes     = 2
+  ntimes     = 24
   wrf_lc_ref_lat = 40.0
   projparm = 2., 33.,45., -97., -97., 40.
   domains = -2508000., -1716000., 12000., 12000., 442, 265
@@ -97,11 +97,5 @@ rm -f *.ncf
 #Serial
 #$ProgDir/mcip.exe
 
-#Parallel test for your system, determine necessary Nodes
-#srun -l /usr/bin/time $ProgDir/mcip.exe
-
-#Parallel MPI Slurm
-srun -n${PROCS} -N${NODES} $ProgDir/mcip.exe
-
-#Parallel MPI LSF
-#aprun -n${PROCS} -N${NODES} $ProgDir/mcip.exe
+#Time splitting LSF
+aprun -n${PROCS} -N${NODES} $ProgDir/mcip.exe

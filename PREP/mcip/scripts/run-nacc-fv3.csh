@@ -93,14 +93,8 @@ setenv MOSAIC_CRO  ${APPL}.mosaiccro.ncf
 
 rm -f *.ncf
 #Serial
-#$ProgDir/mcip.exe
+$ProgDir/mcip.exe
 
-#Parallel test for your system, determine necessary Nodes
-srun -l /usr/bin/time $ProgDir/mcip.exe
-
-#Parallel MPI Slurm
-#srun -n${PROCS} -N${NODES} $ProgDir/mcip.exe
-
-#Parallel MPI LSF
+#Time splitting LSF
 #aprun -n${PROCS} -N${NODES} $ProgDir/mcip.exe
 
