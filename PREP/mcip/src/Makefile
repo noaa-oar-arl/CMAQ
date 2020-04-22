@@ -47,7 +47,6 @@ MODEL = mcip.exe
 
 #...Intel Fortran
 FC      = ifort
-#FC      = ftn
 
 #NetCDF Settings
 NETCDF =  /opt/cray/netcdf/4.3.2/INTEL/140/
