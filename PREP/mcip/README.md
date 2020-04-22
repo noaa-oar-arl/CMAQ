@@ -135,7 +135,7 @@ cd $CMAQ_HOME/PREP/mcip/scripts
 |**File Name**|**Format**|**Description**|**Required**|
 |------------|------------------------------|-----------------------------------------------------|---------------------|
 |InMetFiles|netCDF (WRF or FV3-GFS)|List of WRF or FV3-GFS output files for input to NACC|required|
-|InSfcFiles|netCDF (FV3-GFS)|List of FV3-GFS output files for input to NACC|required|
+|InSfcFiles|netCDF (FV3-GFS)|List of FV3-GFS output files for input to NACC|required (only FV3-GFS)|
 |InGeoFile|netCDF (WRFor FV3-GFS)|Output from WRF or FV3-GFS Geogrid processor|optional; only required if fractional land use, LAI, etc are not part of the WRF or FV3-GFS output|
 
 
