@@ -74,15 +74,12 @@ PROGRAM mcip
 !                        (T. Spero)
 !           09 Jul 2019  Remove argument CTMLAYS from subroutine READNML.
 !                        (T. Spero)
-!           11 Mar 2020  Added MPI capability to speed up nf90 reads (P. C.
-!                         Campbell)
 !-------------------------------------------------------------------------------
 
   USE mcipparm
   USE date_pack
   USE date_time
   USE files
- ! USE mpi
 
   IMPLICIT NONE
 
@@ -91,8 +88,6 @@ PROGRAM mcip
   CHARACTER(LEN=24)                 :: mcip_next  ! YYYY-MO-DD-HH:MI:SS.SSSS
   CHARACTER(LEN=24)                 :: mcip_now   ! YYYY-MO-DD-HH:MI:SS.SSSS 
   integer   :: nn
-  ! MPI stuff: error code.
-!  integer   :: ierr 
 !-------------------------------------------------------------------------------
 ! Error, warning, and informational messages.
 !-------------------------------------------------------------------------------
@@ -156,12 +151,6 @@ PROGRAM mcip
   CALL vertarys (ctmlays)
 
 !-------------------------------------------------------------------------------
-! Initialize MPI before read meteorology input.
-!-------------------------------------------------------------------------------
-
-!  CALL MPI_Init(ierr)
-
-!-------------------------------------------------------------------------------
 ! Loop over time to get input, process fields, and write output.
 !-------------------------------------------------------------------------------
   if(ntimes.le.0) ntimes=999999999 ! assign a large number
@@ -194,12 +183,6 @@ PROGRAM mcip
 
   WRITE (*,f200)
   WRITE (*,'(a)') fdesc(:)
-
-!-------------------------------------------------------------------------------
-! Shutdown MPI.
-!-------------------------------------------------------------------------------
-
-!  CALL MPI_Finalize(ierr)
 
 !-------------------------------------------------------------------------------
 ! Deallocate arrays.

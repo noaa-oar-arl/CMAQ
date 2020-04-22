@@ -180,8 +180,6 @@ SUBROUTINE rdfv3 (mcip_now,nn)
 !           24 Feb 2020  Adapted for FV3GFSv16 at NOAA-ARL (P. C. Campbell)
 !           24 Feb 2020  Added horiz LCC interpolation and wind rotation 
 !                        Y. Tang and P. C. Campbell)
-!           11 Mar 2020  Added MPI capability to speed up nf90 reads (P. C.
-!                         Campbell)
 !-------------------------------------------------------------------------------
 
   USE date_pack
@@ -190,11 +188,9 @@ SUBROUTINE rdfv3 (mcip_now,nn)
   USE metvars
   USE coord
   USE mcipparm
-!  USE pnetcdf_io
   USE netcdf_io
   USE netcdf
   USE m3utilio
-!  USE mpi
 
   IMPLICIT NONE
 
@@ -443,11 +439,6 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     & /, 1x, '***   WILL DEFINE FROM OTHER FIELDS LATER', &
     & /, 1x, 70('*'))"
 
-  ! MPI stuff: number of processors, rank of this processor, and error
-  ! code.
-  ! INTEGER                          :: p, my_rank, ierr
-  ! INTEGER                          :: startnx, startny
-  ! INTEGER                          :: endnx, endny
 !-------------------------------------------------------------------------------
 ! Interfaces for FV3GFS getxyindex, horizontal interpolation, and wind rotation
 ! 
@@ -498,13 +489,6 @@ SUBROUTINE rdfv3 (mcip_now,nn)
     END SUBROUTINE windrotation
 
   END INTERFACE
-
-!-------------------------------------------------------------------------------
-! Learn MPI local rank and total number of processors.
-!-------------------------------------------------------------------------------
-
-!   CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
-!   CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr)
 
 !-------------------------------------------------------------------------------
 ! Define additional staggered grid dimensions. (***No staggered FV3 dimensions,e.g., nxm=met_nx***)
@@ -780,18 +764,13 @@ SUBROUTINE rdfv3 (mcip_now,nn)
   endif
 
 ! open files and check headers
-! added parallel netcdf mpi arguments
   write(str3,'(i3.3)')nn-1
-!  rcode = nf90_open (trim(file_mm(1))//str3//trim(file_mm(2)), nf90_nowrite, cdfid, &
-!                     comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)    
   rcode = nf90_open (trim(file_mm(1))//str3//trim(file_mm(2)), nf90_nowrite,cdfid)
 
   IF ( rcode /= nf90_noerr ) THEN
    print*,'error open ATM file', nn,str3,trim(file_mm(1))//str3//trim(file_mm(2))
    call graceful_stop (pname)
   endif 
-!  rcode2 = nf90_open (trim(file_sfc(1))//str3//trim(file_sfc(2)), nf90_nowrite, cdfid2, &
-!                      comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)
   rcode2 = nf90_open (trim(file_sfc(1))//str3//trim(file_sfc(2)), nf90_nowrite,cdfid2)
 
   IF ( rcode2 /= nf90_noerr ) THEN
@@ -1462,8 +1441,6 @@ SUBROUTINE rdfv3 (mcip_now,nn)
         ENDIF
       ELSE  ! leaf area index in GEOGRID file from WPS
        flg = file_geo
-!        rcode = nf90_open (flg, nf90_nowrite, cdfidg, &
-!                           comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)
         rcode = nf90_open (flg, nf90_nowrite, cdfidg)
         IF ( rcode /= nf90_noerr ) THEN
           WRITE (*,f9900) TRIM(pname)
@@ -1677,8 +1654,6 @@ SUBROUTINE rdfv3 (mcip_now,nn)
         ENDIF
       ELSE  ! land use fractions in GEOGRID file from WPS
         flg = file_geo
-!        rcode = nf90_open (flg, nf90_nowrite, cdfidg, &
-!                           comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)
         rcode = nf90_open (flg, nf90_nowrite, cdfidg)
         IF ( rcode /= nf90_noerr ) THEN
           WRITE (*,f9900) TRIM(pname)

@@ -48,15 +48,12 @@ SUBROUTINE setup (ctmlays)
 !           14 Sep 2018  Removed support for MM5v3 input.  (T. Spero)
 !           15 Nov 2018  Allow WRFv4.0 input to be used.  (T. Spero)
 !           18 Nov 2019  Modified for FV3GFS Capability. (P. C. Campbell)
-!           11 Mar 2020  Added MPI capability to speed up nf90 reads (P. C.
-!                         Campbell)
 !-------------------------------------------------------------------------------
 
   USE mcipparm
   USE metinfo
   USE files
   USE netcdf
-  !USE mpi
 
   IMPLICIT NONE
 
@@ -159,10 +156,6 @@ SUBROUTINE setup (ctmlays)
     ENDIF
 
    ELSE  ! FV3
-!    rcode = nf90_open (trim(file_mm(1))//'000'//trim(file_mm(2)), nf90_nowrite, cdfid, &
-!                     comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)    
-!    rcode2 = nf90_open (trim(file_sfc(1))//'000'//trim(file_sfc(2)), nf90_nowrite, cdfid2, &
-!                     comm = MPI_COMM_WORLD, info = MPI_INFO_NULL)
 
         rcode = nf90_open (trim(file_mm(1))//'000'//trim(file_mm(2)),nf90_nowrite, cdfid)
         rcode2 = nf90_open (trim(file_sfc(1))//'000'//trim(file_sfc(2)),nf90_nowrite, cdfid2)
