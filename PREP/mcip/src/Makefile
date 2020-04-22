@@ -76,26 +76,26 @@ IOAPI_ROOT = /gpfs/hps3/emc/naqfc/noscrub/Youhua.Tang/CMAQ/ioapi-3.2/Linux2_x86_
 
 #MPI Settings for parallel
 #WCOSS-Cray
-#MPI_ROOT = /opt/cray/mpt/7.2.0/gni/mpich2-intel/140
+MPI_ROOT = /opt/cray/mpt/7.2.0/gni/mpich2-intel/140
 #Hera Princeton
 #MPI_ROOT = /apps/mvapich2/2.3/intel/18.0.5.274
 #MPI_ROOT = /apps/intel/compilers_and_libraries_2018/linux/mpi/intel64
 #Parallel
-#FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT) -I$(MPI_ROOT)/include
+FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT) -I$(MPI_ROOT)/include
 #FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT) -I$(MPI_ROOT)/include
 #Serial
-FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)
+#FFLAGS  = -FR -O3 -traceback -I$(NETCDF)/include -I$(IOAPI_ROOT)
 #FFLAGS  = -FR -O3 -traceback -check all -I$(NETCDF)/include -I$(IOAPI_ROOT) 
 
 
 #WCOSS-Cray
 #Parallel
-#LIBS     = -L$(IOAPI_ROOT) -lioapi \
-#          -L$(NETCDF)/lib -lnetcdf -lnetcdff -lnetcdf_parallel -lnetcdff_parallel -openmp \
-#          -L$(MPI_ROOT)/lib -lmpich
-#Serial
 LIBS     = -L$(IOAPI_ROOT) -lioapi \
-          -L$(NETCDF)/lib -lnetcdf -lnetcdff -openmp 
+          -L$(NETCDF)/lib -lnetcdf -lnetcdff -openmp \
+          -L$(MPI_ROOT)/lib -lmpich
+#Serial
+#LIBS     = -L$(IOAPI_ROOT) -lioapi \
+#          -L$(NETCDF)/lib -lnetcdf -lnetcdff -openmp 
 
 
 

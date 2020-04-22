@@ -76,13 +76,15 @@ PROGRAM mcip
 !                        (T. Spero)
 !           11 Mar 2020  Added MPI capability to speed up nf90 reads (P. C.
 !                         Campbell)
+!           22 Apr 2020  Added MPI/time splitting to speed up program (P.C. 
+!                        Campbell and Y. Tang
 !-------------------------------------------------------------------------------
 
   USE mcipparm
   USE date_pack
   USE date_time
   USE files
- ! USE mpi
+  USE mpi
 
   IMPLICIT NONE
 
@@ -91,8 +93,9 @@ PROGRAM mcip
   CHARACTER(LEN=24)                 :: mcip_next  ! YYYY-MO-DD-HH:MI:SS.SSSS
   CHARACTER(LEN=24)                 :: mcip_now   ! YYYY-MO-DD-HH:MI:SS.SSSS 
   integer   :: nn
-  ! MPI stuff: error code.
-!  integer   :: ierr 
+  CHARACTER(LEN=16),  PARAMETER     :: pname      = 'MCIP'
+  ! MPI stuff
+  integer   :: ierr,my_rank, p 
 !-------------------------------------------------------------------------------
 ! Error, warning, and informational messages.
 !-------------------------------------------------------------------------------
@@ -104,6 +107,12 @@ PROGRAM mcip
   CHARACTER(LEN=256), PARAMETER :: f200 = "(//, 1x, 78('~'), &
     & /,  1x, '~~~ Metadata summary', &
     & /,  1x, 78('~'), /)"
+
+  CHARACTER(LEN=256), PARAMETER :: f300 = "(/, 1x, 70('*'), &
+    & /, 1x, '*** SUBROUTINE: ', a, &
+    & /, 1x, '***   MISMATCH IN NTIMES AND PROCS', &
+    & /, 1x, '***   NTIMES, PROCS = ', 2(i2), &
+    & /, 1x, 70('*'))"
 
 !-------------------------------------------------------------------------------
 ! Initialize I/O API.
@@ -159,16 +168,27 @@ PROGRAM mcip
 ! Initialize MPI before read meteorology input.
 !-------------------------------------------------------------------------------
 
-!  CALL MPI_Init(ierr)
+  CALL MPI_Init(ierr)
+  CALL MPI_Comm_rank(MPI_COMM_WORLD, my_rank, ierr)
+  CALL MPI_Comm_size(MPI_COMM_WORLD, p, ierr) 
 
 !-------------------------------------------------------------------------------
-! Loop over time to get input, process fields, and write output.
+! MPI Ranks over time to get input, process fields, and write output.
+! Total number of processors/ranks must  = ntimes  
 !-------------------------------------------------------------------------------
-  if(ntimes.le.0) ntimes=999999999 ! assign a large number
-  timeloop: DO nn=1,ntimes
+
+!  if(ntimes.le.0) ntimes=999999999 ! assign a large number
+!  timeloop: DO nn=1,ntimes
+   if(ntimes.ne.p) then
+    WRITE (*,f300) TRIM(pname), ntimes, p
+    CALL graceful_stop (pname)
+   endif
 
     WRITE (*,f100) mcip_now
-    CALL getmet (mcip_now,nn)         ! Read input meteorology file.
+!    CALL getmet (mcip_now,nn)         ! Read input meteorology file.
+     CALL getmet (mcip_now,my_rank+1)
+
+  if(my_rank.eq.0) then
 
     IF ( first ) THEN
       CALL statflds                   ! Put time-independent fields on MCIP grid
@@ -179,18 +199,20 @@ PROGRAM mcip
     CALL dynflds                      ! Put time-varying fields on MCIP grid.
 
     CALL ctmproc                      ! Parse and process time-varying data.
+    
     CALL gridout (sdate, stime)       ! Output time-independent data.
     CALL ctmout  (mcip_now, sdate, stime)        ! Output time-varying data.
-
+   
 
     ! Update SDATE and STIME for next I/O API header.
 
     CALL geth_newdate (mcip_next, mcip_now, intvl*60)
-    IF ( mcip_next > mcip_end ) EXIT timeloop
+!    IF ( mcip_next > mcip_end ) EXIT timeloop
     mcip_now = mcip_next
     CALL getsdt (mcip_now, sdate, stime)
 
-  ENDDO timeloop
+   endif
+!  ENDDO timeloop
 
   WRITE (*,f200)
   WRITE (*,'(a)') fdesc(:)
@@ -199,7 +221,7 @@ PROGRAM mcip
 ! Shutdown MPI.
 !-------------------------------------------------------------------------------
 
-!  CALL MPI_Finalize(ierr)
+  CALL MPI_Finalize(ierr)
 
 !-------------------------------------------------------------------------------
 ! Deallocate arrays.
