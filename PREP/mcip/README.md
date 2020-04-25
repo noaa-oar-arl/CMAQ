@@ -118,9 +118,9 @@ The variables listed here are set by the user in the NACC script (run_mcip.csh),
 -   `WRF_LC_REF_LAT [optional; used only for Lambert conformal projections; default: -999.0]`  
     WRF Lambert Conformal reference latitude. Use this setting to force the reference latitude in the output NACC data. If not set, NACC will use the average of the two true latitudes.
 -   `projparm [FV3GFS-Only; used  to define projection parameters for subset of global grid; example set: GDTYP=2, P_ALP=33., P_BET=45., P_GAM=-97., XCENT=-97., YCENT=40.]`  
-    Required definition of grid projection parameters for FV3GFS. Use this setting to set the subset of the FV3-GFS global domain that is regridded to use in CMAQ.
+    Required definition of grid projection parameters for FV3GFS. Use this setting to subset the FV3-GFS global domain that is regridded to use in CMAQ.
 -   `domains [FV3GFS-Only; used  to define domain grid information for subset of global grid; example set XORIG=-2508000., YORIG=-1716000., DX=12000., DY=12000., NROWS=442, NCOLS=265]`  
-    Required definition of grid domain parameters for FV3GFS. Use this setting to set the subset of the FV3-GFS global domain that is regridded to use in CMAQ.
+    Required definition of grid domain parameters for FV3GFS. Use this setting to subset the FV3-GFS global domain that is regridded to use in CMAQ.
 -   `ntimes [WRF and FV3GFS; default = 0]`  
     Number of times to process for the model
     
