@@ -56,12 +56,20 @@ The variables listed here are set by the user in the NACC script (run_mcip.csh),
     Working directory containing the NACC executable
 -   `WorkDir [default: $OutDir]`  
     Temporary working directory for Fortran links and the namelist file
--   `InMetFiles [default: None]`  
-    List of input meteorology files, including the directory path for each file; without modifying NACC, up to 300 meteorological model output files are allowed as input to a single NACC execution
+-   `InMetFiles [WRF;  default: None]`  
+    List of input meteorology files for WRF, including the directory path for each file; without modifying NACC, up to 300 meteorological model output files are allowed as input to a single NACC execution
+    -   `file_mm [WRF or FV3;  default: None]`  
+    Input 2d/3dmeteorology files for WRF or FV3, including the directory path for each file; without modifying NACC, up to 300 meteorological model output files are allowed as input to a single NACC execution
+    -   `file_sfc [FV3;  default: None]`  
+    Input 2d-only surface meteorology files for FV3, including the directory path for each file; without modifying NACC, up to 300 meteorological model output files are allowed as input to a single NACC execution
 -   `IfGeo [default: F]`  
     Binary flag indicating the availability of an input WRF or FV3-GFS Geogrid file; options include T (true) or F (false)
--   `InGeoFile [default: None]`  
-    Name and location of input WRF or FV3-GFS Geogrid file
+-   `InGeoFile [WRF; default: None]`  
+    Name and location of input WRF Geogrid file
+    -   `file_geo [FV3;  default: None]`  
+    Input geographic file for WRF or FV3, including the directory path for each file; without modifying NACC, up to 300 meteorological model output files are allowed as input to a single NACC execution
+    -   `InMetModel [default: 2]`  
+    Specific meteorological input model (Current supported models; WRF = 2, FV3GFS = 3)
 -   `LPV: [default: 0]`  
     Compute and output potential vorticity. This must be activated to support the [CCTM O3 potential vorticity scaling](../../CCTM/docs/ReleaseNotes/Potential_Vorticity_Scaling.md).
     -   `0`: Do not compute and output potential vorticity
@@ -80,6 +88,9 @@ The variables listed here are set by the user in the NACC script (run_mcip.csh),
     End date and time (UTC) of data to output from NACC. The end date and time must be contained within the input data from WRF or FV3-GFS.
 -   `INTVL [default: 60]`  
     Output interval in minutes. This setting determines the amount of model time contained in each output time step. The output interval for NACC can be less frequent than the incoming meteorological model output (e.g., process 30-minute data for CCTM from 15-minute WRF output).
+-   `CTMLAYS [default: -1.0]`  
+    Set CTM layers.  Should be in descending order starting at 1 and ending with 0.  There is currently a maximum of 200 layers allowed.
+    To use all of the layers from the input meteorology without collapsing (or explicitly specifying), set CTMLAYS = -1.0.
 -   `MKGRID [default: T]`  
     Determines whether to output static (GRID) meteorology files
 -   `IOFORM [default: 1]`  
@@ -104,7 +115,17 @@ The variables listed here are set by the user in the NACC script (run_mcip.csh),
     Row cell coordinate for diagnostic outputs on the NACC modeling domain
 -   `WRF_LC_REF_LAT [optional; used only for Lambert conformal projections; default: -999.0]`  
     WRF Lambert Conformal reference latitude. Use this setting to force the reference latitude in the output NACC data. If not set, NACC will use the average of the two true latitudes.
-
+-   `projparm [FV3GFS-Only; used  to define projection parameters for subset of global grid; example set: GDTYP=2, P_ALP=33., P_BET=45., P_GAM=-97., XCENT=-97., YCENT=40.]`  
+    Defined grid projection parameters. Use this setting to set the subset of the FV3-GFS global domain that is regridded to use in CMAQ.
+    -   `domains [FV3GFS-Only; used  to define domain grid information for subset of global grid; example set XORIG=-2508000, YORIG=-1716000., DX=12000., DY=12000., NROWS=442, NCOLS=265]`  
+    Defined grid projection parameters. Use this setting to set the subset of the FV3-GFS global domain that is regridded to use in CMAQ.
+    -   `ntimes [WRF and FV3GFS; default = 0]`  
+    Number of times to process for the model
+    
+  
+    
+    
+    
 
 ## Compiling and Running
 
